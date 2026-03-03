@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, X, ImageIcon, Loader2, Save } from "lucide-react"
 import Link from "next/link"
@@ -24,6 +25,7 @@ const categoriesMap = {
 interface CourseData {
   id: string
   judul: string
+  deskripsi?: string | null
   kategori: string
   gambar: string | null
 }
@@ -39,11 +41,13 @@ export default function EditCoursePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [category, setCategory] = useState("")
   const [thumbnail, setThumbnail] = useState<string | null>(null)
   
   // Store original values to check if there are changes
   const [originalTitle, setOriginalTitle] = useState("")
+  const [originalDescription, setOriginalDescription] = useState("")
   const [originalCategory, setOriginalCategory] = useState("")
   const [originalThumbnail, setOriginalThumbnail] = useState<string | null>(null)
 
@@ -52,6 +56,7 @@ export default function EditCoursePage() {
   // Check if there are any changes
   const hasChanges = 
     title !== originalTitle || 
+    description !== originalDescription ||
     category !== originalCategory || 
     thumbnail !== originalThumbnail
 
@@ -78,11 +83,13 @@ export default function EditCoursePage() {
         
         // Set current values
         setTitle(course.judul || "")
+        setDescription(course.deskripsi || "")
         setCategory(course.kategori || "")
         setThumbnail(course.gambar || null)
         
         // Set original values
         setOriginalTitle(course.judul || "")
+        setOriginalDescription(course.deskripsi || "")
         setOriginalCategory(course.kategori || "")
         setOriginalThumbnail(course.gambar || null)
       } catch (err: any) {
@@ -117,6 +124,7 @@ export default function EditCoursePage() {
       
       const courseData = {
         judul: title.trim(),
+        deskripsi: description.trim() || null,
         kategori: category,
         gambar: thumbnail || "/placeholder.svg",
       }
@@ -145,6 +153,7 @@ export default function EditCoursePage() {
           onSuccess: () => {
             setTimeout(() => {
               router.push("/courses")
+              router.refresh()
             }, 1000)
           },
         }
@@ -253,6 +262,18 @@ export default function EditCoursePage() {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">{t("Deskripsi Kursus")}</Label>
+              <Textarea
+                id="description"
+                placeholder={t("Jelaskan apa yang akan dipelajari siswa dalam kursus ini...")}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={4}
               />
             </div>
 

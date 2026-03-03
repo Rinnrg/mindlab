@@ -50,13 +50,14 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { judul, gambar, kategori, guruId } = body
+    const { judul, deskripsi, gambar, kategori, guruId } = body
 
     console.log('Updating course:', id, 'with data:', body)
 
     // Build update data object
     const updateData: any = {}
     if (judul !== undefined) updateData.judul = judul
+    if (deskripsi !== undefined) updateData.deskripsi = deskripsi
     if (gambar !== undefined) updateData.gambar = gambar
     if (kategori !== undefined) updateData.kategori = kategori
     if (guruId !== undefined) updateData.guruId = guruId

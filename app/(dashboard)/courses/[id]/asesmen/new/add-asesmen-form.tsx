@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
-import { Loader2, Plus, Trash2, Check, X, AlertCircle } from "lucide-react"
+import { Loader2, Plus, Trash2, Check, X, AlertCircle, Users } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -77,6 +78,59 @@ export default function AddAsesmenForm({ courseId, courseTitle }: AddAsesmenForm
     lampiran: "",
     antiCurang: false,
   })
+  const [kelasTarget, setKelasTarget] = useState<string[]>([])
+  const [enrollments, setEnrollments] = useState<any[]>([])
+  const [availableKelas, setAvailableKelas] = useState<string[]>([])
+  const [isLoadingEnrollments, setIsLoadingEnrollments] = useState(true)
+
+  // Fetch enrollments untuk mendapatkan kelas yang ada di course
+  useEffect(() => {
+    const fetchEnrollments = async () => {
+      try {
+        setIsLoadingEnrollments(true)
+        const response = await fetch(`/api/courses/${courseId}/enrollments`)
+        if (response.ok) {
+          const data = await response.json()
+          setEnrollments(data)
+          
+          // Extract unique kelas dari enrollments
+          const kelasSet = new Set<string>()
+          data.forEach((enrollment: any) => {
+            if (enrollment.siswa?.kelas) {
+              kelasSet.add(enrollment.siswa.kelas)
+            }
+          })
+          setAvailableKelas(Array.from(kelasSet).sort())
+        }
+      } catch (error) {
+        console.error('Error fetching enrollments:', error)
+      } finally {
+        setIsLoadingEnrollments(false)
+      }
+    }
+
+    fetchEnrollments()
+  }, [courseId])
+
+  const handleKelasChange = (kelas: string, checked: boolean) => {
+    if (checked) {
+      setKelasTarget(prev => [...prev, kelas])
+    } else {
+      setKelasTarget(prev => prev.filter(k => k !== kelas))
+    }
+  }
+
+  // Get student count per kelas
+  const getStudentCountForKelas = (kelas: string) => {
+    return enrollments.filter(enrollment => enrollment.siswa?.kelas === kelas).length
+  }
+
+  // Get total enrolled students for selected kelas
+  const getTotalEnrolledStudents = () => {
+    return kelasTarget.reduce((total, kelas) => {
+      return total + getStudentCountForKelas(kelas)
+    }, 0)
+  }
 
   // Show loading state while auth is loading
   if (authLoading) {
@@ -307,6 +361,7 @@ export default function AddAsesmenForm({ courseId, courseTitle }: AddAsesmenForm
         const bodyData: any = {
           nama: formData.nama,
           deskripsi: formData.deskripsi || null,
+          kelasTarget: kelasTarget,
           tipe: formData.tipe,
           tipePengerjaan: formData.tipe === 'TUGAS' ? formData.tipePengerjaan : null,
           tgl_mulai: toISOWithTimezone(formData.tgl_mulai),
@@ -608,6 +663,72 @@ export default function AddAsesmenForm({ courseId, courseTitle }: AddAsesmenForm
               placeholder="Masukkan deskripsi asesmen"
               rows={4}
             />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Enrollment Kelas</Label>
+            <p className="text-sm text-muted-foreground">
+              Pilih kelas yang dapat mengakses asesmen ini berdasarkan siswa yang terdaftar di course. Kosongkan untuk semua siswa.
+            </p>
+            
+            {isLoadingEnrollments ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <span className="text-sm text-muted-foreground">Memuat data enrollment...</span>
+              </div>
+            ) : availableKelas.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {availableKelas.map((kelas) => {
+                    const studentCount = getStudentCountForKelas(kelas)
+                    return (
+                      <div key={kelas} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`asesmen-kelas-${kelas}`}
+                            checked={kelasTarget.includes(kelas)}
+                            onCheckedChange={(checked) => handleKelasChange(kelas, checked as boolean)}
+                          />
+                          <Label htmlFor={`asesmen-kelas-${kelas}`} className="text-sm font-normal cursor-pointer">
+                            {kelas}
+                          </Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {kelasTarget.includes(kelas) && (
+                            <Badge variant="default" className="text-xs px-2 py-0">
+                              Enrolled
+                            </Badge>
+                          )}
+                          <Badge variant="secondary" className="text-xs px-2 py-0">
+                            {studentCount} siswa
+                          </Badge>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                {kelasTarget.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-1">
+                      {kelasTarget.map((kelas) => (
+                        <Badge key={kelas} variant="secondary" className="text-xs">
+                          {kelas} ({getStudentCountForKelas(kelas)} siswa)
+                        </Badge>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded-md">
+                      📊 Total: {kelasTarget.length} kelas dipilih • {getTotalEnrolledStudents()} siswa akan mendapat akses
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Belum ada siswa yang terdaftar di course ini</p>
+                <p className="text-xs">Tambahkan siswa terlebih dahulu untuk menggunakan enrollment kelas</p>
+              </div>
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">

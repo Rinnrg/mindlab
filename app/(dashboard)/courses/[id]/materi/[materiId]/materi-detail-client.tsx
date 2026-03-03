@@ -78,11 +78,6 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
   // Set custom breadcrumb with useMemo to prevent re-renders
   const breadcrumbItems = useMemo(() => [
     {
-      label: 'Dashboard',
-      href: '/dashboard',
-      icon: <BookOpen className="h-4 w-4" />
-    },
-    {
       label: 'Kursus',
       href: '/courses',
       icon: <BookOpen className="h-4 w-4" />

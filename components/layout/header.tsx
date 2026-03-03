@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
+import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { cn } from "@/lib/utils"
 import { Bell, Moon, Sun, Search, LogOut, User, Languages } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,7 @@ export function Header({ onMenuClick, isMobile }: HeaderProps) {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useAutoTranslate()
+  const { navigationMode } = useNavigationMode()
   const router = useRouter()
   const [showSearchDialog, setShowSearchDialog] = useState(false)
   const { confirm, success, AlertComponent } = useAdaptiveAlert()
@@ -76,6 +78,15 @@ export function Header({ onMenuClick, isMobile }: HeaderProps) {
       "transform-gpu backface-hidden",
     )}>
       <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-2xl">
+        {/* Logo saat mode dock dan tidak mobile */}
+        {!isMobile && navigationMode === "dock" && (
+          <Link href="/dashboard" className="flex items-center gap-2 mr-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0">
+              <img src="/logo projecta.svg" alt="Projecta Logo" className="h-8 w-8 object-contain" />
+            </div>
+          </Link>
+        )}
+
         {/* Desktop Search - Dropdown */}
         {!isMobile && (
           <div className="flex-1 max-w-md">

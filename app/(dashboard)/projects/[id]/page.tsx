@@ -268,12 +268,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       <AnimateIn stagger={1}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           <div className="overflow-visible">
-            <TabsList className="inline-flex w-max sm:w-auto">
-              <TabsTrigger value="overview" className="text-xs sm:text-sm">{t("Overview")}</TabsTrigger>
-              <TabsTrigger value="kelompok" className="text-xs sm:text-sm">{t("Kelompok")}</TabsTrigger>
+            <TabsList className="ios-tab-list">
+              <TabsTrigger value="overview" className="ios-tab-trigger">
+                <BookOpen className="ios-tab-icon" />
+                <span className="ios-tab-text">{t("Overview")}</span>
+              </TabsTrigger>
+              <TabsTrigger value="kelompok" className="ios-tab-trigger">
+                <Users className="ios-tab-icon" />
+                <span className="ios-tab-text">{t("Kelompok")}</span>
+              </TabsTrigger>
               {activeSintaksPhases.map((phase) => (
-                <TabsTrigger key={phase.key} value={phase.key} className="text-xs sm:text-sm">
-                  {phase.icon} <span className="hidden sm:inline ml-1">{t(phase.title)}</span>
+                <TabsTrigger key={phase.key} value={phase.key} className="ios-tab-trigger">
+                  {phase.icon} <span className="ios-tab-text">{t(phase.title)}</span>
                 </TabsTrigger>
               ))}
             </TabsList>

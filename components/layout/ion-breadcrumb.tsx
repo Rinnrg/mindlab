@@ -87,14 +87,7 @@ export function IonStyleBreadcrumb({ className }: IonStyleBreadcrumbProps) {
   const pathSegments = pathname.split('/').filter(Boolean)
   
   // Create breadcrumb items
-  const breadcrumbItems = []
-  
-  // Always start with Home
-  breadcrumbItems.push({
-    label: 'Home',
-    href: '/dashboard',
-    active: false
-  })
+  const breadcrumbItems: { label: string; href?: string; active: boolean }[] = []
 
   // Build path progressively
   let currentPath = ''
@@ -102,21 +95,46 @@ export function IonStyleBreadcrumb({ className }: IonStyleBreadcrumbProps) {
     currentPath += `/${segment}`
     const isActive = index === pathSegments.length - 1
     
+    // Skip dashboard
+    if (segment === 'dashboard') return
+    
     // Map common segments to readable names
     const segmentLabels: { [key: string]: string } = {
-      'courses': 'Courses',
-      'projects': 'Projects',
-      'proyek': 'My Projects', 
-      'users': 'Users',
-      'schedule': 'Schedule',
-      'profile': 'Profile',
-      'settings': 'Settings',
-      'materi': 'Materials',
-      'asesmen': 'Assessment',
+      'courses': 'Kursus',
+      'projects': 'Proyek',
+      'proyek': 'Proyek Saya', 
+      'users': 'Pengguna',
+      'schedule': 'Jadwal',
+      'profile': 'Profil',
+      'settings': 'Pengaturan',
+      'materi': 'Materi',
+      'asesmen': 'Asesmen',
       'compiler': 'Compiler',
-      'add': 'Add',
+      'add': 'Tambah',
+      'new': 'Tambah',
       'edit': 'Edit',
-      'kelompok': 'Groups'
+      'submit': 'Kumpulkan',
+      'kuis': 'Kuis',
+      'kelompok': 'Kelompok',
+      'students': 'Siswa',
+      'nilai': 'Nilai',
+      'pengumpulan': 'Pengumpulan',
+      'activity': 'Aktivitas',
+      'stats': 'Statistik',
+      'search': 'Pencarian',
+      'sintaks_1': 'Sintaks 1',
+      'sintaks_2': 'Sintaks 2',
+      'sintaks_3': 'Sintaks 3',
+      'sintaks_4': 'Sintaks 4',
+      'sintaks_5': 'Sintaks 5',
+      'sintaks_6': 'Sintaks 6',
+      'sintaks_7': 'Sintaks 7',
+      'sintaks_8': 'Sintaks 8',
+    }
+
+    // Skip dynamic IDs
+    if (/^[0-9a-fA-F]{24}$/.test(segment) || /^[0-9a-fA-Z]{15,}$/.test(segment) || /^[0-9]+$/.test(segment)) {
+      return
     }
     
     const label = segmentLabels[segment] || 

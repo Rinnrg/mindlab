@@ -54,6 +54,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     const transformedCourse: Course = {
       id: course.id,
       judul: course.judul,
+      deskripsi: course.deskripsi || undefined,
       gambar: course.gambar,
       kategori: course.kategori,
       guruId: course.guru?.id || '',
@@ -69,6 +70,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         id: m.id,
         judul: m.judul,
         deskripsi: m.deskripsi || undefined,
+        kelasTarget: m.kelasTarget,
         tgl_unggah: m.tgl_unggah,
         lampiran: m.lampiran || undefined,
         courseId: course.id,
@@ -77,6 +79,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
         id: a.id,
         nama: a.nama,
         deskripsi: a.deskripsi || undefined,
+        kelasTarget: a.kelasTarget,
         tipe: a.tipe,
         tipePengerjaan: a.tipePengerjaan,
         jml_soal: a.jml_soal,

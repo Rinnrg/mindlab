@@ -36,6 +36,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
+import { ForumDiskusiAsesmen } from "@/components/forum-diskusi-asesmen"
 
 interface PageProps {
   params: Promise<{ 
@@ -310,34 +311,6 @@ export default function AsesmenDetailPage({ params }: PageProps) {
                     <Plus className="mr-2 h-4 w-4" />
                     Tambah Soal
                   </Link>
-                </Button>
-                <Button 
-                  variant="secondary" 
-                  onClick={async () => {
-                    try {
-                      const response = await fetch(`/api/asesmen/${asesmenId}/export-excel`)
-                      if (response.ok) {
-                        const blob = await response.blob()
-                        const url = window.URL.createObjectURL(blob)
-                        const a = document.createElement('a')
-                        a.href = url
-                        a.download = `Nilai_Kuis_${asesmen.nama.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
-                        document.body.appendChild(a)
-                        a.click()
-                        window.URL.revokeObjectURL(url)
-                        document.body.removeChild(a)
-                      } else {
-                        const error = await response.json()
-                        alert(error.error || 'Gagal mengekspor data')
-                      }
-                    } catch (error) {
-                      console.error('Error downloading Excel:', error)
-                      alert('Terjadi kesalahan saat mengunduh file')
-                    }
-                  }}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Excel
                 </Button>
               </>
             )}
@@ -989,14 +962,14 @@ export default function AsesmenDetailPage({ params }: PageProps) {
           }}
           className="space-y-4"
         >
-          <TabsList>
-            <TabsTrigger value="info">
-              <FileText className="mr-2 h-4 w-4" />
-              Informasi
+          <TabsList className="ios-tab-list">
+            <TabsTrigger value="info" className="ios-tab-trigger">
+              <FileText className="ios-tab-icon" />
+              <span className="ios-tab-text">Informasi</span>
             </TabsTrigger>
-            <TabsTrigger value="rekap">
-              <ClipboardList className="mr-2 h-4 w-4" />
-              Rekap Pengumpulan
+            <TabsTrigger value="rekap" className="ios-tab-trigger">
+              <ClipboardList className="ios-tab-icon" />
+              <span className="ios-tab-text">Rekap Pengumpulan</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1072,12 +1045,45 @@ export default function AsesmenDetailPage({ params }: PageProps) {
             {asesmen.tipe === 'TUGAS' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">
-                    Rekap Pengumpulan {asesmen.tipePengerjaan === 'KELOMPOK' ? '(Kelompok)' : '(Individu)'}
-                  </CardTitle>
-                  <CardDescription>
-                    Daftar siswa yang telah mengumpulkan tugas beserta nilainya
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">
+                        Rekap Pengumpulan {asesmen.tipePengerjaan === 'KELOMPOK' ? '(Kelompok)' : '(Individu)'}
+                      </CardTitle>
+                      <CardDescription>
+                        Daftar siswa yang telah mengumpulkan tugas beserta nilainya
+                      </CardDescription>
+                    </div>
+                    {asesmen.pengumpulanProyek && asesmen.pengumpulanProyek.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/asesmen/${asesmen.id}/export-excel`)
+                            if (response.ok) {
+                              const blob = await response.blob()
+                              const url = window.URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = `Rekap_Tugas_${asesmen.nama.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
+                              document.body.appendChild(a)
+                              a.click()
+                              window.URL.revokeObjectURL(url)
+                              document.body.removeChild(a)
+                            } else {
+                              console.error('Failed to export Excel')
+                            }
+                          } catch (error) {
+                            console.error('Error exporting Excel:', error)
+                          }
+                        }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Excel
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {(!asesmen.pengumpulanProyek || asesmen.pengumpulanProyek.length === 0) ? (
@@ -1167,10 +1173,43 @@ export default function AsesmenDetailPage({ params }: PageProps) {
             {asesmen.tipe === 'KUIS' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Rekap Nilai Kuis</CardTitle>
-                  <CardDescription>
-                    Ringkasan nilai siswa yang sudah mengerjakan kuis
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Rekap Nilai Kuis</CardTitle>
+                      <CardDescription>
+                        Ringkasan nilai siswa yang sudah mengerjakan kuis
+                      </CardDescription>
+                    </div>
+                    {asesmen.nilai && asesmen.nilai.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const response = await fetch(`/api/asesmen/${asesmen.id}/export-excel`)
+                            if (response.ok) {
+                              const blob = await response.blob()
+                              const url = window.URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = `Nilai_Kuis_${asesmen.nama.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
+                              document.body.appendChild(a)
+                              a.click()
+                              window.URL.revokeObjectURL(url)
+                              document.body.removeChild(a)
+                            } else {
+                              console.error('Failed to export Excel')
+                            }
+                          } catch (error) {
+                            console.error('Error exporting Excel:', error)
+                          }
+                        }}
+                      >
+                        <Download className="mr-2 h-4 w-4" />
+                        Export Excel
+                      </Button>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {(!asesmen.nilai || asesmen.nilai.length === 0) ? (
@@ -1263,6 +1302,21 @@ export default function AsesmenDetailPage({ params }: PageProps) {
           </TabsContent>
         </Tabs>
       )}
+
+      {/* Forum Diskusi - Guru/Admin selalu muncul, Siswa hanya setelah selesai mengerjakan */}
+      <ForumDiskusiAsesmen
+        asesmenId={asesmenId}
+        userId={user.id}
+        userRole={user.role}
+        userName={user.nama}
+        userFoto={user.foto}
+        hasCompleted={
+          asesmen.tipe === 'KUIS'
+            ? !!studentNilai
+            : !!studentPengumpulan || hasSubmitted
+        }
+        isTeacherOrAdmin={!!isTeacherOrAdmin}
+      />
     </div>
   )
 }

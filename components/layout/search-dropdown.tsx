@@ -261,6 +261,10 @@ export function SearchDropdown() {
     // Add materi from search results
     const materiCategory = isRecent ? t("Materi Terbaru") : t("Materi")
     searchResults.materi.forEach((materi) => {
+      const enrollmentBadge = materi.kelasTarget && materi.kelasTarget.length > 0 
+        ? `${materi.kelasTarget.length} kelas enrolled` 
+        : "Semua siswa"
+      
       items.push({
         id: `materi-${materi.id}`,
         title: materi.judul,
@@ -268,7 +272,7 @@ export function SearchDropdown() {
         icon: BookMarked,
         href: `/courses/${materi.courseId || materi.course.id}/materi/${materi.id}`,
         category: materiCategory,
-        badge: materi.course.kategori,
+        badge: enrollmentBadge,
       })
     })
 
@@ -276,18 +280,19 @@ export function SearchDropdown() {
     const asesmenCategory = isRecent ? t("Asesmen Terbaru") : t("Asesmen")
     searchResults.asesmen.forEach((asesmen) => {
       const tipeLabel = asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'
-      const badge = asesmen.tipe === 'KUIS' 
-        ? `${asesmen._count.soal} soal` 
-        : tipeLabel
+      const soalBadge = asesmen.tipe === 'KUIS' ? `${asesmen._count.soal} soal` : tipeLabel
+      const enrollmentInfo = asesmen.kelasTarget && asesmen.kelasTarget.length > 0 
+        ? ` • ${asesmen.kelasTarget.length} kelas enrolled` 
+        : " • Semua siswa"
       
       items.push({
         id: `asesmen-${asesmen.id}`,
         title: asesmen.nama,
-        description: `${asesmen.course.judul} • ${asesmen.deskripsi?.substring(0, 50) || tipeLabel}`,
+        description: `${asesmen.course.judul} • ${asesmen.deskripsi?.substring(0, 50) || tipeLabel}${enrollmentInfo}`,
         icon: asesmen.tipe === 'KUIS' ? FileText : ClipboardList,
         href: `/courses/${asesmen.courseId || asesmen.course.id}/asesmen/${asesmen.id}`,
         category: asesmenCategory,
-        badge: badge,
+        badge: soalBadge,
         badgeVariant: asesmen.tipe === 'KUIS' ? 'default' : 'secondary',
       })
     })

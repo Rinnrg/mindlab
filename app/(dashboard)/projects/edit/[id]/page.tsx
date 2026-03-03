@@ -174,6 +174,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           onSuccess: () => {
             setTimeout(() => {
               router.push(`/projects/${projectId}`)
+              router.refresh()
             }, 1500)
           },
         }

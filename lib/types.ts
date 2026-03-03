@@ -18,6 +18,7 @@ export interface User {
 export interface Course {
   id: string
   judul: string
+  deskripsi?: string
   gambar: string
   kategori: string
   guruId: string
@@ -30,6 +31,7 @@ export interface Materi {
   id: string
   judul: string
   deskripsi?: string
+  kelasTarget?: string[]
   tgl_unggah: Date
   lampiran?: string
   courseId: string
@@ -39,6 +41,7 @@ export interface Asesmen {
   id: string
   nama: string
   deskripsi?: string
+  kelasTarget?: string[]
   tipe: TipeAsesmen
   tipePengerjaan?: TipePengerjaan
   jml_soal?: number | null  // Optional - akan dihitung dari jumlah soal

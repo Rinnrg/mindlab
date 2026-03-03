@@ -23,34 +23,45 @@ interface BreadcrumbConfig {
 }
 
 const breadcrumbConfig: BreadcrumbConfig = {
-  '/': { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-  '/dashboard': { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-  '/courses': { label: 'Kursus' },
-  '/materi': { label: 'Materi' },
-  '/asesmen': { label: 'Asesmen' },
-  '/projects': { label: 'Proyek' },
-  '/proyek': { label: 'Proyek Saya' },
-  '/users': { label: 'Pengguna' },
-  '/schedule': { label: 'Jadwal' },
-  '/profile': { label: 'Profil' },
-  '/settings': { label: 'Pengaturan' },
-  '/compiler': { label: 'Compiler' },
-  '/add': { label: 'Tambah' },
-  '/edit': { label: 'Edit' },
-  '/kelompok': { label: 'Kelompok' },
-  '/sintaks_1': { label: 'Sintaks 1: Orientasi Masalah' },
-  '/sintaks_2': { label: 'Sintaks 2: Organisasi Belajar' },
-  '/sintaks_3': { label: 'Sintaks 3: Investigasi Individual/Kelompok' },
-  '/sintaks_4': { label: 'Sintaks 4: Pengembangan dan Penyajian' },
-  '/sintaks_5': { label: 'Sintaks 5: Analisis dan Evaluasi' },
-  '/sintaks_6': { label: 'Sintaks 6: Refleksi' },
-  '/sintaks_7': { label: 'Sintaks 7: Assessment' },
-  '/sintaks_8': { label: 'Sintaks 8: Closure' },
-  '/nilai': { label: 'Nilai' },
-  '/pengumpulan': { label: 'Pengumpulan' },
-  '/activity': { label: 'Aktivitas' },
-  '/stats': { label: 'Statistik' },
-  '/search': { label: 'Pencarian' },
+  'dashboard': { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
+  'courses': { label: 'Kursus' },
+  'materi': { label: 'Materi' },
+  'asesmen': { label: 'Asesmen' },
+  'projects': { label: 'Proyek' },
+  'proyek': { label: 'Proyek Saya' },
+  'users': { label: 'Pengguna' },
+  'schedule': { label: 'Jadwal' },
+  'profile': { label: 'Profil' },
+  'settings': { label: 'Pengaturan' },
+  'compiler': { label: 'Compiler' },
+  'add': { label: 'Tambah' },
+  'new': { label: 'Tambah' },
+  'edit': { label: 'Edit' },
+  'submit': { label: 'Kumpulkan' },
+  'kuis': { label: 'Kuis' },
+  'kelompok': { label: 'Kelompok' },
+  'students': { label: 'Siswa' },
+  'sintaks_1': { label: 'Sintaks 1: Orientasi Masalah' },
+  'sintaks_2': { label: 'Sintaks 2: Organisasi Belajar' },
+  'sintaks_3': { label: 'Sintaks 3: Investigasi' },
+  'sintaks_4': { label: 'Sintaks 4: Pengembangan' },
+  'sintaks_5': { label: 'Sintaks 5: Analisis & Evaluasi' },
+  'sintaks_6': { label: 'Sintaks 6: Refleksi' },
+  'sintaks_7': { label: 'Sintaks 7: Assessment' },
+  'sintaks_8': { label: 'Sintaks 8: Closure' },
+  'nilai': { label: 'Nilai' },
+  'pengumpulan': { label: 'Pengumpulan' },
+  'activity': { label: 'Aktivitas' },
+  'stats': { label: 'Statistik' },
+  'search': { label: 'Pencarian' },
+}
+
+// Helper: detect whether a segment is a dynamic ID
+function isIdSegment(seg: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(seg)
+    || /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}/.test(seg)
+    || /^[0-9a-fA-Z]{15,}$/.test(seg)
+    || /^[0-9]+$/.test(seg)
 }
 
 interface AppBreadcrumbProps {
@@ -69,35 +80,23 @@ export function AppBreadcrumb({ className }: AppBreadcrumbProps) {
   const pathSegments = pathname.split('/').filter(Boolean)
   const breadcrumbs = []
 
-  // Always start with Dashboard
-  breadcrumbs.push({
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: <Home className="h-4 w-4" />,
-    isActive: false
-  })
-
   // Build breadcrumbs from path segments
   let currentPath = ''
   for (let i = 0; i < pathSegments.length; i++) {
     const segment = pathSegments[i]
     currentPath += `/${segment}`
     
-    const config = breadcrumbConfig[`/${segment}`] || breadcrumbConfig[currentPath]
+    // Skip dashboard — tidak perlu ditampilkan
+    if (segment === 'dashboard') continue
+
+    // Skip dynamic IDs
+    if (isIdSegment(segment)) continue
+    
+    const config = breadcrumbConfig[segment]
     const isActive = i === pathSegments.length - 1
     
-    // Handle dynamic routes (like [id])
-    let label = config?.label || segment
-    
-    // If it's a dynamic ID, try to make it more readable
-    if (!config && segment.length > 10 && segment.includes('-')) {
-      label = 'Detail'
-    } else if (!config && /^[0-9a-f]{24}$/.test(segment)) {
-      label = 'Detail'
-    } else if (!config) {
-      // Capitalize first letter and replace dashes with spaces
-      label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
-    }
+    // Get label from config or auto-generate
+    let label = config?.label || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ').replace(/_/g, ' ')
 
     breadcrumbs.push({
       label,

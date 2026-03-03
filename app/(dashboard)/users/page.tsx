@@ -113,6 +113,7 @@ export default function UsersPage() {
               throw new Error(data.error || 'Gagal menghapus user')
             }
             await refetch()
+            router.refresh()
           },
           {
             loadingMessage: t("Menghapus pengguna..."),

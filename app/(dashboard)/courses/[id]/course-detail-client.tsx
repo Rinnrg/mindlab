@@ -25,8 +25,11 @@ import {
   BookOpen,
   MoreHorizontal,
   Trash2,
+  Eye,
+  Mail,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import AddStudentDialog from "./add-student-dialog"
@@ -65,32 +68,65 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
 
   // Set custom breadcrumb with useMemo to prevent re-renders
-  const breadcrumbItems = useMemo(() => [
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-      icon: <BookOpen className="h-4 w-4" />
-    },
-    {
-      label: 'Kursus',
-      href: '/courses',
-      icon: <BookOpen className="h-4 w-4" />
-    },
-    {
-      label: course.judul,
-      icon: <BookOpen className="h-4 w-4" />
-    }
-  ], [course.judul])
+  const breadcrumbItems = useMemo(() => {
+    if (!course?.judul) return []
+    
+    return [
+      {
+        label: 'Kursus',
+        href: '/courses',
+        icon: <BookOpen className="h-4 w-4" />
+      },
+      {
+        label: course.judul,
+        icon: <BookOpen className="h-4 w-4" />
+      }
+    ]
+  }, [course?.judul])
 
-  useBreadcrumbPage(course.judul, breadcrumbItems)
+  // Only set breadcrumb when course data is available
+  useBreadcrumbPage(course?.judul || 'Loading...', breadcrumbItems.length > 0 ? breadcrumbItems : undefined)
+
+  const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
+
+  // Filter materi dan asesmen berdasarkan kelas siswa
+  const filteredMateri = useMemo(() => {
+    if (isTeacherOrAdmin || !user?.kelas) {
+      // Guru/Admin melihat semua materi, atau jika user tidak memiliki kelas
+      return course.materi || []
+    }
+    
+    return (course.materi || []).filter((materi) => {
+      // Jika kelasTarget kosong, berarti untuk semua kelas
+      if (!materi.kelasTarget || materi.kelasTarget.length === 0) {
+        return true
+      }
+      // Cek apakah kelas siswa termasuk dalam kelasTarget
+      return materi.kelasTarget.includes(user.kelas)
+    })
+  }, [course.materi, user?.kelas, isTeacherOrAdmin])
+
+  const filteredAsesmen = useMemo(() => {
+    if (isTeacherOrAdmin || !user?.kelas) {
+      // Guru/Admin melihat semua asesmen, atau jika user tidak memiliki kelas
+      return assessments || []
+    }
+    
+    return (assessments || []).filter((asesmen) => {
+      // Jika kelasTarget kosong, berarti untuk semua kelas
+      if (!asesmen.kelasTarget || asesmen.kelasTarget.length === 0) {
+        return true
+      }
+      // Cek apakah kelas siswa termasuk dalam kelasTarget
+      return asesmen.kelasTarget.includes(user.kelas)
+    })
+  }, [assessments, user?.kelas, isTeacherOrAdmin])
 
   // TODO: Implement completed tracking in the database
   const completedCount = 0
-  const progressPercent = course.materi && course.materi.length > 0 
-    ? Math.round((completedCount / course.materi.length) * 100) 
+  const progressPercent = filteredMateri && filteredMateri.length > 0 
+    ? Math.round((completedCount / filteredMateri.length) * 100) 
     : 0
-
-  const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
 
   // Group enrollments by kelas
   const groupedEnrollments = useMemo(() => {
@@ -255,7 +291,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
       
       {/* Course Header - iOS Glass */}
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
           <div className="relative aspect-video overflow-hidden rounded-2xl sm:rounded-3xl border border-border/30">
             <img
               src={course.gambar || "/placeholder.svg?height=400&width=700&query=course"}
@@ -270,6 +306,16 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
               <h1 className="text-lg font-bold text-background sm:text-2xl md:text-3xl text-balance">{course.judul}</h1>
             </div>
           </div>
+          
+          {/* Course Description */}
+          {course.deskripsi && (
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardContent className="p-4 sm:p-6">
+                <h3 className="text-base font-semibold mb-3">Deskripsi Course</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{course.deskripsi}</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Course Info Card - iOS Glass */}
@@ -310,14 +356,14 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
               <div className="rounded-xl ios-glass-inset p-3 text-center sm:p-4">
                 <div className="flex items-center justify-center gap-1.5 text-primary mb-0.5 sm:gap-2 sm:mb-1">
                   <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="text-xl font-bold sm:text-2xl">{course.materi?.length || 0}</span>
+                  <span className="text-xl font-bold sm:text-2xl">{filteredMateri?.length || 0}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Materi</p>
               </div>
               <div className="rounded-xl ios-glass-inset p-3 text-center sm:p-4">
                 <div className="flex items-center justify-center gap-1.5 text-primary mb-0.5 sm:gap-2 sm:mb-1">
                   <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="text-xl font-bold sm:text-2xl">{assessments.length}</span>
+                  <span className="text-xl font-bold sm:text-2xl">{filteredAsesmen.length}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Asesmen</p>
               </div>
@@ -331,7 +377,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                 </div>
                 <Progress value={progressPercent} className="h-1.5 sm:h-2" />
                 <p className="text-xs text-muted-foreground">
-                  {completedCount} dari {course.materi?.length || 0} materi selesai
+                  {completedCount} dari {filteredMateri?.length || 0} materi selesai
                 </p>
               </div>
             )}
@@ -362,16 +408,19 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         setTabKey(prev => prev + 1)
       }} className="space-y-4 sm:space-y-6">
         <div className="overflow-visible">
-          <TabsList className="inline-flex w-max sm:w-auto rounded-xl bg-muted/60 backdrop-blur-sm p-1">
-            <TabsTrigger value="materials" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Materi
+          <TabsList className="ios-tab-list">
+            <TabsTrigger value="materials" className="ios-tab-trigger">
+              <BookOpen className="ios-tab-icon" />
+              <span className="ios-tab-text">Materi</span>
             </TabsTrigger>
-            <TabsTrigger value="assessments" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-              Asesmen
+            <TabsTrigger value="assessments" className="ios-tab-trigger">
+              <FileText className="ios-tab-icon" />
+              <span className="ios-tab-text">Asesmen</span>
             </TabsTrigger>
             {isTeacherOrAdmin && (
-              <TabsTrigger value="students" className="text-xs sm:text-sm rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Siswa
+              <TabsTrigger value="students" className="ios-tab-trigger">
+                <Users className="ios-tab-icon" />
+                <span className="ios-tab-text">Siswa</span>
               </TabsTrigger>
             )}
           </TabsList>
@@ -391,7 +440,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             )}
           </div>
           <div className="space-y-2 sm:space-y-3">
-            {(course.materi && course.materi.length > 0) ? course.materi.map((material, index) => (
+            {(filteredMateri && filteredMateri.length > 0) ? filteredMateri.map((material, index) => (
               <Link key={material.id} href={`/courses/${course.id}/materi/${material.id}`} className="block">
               <Card className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl">
                 <CardContent className="flex items-center gap-2 p-3 sm:gap-4 sm:p-4">
@@ -404,6 +453,16 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
                       <h4 className="text-sm font-medium truncate group-hover:text-primary transition-colors sm:text-base">{material.judul}</h4>
+                      {/* Show enrollment badges */}
+                      {material.kelasTarget && material.kelasTarget.length > 0 ? (
+                        <Badge variant="secondary" className="text-xs">
+                          {material.kelasTarget.length} kelas enrolled
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          Semua siswa
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground line-clamp-1 sm:text-sm">{material.deskripsi}</p>
                     <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground sm:mt-1.5 sm:gap-4">
@@ -415,6 +474,11 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                           year: "numeric",
                         })}
                       </span>
+                      {material.kelasTarget && material.kelasTarget.length > 0 && (
+                        <span className="hidden sm:block text-xs">
+                          Enrolled: {material.kelasTarget.join(", ")}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-1.5 shrink-0 sm:gap-2" onClick={(e) => e.preventDefault()}>
@@ -482,16 +546,34 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           </div>
           {assessments.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-              {assessments.map((assessment) => (
+              {filteredAsesmen.map((assessment) => (
                 <Link key={assessment.id} href={`/courses/${course.id}/asesmen/${assessment.id}`} className="block">
                 <Card className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl">
                   <CardHeader className="pb-2 sm:pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
+                        <div className="flex items-center gap-1.5 flex-wrap sm:gap-2 mb-1">
+                          <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
+                          {/* Show enrollment badges */}
+                          {assessment.kelasTarget && assessment.kelasTarget.length > 0 ? (
+                            <Badge variant="secondary" className="text-xs">
+                              {assessment.kelasTarget.length} kelas enrolled
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">
+                              Semua siswa
+                            </Badge>
+                          )}
+                        </div>
                         <CardDescription className="line-clamp-2 text-xs sm:text-sm">
                           {assessment.deskripsi}
                         </CardDescription>
+                        {assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            Enrolled: {assessment.kelasTarget.slice(0, 2).join(", ")}
+                            {assessment.kelasTarget.length > 2 && ` +${assessment.kelasTarget.length - 2} kelas lainnya`}
+                          </div>
+                        )}
                       </div>
                       {isTeacherOrAdmin && (
                         <div onClick={(e) => e.preventDefault()}>
@@ -614,18 +696,73 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                               className="flex items-center justify-between p-3 sm:p-4 hover:bg-accent/50 transition-colors"
                             >
                               <div className="flex items-center gap-2 sm:gap-3 flex-1">
-                                <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                                  <AvatarImage
-                                    src={enrollment.siswa.foto || undefined}
-                                    alt={enrollment.siswa.nama}
-                                  />
-                                  <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
-                                    {enrollment.siswa.nama
-                                      .split(" ")
-                                      .map((n) => n[0])
-                                      .join("")}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <button className="rounded-lg p-1 hover:bg-accent/70 transition-colors">
+                                      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 cursor-pointer">
+                                        <AvatarImage
+                                          src={enrollment.siswa.foto || undefined}
+                                          alt={enrollment.siswa.nama}
+                                        />
+                                        <AvatarFallback className="bg-primary/10 text-primary text-xs sm:text-sm">
+                                          {enrollment.siswa.nama
+                                            .split(" ")
+                                            .map((n) => n[0])
+                                            .join("")}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent side="right" align="start" className="w-72 p-0" sideOffset={8}>
+                                    <div className="p-4 space-y-3">
+                                      {/* Student Profile Header */}
+                                      <div className="flex items-center gap-3">
+                                        <Avatar className="h-12 w-12 border-2 border-primary/20">
+                                          <AvatarImage
+                                            src={enrollment.siswa.foto || undefined}
+                                            alt={enrollment.siswa.nama}
+                                          />
+                                          <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                                            {enrollment.siswa.nama
+                                              .split(" ")
+                                              .map((n) => n[0])
+                                              .join("")}
+                                          </AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-semibold truncate">{enrollment.siswa.nama}</p>
+                                          <div className="flex items-center gap-1 mt-0.5">
+                                            <Mail className="h-3 w-3 text-muted-foreground" />
+                                            <p className="text-xs text-muted-foreground truncate">{enrollment.siswa.email}</p>
+                                          </div>
+                                          {enrollment.siswa.kelas && (
+                                            <Badge variant="secondary" className="mt-1 text-xs">
+                                              {enrollment.siswa.kelas}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {/* Stats */}
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="rounded-lg bg-muted/50 p-2 text-center">
+                                          <p className="text-sm font-semibold text-primary">{enrollment.progress}%</p>
+                                          <p className="text-xs text-muted-foreground">Progress</p>
+                                        </div>
+                                        <div className="rounded-lg bg-muted/50 p-2 text-center">
+                                          <p className="text-sm font-semibold text-primary">{enrollment.averageGrade}%</p>
+                                          <p className="text-xs text-muted-foreground">Rata-rata Nilai</p>
+                                        </div>
+                                      </div>
+                                      {/* View Profile Button */}
+                                      <Button size="sm" className="w-full gap-2 rounded-lg" asChild>
+                                        <Link href={`/profile/${enrollment.siswa.id}`}>
+                                          <Eye className="h-4 w-4" />
+                                          Lihat Profil
+                                        </Link>
+                                      </Button>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium sm:text-base truncate">
                                     {enrollment.siswa.nama}

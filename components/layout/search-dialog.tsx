@@ -193,10 +193,14 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
 
       const materiCategory = isRecent ? t("Materi Terbaru") : t("Materi")
       apiResults.materi?.forEach((materi: any) => {
+        const enrollmentInfo = materi.kelasTarget && materi.kelasTarget.length > 0 
+          ? ` • ${materi.kelasTarget.length} kelas enrolled` 
+          : " • Semua siswa"
+        
         items.push({
           id: `materi-${materi.id}`,
           title: materi.judul,
-          description: `${materi.course.judul}`,
+          description: `${materi.course.judul}${enrollmentInfo}`,
           url: `/courses/${materi.courseId || materi.course.id}/materi/${materi.id}`,
           icon: <BookMarked className="h-4 w-4" />,
           category: materiCategory,
@@ -206,10 +210,14 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
       const asesmenCategory = isRecent ? t("Asesmen Terbaru") : t("Asesmen Ditemukan")
       apiResults.asesmen?.forEach((asesmen: any) => {
         const tipeLabel = asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'
+        const enrollmentInfo = asesmen.kelasTarget && asesmen.kelasTarget.length > 0 
+          ? ` • ${asesmen.kelasTarget.length} kelas enrolled` 
+          : " • Semua siswa"
+        
         items.push({
           id: `asesmen-${asesmen.id}`,
           title: asesmen.nama,
-          description: `${asesmen.course.judul} • ${tipeLabel}`,
+          description: `${asesmen.course.judul} • ${tipeLabel}${enrollmentInfo}`,
           url: `/courses/${asesmen.courseId || asesmen.course.id}/asesmen/${asesmen.id}`,
           icon: asesmen.tipe === 'KUIS' ? <FileText className="h-4 w-4" /> : <ClipboardList className="h-4 w-4" />,
           category: asesmenCategory,

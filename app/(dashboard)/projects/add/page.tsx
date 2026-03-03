@@ -195,6 +195,7 @@ export default function AddProjectPage() {
           onSuccess: () => {
             setTimeout(() => {
               router.push("/projects")
+              router.refresh()
             }, 1500)
           },
         }

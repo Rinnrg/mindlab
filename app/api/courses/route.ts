@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           judul: true,
+          deskripsi: true,
           gambar: true,
           kategori: true,
           guruId: true,
@@ -50,6 +51,7 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               judul: true,
+              deskripsi: true,
               gambar: true,
               kategori: true,
               guruId: true,
@@ -87,6 +89,7 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           judul: true,
+          deskripsi: true,
           gambar: true,
           kategori: true,
           guruId: true,
@@ -125,7 +128,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { judul, gambar, kategori, guruId } = body
+    const { judul, deskripsi, gambar, kategori, guruId } = body
 
     if (!judul || !kategori || !guruId) {
       return NextResponse.json(
@@ -137,6 +140,7 @@ export async function POST(request: NextRequest) {
     const course = await prisma.course.create({
       data: {
         judul,
+        deskripsi,
         gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
         kategori,
         guruId,
@@ -158,6 +162,45 @@ export async function POST(request: NextRequest) {
     console.error('Error creating course:', error)
     return NextResponse.json(
       { error: 'Gagal membuat course' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const courseId = searchParams.get('id')
+
+    if (!courseId) {
+      return NextResponse.json(
+        { error: 'Course ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+    })
+
+    if (!course) {
+      return NextResponse.json(
+        { error: 'Course not found' },
+        { status: 404 }
+      )
+    }
+
+    // Delete the course (cascade will handle related records)
+    await prisma.course.delete({
+      where: { id: courseId },
+    })
+
+    return NextResponse.json({ message: 'Course deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting course:', error)
+    return NextResponse.json(
+      { error: 'Gagal menghapus course' },
       { status: 500 }
     )
   }

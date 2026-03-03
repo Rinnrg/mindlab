@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
         id: true,
         nama: true,
         deskripsi: true,
+        kelasTarget: true,
         tipe: true,
         tipePengerjaan: true,
         jml_soal: true,
@@ -98,7 +99,8 @@ export async function POST(request: NextRequest) {
     
     const { 
       nama, 
-      deskripsi, 
+      deskripsi,
+      kelasTarget,
       tipe,
       tipePengerjaan,
       tgl_mulai,
@@ -221,6 +223,7 @@ export async function POST(request: NextRequest) {
     const asesmenData: any = {
       nama,
       deskripsi,
+      kelasTarget: kelasTarget || [],
       tipe,
       jml_soal: tipe === 'KUIS' && soal ? soal.length : null,
       tgl_mulai: startDate,

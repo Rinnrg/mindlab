@@ -1,0 +1,55 @@
+/* ===== macOS Dock Glassmorphism Styles ===== */
+
+/* ─── Dock icon magnification (moved from styled-jsx) ─── */
+.dock-icon {
+  transition: width 150ms cubic-bezier(0.25, 1, 0.5, 1),
+              height 150ms cubic-bezier(0.25, 1, 0.5, 1),
+              margin-top 150ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.dock-icon:hover + .dock-icon {
+  width: calc(var(--icon-size) * 1.33 + var(--dock-offset-right, 0px)) !important;
+  height: calc(var(--icon-size) * 1.33 + var(--dock-offset-right, 0px)) !important;
+  margin-top: calc(var(--icon-size) * -0.33 + var(--dock-offset-right, 0) * -1) !important;
+}
+
+.dock-icon:hover + .dock-icon + .dock-icon {
+  width: calc(var(--icon-size) * 1.17 + var(--dock-offset-right, 0px)) !important;
+  height: calc(var(--icon-size) * 1.17 + var(--dock-offset-right, 0px)) !important;
+  margin-top: calc(var(--icon-size) * -0.17 + var(--dock-offset-right, 0) * -1) !important;
+}
+
+.dock-icon:has(+ .dock-icon:hover) {
+  width: calc(var(--icon-size) * 1.33 + var(--dock-offset-left, 0px)) !important;
+  height: calc(var(--icon-size) * 1.33 + var(--dock-offset-left, 0px)) !important;
+  margin-top: calc(var(--icon-size) * -0.33 + var(--dock-offset-left, 0) * -1) !important;
+}
+
+.dock-icon:has(+ .dock-icon + .dock-icon:hover) {
+  width: calc(var(--icon-size) * 1.17 + var(--dock-offset-left, 0px)) !important;
+  height: calc(var(--icon-size) * 1.17 + var(--dock-offset-left, 0px)) !important;
+  margin-top: calc(var(--icon-size) * -0.17 + var(--dock-offset-left, 0) * -1) !important;
+}
+
+/* ─── Glass background for dock — rounded box like macOS ─── */
+.dock-glass {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.08),
+    0 1.5px 6px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  padding: 6px 10px;
+}
+
+/* ─── Dark mode ─── */
+.dark .dock-glass {
+  background: rgba(28, 28, 30, 0.78);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.35),
+    0 1.5px 6px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}

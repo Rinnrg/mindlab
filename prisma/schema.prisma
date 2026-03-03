@@ -50,11 +50,14 @@ model User {
   enrollments     Enrollment[]
   pengumpulanProyek PengumpulanProyek[] // For individual task submissions
   jawabanSiswa    JawabanSiswa[]
+  forumDiskusi    ForumDiskusi[]
+  balasanForum    BalasanForum[]
 }
 
 model Course {
   id       String @id @default(cuid())
   judul    String
+  deskripsi String? @db.Text
   gambar   String
   kategori String
 
@@ -73,6 +76,7 @@ model Materi {
   id         String   @id @default(cuid())
   judul      String
   deskripsi  String?  @db.Text
+  kelasTarget String[] // Array kelas yang dapat mengakses materi ini, empty array = semua kelas
   tgl_unggah DateTime @default(now())
   lampiran   String?  @db.Text // URL or base64 for external resources
   
@@ -87,12 +91,14 @@ model Materi {
 
   @@index([courseId])
   @@index([tgl_unggah])
+  @@index([kelasTarget])
 }
 
 model Asesmen {
   id             String          @id @default(cuid())
   nama           String
   deskripsi      String?
+  kelasTarget    String[]        // Array kelas yang dapat mengakses asesmen ini, empty array = semua kelas
   tipe           TipeAsesmen     @default(KUIS)
   tipePengerjaan TipePengerjaan? // Hanya untuk TUGAS, nullable untuk KUIS
   jml_soal       Int?            // Optional - untuk KUIS akan dihitung otomatis dari jumlah soal
@@ -118,12 +124,14 @@ model Asesmen {
 
   nilai             Nilai[]
   pengumpulanProyek PengumpulanProyek[] // Renamed from pengumpulanTugas
+  forumDiskusi      ForumDiskusi[]
 
   @@index([guruId])
   @@index([courseId])
   @@index([tipe])
   @@index([tgl_mulai])
   @@index([tgl_selesai])
+  @@index([kelasTarget])
 }
 
 model Soal {
@@ -321,4 +329,41 @@ model Enrollment {
   @@index([courseId])
   @@index([siswaId])
   @@index([enrolledAt])
+}
+
+// Forum Diskusi Asesmen
+model ForumDiskusi {
+  id        String   @id @default(cuid())
+  pesan     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  asesmenId String
+  asesmen   Asesmen @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+
+  balasan BalasanForum[]
+
+  @@index([asesmenId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model BalasanForum {
+  id        String   @id @default(cuid())
+  pesan     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  forumDiskusiId String
+  forumDiskusi   ForumDiskusi @relation(fields: [forumDiskusiId], references: [id], onDelete: Cascade)
+
+  @@index([forumDiskusiId])
+  @@index([userId])
+  @@index([createdAt])
 }

@@ -64,9 +64,17 @@ export default function CoursesPage() {
 
     await execute(
       async () => {
-        // TODO: Implement delete API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const response = await fetch(`/api/courses/${courseId}`, {
+          method: "DELETE",
+        })
+
+        if (!response.ok) {
+          const data = await response.json()
+          throw new Error(data.error || "Failed to delete course")
+        }
+
         refetch()
+        router.refresh()
       },
       {
         loadingMessage: t("Menghapus kursus..."),

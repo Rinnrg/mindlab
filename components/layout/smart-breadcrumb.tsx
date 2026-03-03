@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTransitionRouter } from '@/hooks/use-transition-router'
@@ -26,203 +26,229 @@ interface SmartBreadcrumbProps {
   showMobile?: boolean
 }
 
-// Smart breadcrumb config with better descriptions
-const pathConfig: { [key: string]: { label: string; icon?: React.ReactNode } } = {
-  '/': { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-  '/dashboard': { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-  '/courses': { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
-  '/asesmen': { label: 'Asesmen', icon: <BookOpen className="h-4 w-4" /> },
-  '/projects': { label: 'Proyek', icon: <BookOpen className="h-4 w-4" /> },
-  '/proyek': { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
-  '/users': { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
-  '/schedule': { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
-  '/profile': { label: 'Profil', icon: <User className="h-4 w-4" /> },
-  '/settings': { label: 'Pengaturan', icon: <Settings className="h-4 w-4" /> },
-  '/compiler': { label: 'Compiler', icon: <Code className="h-4 w-4" /> },
-  '/add': { label: 'Tambah' },
-  '/new': { label: 'Tambah' },
-  '/edit': { label: 'Edit' },
-  '/kelompok': { label: 'Kelompok', icon: <Users className="h-4 w-4" /> },
-  '/nilai': { label: 'Nilai', icon: <BarChart3 className="h-4 w-4" /> },
-  '/pengumpulan': { label: 'Pengumpulan', icon: <BookOpen className="h-4 w-4" /> },
-  '/activity': { label: 'Aktivitas', icon: <Activity className="h-4 w-4" /> },
-  '/stats': { label: 'Statistik', icon: <BarChart3 className="h-4 w-4" /> },
-  '/search': { label: 'Pencarian', icon: <SearchIcon className="h-4 w-4" /> },
+// Segment label/icon mapping — keyed by segment name
+const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } } = {
+  'dashboard':    { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
+  'courses':      { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
+  'asesmen':      { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
+  'projects':     { label: 'Proyek', icon: <BookOpen className="h-4 w-4" /> },
+  'proyek':       { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
+  'users':        { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
+  'schedule':     { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
+  'profile':      { label: 'Profil', icon: <User className="h-4 w-4" /> },
+  'settings':     { label: 'Pengaturan', icon: <Settings className="h-4 w-4" /> },
+  'compiler':     { label: 'Compiler', icon: <Code className="h-4 w-4" /> },
+  'materi':       { label: 'Materi', icon: <FileText className="h-4 w-4" /> },
+  'add':          { label: 'Tambah' },
+  'new':          { label: 'Tambah' },
+  'edit':         { label: 'Edit' },
+  'submit':       { label: 'Kumpulkan' },
+  'kuis':         { label: 'Kuis' },
+  'kelompok':     { label: 'Kelompok', icon: <Users className="h-4 w-4" /> },
+  'nilai':        { label: 'Nilai', icon: <BarChart3 className="h-4 w-4" /> },
+  'pengumpulan':  { label: 'Pengumpulan', icon: <BookOpen className="h-4 w-4" /> },
+  'activity':     { label: 'Aktivitas', icon: <Activity className="h-4 w-4" /> },
+  'stats':        { label: 'Statistik', icon: <BarChart3 className="h-4 w-4" /> },
+  'search':       { label: 'Pencarian', icon: <SearchIcon className="h-4 w-4" /> },
+  'students':     { label: 'Siswa', icon: <Users className="h-4 w-4" /> },
+  'sintaks_1':    { label: 'Sintaks 1: Orientasi Masalah' },
+  'sintaks_2':    { label: 'Sintaks 2: Organisasi Belajar' },
+  'sintaks_3':    { label: 'Sintaks 3: Investigasi' },
+  'sintaks_4':    { label: 'Sintaks 4: Pengembangan' },
+  'sintaks_5':    { label: 'Sintaks 5: Analisis & Evaluasi' },
+  'sintaks_6':    { label: 'Sintaks 6: Refleksi' },
+  'sintaks_7':    { label: 'Sintaks 7: Assessment' },
+  'sintaks_8':    { label: 'Sintaks 8: Closure' },
 }
 
-function generateAutoBreadcrumbs(pathname: string): BreadcrumbItemType[] {
+// Helper: detect whether a segment is a dynamic ID (MongoDB ObjectId, UUID, or numeric)
+function isIdSegment(seg: string): boolean {
+  // More comprehensive ID detection
+  return /^[0-9a-fA-F]{24}$/.test(seg)          // MongoDB ObjectId (24 char hex)
+    || /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}/.test(seg) // UUID prefix
+    || /^[a-zA-Z0-9]{15,}$/.test(seg)              // Generic long alphanumeric ID (like cuid/nanoid)
+    || /^[0-9]+$/.test(seg)                        // Pure numeric ID
+    || /^c[a-z0-9]{24,}$/i.test(seg)              // cuid style (starts with c)
+    || seg.match(/^[a-z0-9_-]{20,}$/i)            // Generic long ID with common chars
+}
+
+// Hook untuk fetch nama berdasarkan ID dan context
+function useFetchBreadcrumbNames(pathname: string) {
+  const [nameCache, setNameCache] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState(false)
+
+  const fetchNames = useCallback(async () => {
+    const pathSegments = pathname.split('/').filter(Boolean)
+    const namesToFetch: Array<{id: string, type: string, path: string}> = []
+
+    // Analyze path untuk menentukan ID apa yang perlu di-fetch
+    for (let i = 0; i < pathSegments.length; i++) {
+      const segment = pathSegments[i]
+      const prevSegment = pathSegments[i - 1]
+      
+      if (isIdSegment(segment)) {
+        const path = '/' + pathSegments.slice(0, i + 1).join('/')
+        
+        // Tentukan type berdasarkan context
+        if (prevSegment === 'courses') {
+          namesToFetch.push({id: segment, type: 'course', path})
+        } else if (prevSegment === 'materi') {
+          namesToFetch.push({id: segment, type: 'materi', path})
+        } else if (prevSegment === 'asesmen') {
+          namesToFetch.push({id: segment, type: 'asesmen', path})
+        } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
+          namesToFetch.push({id: segment, type: 'proyek', path})
+        } else if (prevSegment === 'users') {
+          namesToFetch.push({id: segment, type: 'user', path})
+        }
+      }
+    }
+
+    if (namesToFetch.length === 0) {
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+
+    // Fetch names yang belum ada di cache
+    const newCache: Record<string, string> = {}
+    
+    for (const item of namesToFetch) {
+      try {
+        let response
+        let name = 'Loading...'
+
+        switch (item.type) {
+          case 'course':
+            response = await fetch(`/api/courses/${item.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              name = data.course?.judul || 'Kursus'
+            } else {
+              name = 'Kursus'
+            }
+            break
+            
+          case 'materi':
+            response = await fetch(`/api/materi/${item.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              name = data.materi?.judul || data.judul || 'Materi'
+            } else {
+              name = 'Materi'
+            }
+            break
+            
+          case 'asesmen':
+            response = await fetch(`/api/asesmen/${item.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              name = data.asesmen?.judul || data.judul || 'Asesmen'
+            } else {
+              name = 'Asesmen'
+            }
+            break
+            
+          case 'proyek':
+            response = await fetch(`/api/proyek/${item.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              name = data.proyek?.judul || data.judul || 'Proyek'
+            } else {
+              name = 'Proyek'
+            }
+            break
+            
+          case 'user':
+            response = await fetch(`/api/users/${item.id}`)
+            if (response.ok) {
+              const data = await response.json()
+              name = data.user?.nama || data.nama || 'User'
+            } else {
+              name = 'User'
+            }
+            break
+            
+          default:
+            name = 'Detail'
+        }
+        
+        newCache[item.id] = name
+      } catch (error) {
+        console.warn(`Failed to fetch name for ${item.type} ${item.id}:`, error)
+        newCache[item.id] = item.type === 'course' ? 'Kursus' :
+                             item.type === 'materi' ? 'Materi' :
+                             item.type === 'asesmen' ? 'Asesmen' :
+                             item.type === 'proyek' ? 'Proyek' :
+                             item.type === 'user' ? 'User' : 'Detail'
+      }
+    }
+
+    setNameCache(newCache)
+    setLoading(false)
+  }, [pathname])
+
+  useEffect(() => {
+    fetchNames()
+  }, [fetchNames])
+
+  return { nameCache, loading }
+}
+
+function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, string>): BreadcrumbItemType[] {
   const pathSegments = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItemType[] = []
 
-  // Always start with Dashboard
-  breadcrumbs.push({
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: <Home className="h-4 w-4" />,
-  })
-
-  // Process path segments with smart context awareness
-  let i = 0
-  while (i < pathSegments.length) {
+  // Walk through every segment and build the trail
+  for (let i = 0; i < pathSegments.length; i++) {
     const segment = pathSegments[i]
-    const nextSegment = pathSegments[i + 1]
     const prevSegment = pathSegments[i - 1]
-    
-    // Updated regex to better detect MongoDB ObjectIds, UUIDs, and long random strings
-    const isCurrentId = /^[0-9a-fA-Z]{15,}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$|^[0-9]+$/.test(segment)
-    const isNextId = nextSegment && (/^[0-9a-fA-Z]{15,}$|^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$|^[0-9]+$/.test(nextSegment))
-    
-    // Build current path up to this point
-    const currentPath = '/' + pathSegments.slice(0, i + 1).join('/')
-    const isActive = i === pathSegments.length - 1
-    
-    // Get base config for the segment
-    const config = pathConfig[`/${segment}`] || pathConfig[currentPath]
-    
-    // Handle different patterns
-    if (segment === 'courses') {
-      // Add "Kursus" breadcrumb
-      breadcrumbs.push({
-        label: 'Kursus',
-        href: isActive ? undefined : '/courses',
-        icon: <BookOpen className="h-4 w-4" />
-      })
+    const isLast = i === pathSegments.length - 1
+    const builtPath = '/' + pathSegments.slice(0, i + 1).join('/')
+
+    // Skip the "dashboard" segment — tidak perlu ditampilkan
+    if (segment === 'dashboard') continue
+
+    // Handle dynamic IDs - sekarang kita tampilkan dengan nama yang sudah di-fetch
+    if (isIdSegment(segment)) {
+      const name = nameCache[segment]
       
-      // If next segment is an ID, skip it and add placeholder
-      // The actual name should be handled by manual breadcrumbs in the page component
-      if (nextSegment && isNextId) {
-        i++ // Skip the ID
-        const detailPath = '/' + pathSegments.slice(0, i + 1).join('/')
-        const isDetailActive = i === pathSegments.length - 1
-        
-        // Use generic label - actual course name should come from manual breadcrumbs
-        breadcrumbs.push({
-          label: 'Detail Kursus',
-          href: isDetailActive ? undefined : detailPath,
-          icon: <BookOpen className="h-4 w-4" />
-        })
-      }
-      
-    } else if (segment === 'materi') {
-      // Only handle materi when it's nested under a course ID
-      if (prevSegment && /^[0-9a-fA-Z]{15,}$/.test(prevSegment)) {
-        // This is materi under a course
-        if (nextSegment && isNextId) {
-          i++ // Skip the materi ID
-          // Use generic label - actual materi name should come from manual breadcrumbs
-          breadcrumbs.push({
-            label: 'Detail Materi',
-            href: undefined, // Final item
-            icon: <FileText className="h-4 w-4" />
-          })
+      if (name && name !== 'Loading...') {
+        // Tentukan icon berdasarkan context
+        let icon = undefined
+        if (prevSegment === 'courses') {
+          icon = <BookOpen className="h-4 w-4" />
+        } else if (prevSegment === 'materi') {
+          icon = <FileText className="h-4 w-4" />
+        } else if (prevSegment === 'asesmen') {
+          icon = <FileText className="h-4 w-4" />
+        } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
+          icon = <BookOpen className="h-4 w-4" />
+        } else if (prevSegment === 'users') {
+          icon = <Users className="h-4 w-4" />
         }
-      }
-      // Skip standalone /materi routes as they don't exist
-      
-    } else if (segment === 'asesmen') {
-      breadcrumbs.push({
-        label: 'Asesmen',
-        href: isActive ? undefined : currentPath,
-        icon: <BookOpen className="h-4 w-4" />
-      })
-      
-      // If next segment is an ID, skip it and add placeholder
-      if (nextSegment && isNextId) {
-        i++ // Skip the ID
-        const isDetailActive = i === pathSegments.length - 1
-        
+
         breadcrumbs.push({
-          label: 'Detail Asesmen',
-          href: isDetailActive ? undefined : undefined,
-          icon: <BookOpen className="h-4 w-4" />
+          label: name,
+          href: isLast ? undefined : builtPath,
+          icon,
         })
       }
-      
-    } else if (segment === 'proyek') {
-      breadcrumbs.push({
-        label: 'Proyek Saya',
-        href: isActive ? undefined : '/proyek',
-        icon: <BookOpen className="h-4 w-4" />
-      })
-      
-      // If next segment is an ID, skip it and add placeholder
-      if (nextSegment && isNextId) {
-        i++ // Skip the ID
-        const isDetailActive = i === pathSegments.length - 1
-        
-        breadcrumbs.push({
-          label: 'Detail Proyek',
-          href: isDetailActive ? undefined : undefined,
-          icon: <BookOpen className="h-4 w-4" />
-        })
-      }
-      
-    } else if (segment === 'users') {
-      breadcrumbs.push({
-        label: 'Pengguna',
-        href: isActive ? undefined : '/users',
-        icon: <Users className="h-4 w-4" />
-      })
-      
-      // If next segment is an ID, skip it and add placeholder
-      if (nextSegment && isNextId) {
-        i++ // Skip the ID
-        const isDetailActive = i === pathSegments.length - 1
-        
-        breadcrumbs.push({
-          label: 'Detail Pengguna',
-          href: isDetailActive ? undefined : undefined,
-          icon: <Users className="h-4 w-4" />
-        })
-      }
-      
-    } else if (segment === 'new' || segment === 'add') {
-      // Handle add/new pages
-      let label = 'Tambah'
-      
-      if (prevSegment === 'courses') {
-        label = 'Tambah Kursus'
-      } else if (prevSegment === 'materi') {
-        label = 'Tambah Materi'
-      } else if (prevSegment === 'asesmen') {
-        label = 'Tambah Asesmen'
-      } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
-        label = 'Tambah Proyek'
-      }
-      
-      breadcrumbs.push({
-        label,
-        href: isActive ? undefined : currentPath,
-        icon: config?.icon
-      })
-      
-    } else if (segment === 'edit') {
-      breadcrumbs.push({
-        label: 'Edit',
-        href: isActive ? undefined : currentPath,
-        icon: config?.icon
-      })
-      
-    } else if (config && !isCurrentId) {
-      // Use predefined config for non-ID segments
-      breadcrumbs.push({
-        label: config.label,
-        href: isActive ? undefined : currentPath,
-        icon: config.icon
-      })
-      
-    } else if (!isCurrentId) {
-      // Regular segment (not an ID) - only add non-ID segments
-      const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
-      breadcrumbs.push({
-        label,
-        href: isActive ? undefined : currentPath,
-        icon: undefined
-      })
+      continue
     }
-    
-    // Always increment to next segment
-    i++
+
+    // Lookup a human-readable label / icon untuk segment biasa
+    const cfg = segmentConfig[segment]
+    const label = cfg?.label
+      ?? segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ').replace(/_/g, ' ')
+    const icon = cfg?.icon
+
+    breadcrumbs.push({
+      label,
+      href: isLast ? undefined : builtPath,
+      icon,
+    })
   }
 
   return breadcrumbs
@@ -232,18 +258,21 @@ export function SmartBreadcrumb({ className, showMobile = false }: SmartBreadcru
   const pathname = usePathname()
   const router = useTransitionRouter()
   const { breadcrumbs: manualBreadcrumbs } = useBreadcrumb()
+  const { nameCache, loading } = useFetchBreadcrumbNames(pathname)
   
   // Don't show breadcrumb on login page or root dashboard
   if (pathname === '/login' || pathname === '/' || pathname === '/dashboard') {
     return null
   }
 
-  // Use manual breadcrumbs if available, otherwise generate automatically
+  // Use manual breadcrumbs if available (highest priority), 
+  // otherwise generate automatically with names
   const breadcrumbs = manualBreadcrumbs.length > 0 
     ? manualBreadcrumbs 
-    : generateAutoBreadcrumbs(pathname)
+    : generateAutoBreadcrumbs(pathname, nameCache)
 
-  if (breadcrumbs.length <= 1) {
+  // Don't show breadcrumb if no breadcrumbs, or if auto breadcrumbs are loading
+  if (breadcrumbs.length === 0 || (manualBreadcrumbs.length === 0 && loading)) {
     return null
   }
 

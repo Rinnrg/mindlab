@@ -495,12 +495,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs value={submitMode} onValueChange={(v) => setSubmitMode(v as "file" | "compiler")}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="file" className="gap-2">
-                  <FileText className="h-4 w-4" />Upload File
+              <TabsList className="ios-tab-list">
+                <TabsTrigger value="file" className="ios-tab-trigger">
+                  <FileText className="ios-tab-icon" />
+                  <span className="ios-tab-text">Upload File</span>
                 </TabsTrigger>
-                <TabsTrigger value="compiler" className="gap-2">
-                  <Code className="h-4 w-4" />Python Compiler
+                <TabsTrigger value="compiler" className="ios-tab-trigger">
+                  <Code className="ios-tab-icon" />
+                  <span className="ios-tab-text">Python Compiler</span>
                 </TabsTrigger>
               </TabsList>
 

@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
         id: true,
         judul: true,
         deskripsi: true,
+        kelasTarget: true,
         tgl_unggah: true,
         lampiran: true,
         // Exclude fileData to reduce payload size
@@ -51,7 +52,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { judul, deskripsi, lampiran, fileData, fileName, fileType, fileSize, courseId } = body
+    const { judul, deskripsi, kelasTarget, lampiran, fileData, fileName, fileType, fileSize, courseId } = body
 
     if (!judul || !courseId) {
       return NextResponse.json(
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest) {
       data: {
         judul,
         deskripsi,
+        kelasTarget: kelasTarget || [],
         lampiran,
         fileData: fileBuffer,
         fileName,

@@ -72,11 +72,6 @@ export default function ProjectsPage() {
   // Set custom breadcrumb with useMemo to prevent re-renders
   const breadcrumbItems = useMemo(() => [
     {
-      label: 'Dashboard',
-      href: '/dashboard',
-      icon: <BookOpen className="h-4 w-4" />
-    },
-    {
       label: 'Proyek',
       icon: <BookOpen className="h-4 w-4" />
     }
@@ -170,7 +165,10 @@ export default function ProjectsPage() {
         successDescription: `"${projectTitle}" ${t("berhasil dihapus")}`,
         errorTitle: t("Gagal"),
         autoCloseMs: 1500,
-        onSuccess: () => loadProyeks(),
+        onSuccess: () => {
+          loadProyeks()
+          router.refresh()
+        },
       }
     )
   }

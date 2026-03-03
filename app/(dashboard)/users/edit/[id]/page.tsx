@@ -113,6 +113,7 @@ export default function EditUserPage() {
         onSuccess: () => {
           setTimeout(() => {
             router.push("/users")
+            router.refresh()
           }, 1500)
         },
       }

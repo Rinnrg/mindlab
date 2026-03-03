@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
-import { Search, Award, Star, Calendar, ExternalLink, Code, BookOpen, Mail, User, Users, Clock, Trophy, Settings, Camera, Shield, Palette, Globe, Check } from "lucide-react"
+import { Search, Award, Star, Calendar, ExternalLink, Code, BookOpen, Mail, User, Users, Clock, Trophy, Settings, Camera, Shield, Palette, Globe, Check, Pencil } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
 import { id as idLocale, enUS } from "date-fns/locale"
@@ -271,18 +271,29 @@ export default function ProfilePage() {
                   </span>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full bg-transparent sm:w-auto gap-2"
-                onClick={() => {
-                  setShowSettings(!showSettings)
-                  setSettingsTab("profile")
-                }}
-              >
-                <Settings className="h-4 w-4" />
-                {t("Pengaturan")}
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial bg-transparent gap-2"
+                  onClick={() => {
+                    setShowSettings(!showSettings)
+                    setSettingsTab("profile")
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  {t("Edit Profil")}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-initial bg-transparent gap-2"
+                  onClick={() => router.push("/settings")}
+                >
+                  <Settings className="h-4 w-4" />
+                  {t("Pengaturan")}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -309,18 +320,18 @@ export default function ProfilePage() {
                 setSettingsTabKey(prev => prev + 1)
               }} className="space-y-4 sm:space-y-6">
                 <div className="overflow-visible">
-                  <TabsList className="inline-flex w-max sm:w-auto">
-                    <TabsTrigger value="profile" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                      <User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">{t("Edit Profil")}</span>
+                  <TabsList className="ios-tab-list">
+                    <TabsTrigger value="profile" className="ios-tab-trigger">
+                      <User className="ios-tab-icon" />
+                      <span className="ios-tab-text">{t("Edit Profil")}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="appearance" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                      <Palette className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">{t("Tampilan")}</span>
+                    <TabsTrigger value="appearance" className="ios-tab-trigger">
+                      <Palette className="ios-tab-icon" />
+                      <span className="ios-tab-text">{t("Tampilan")}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="security" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                      <Shield className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      <span className="hidden xs:inline">{t("Keamanan")}</span>
+                    <TabsTrigger value="security" className="ios-tab-trigger">
+                      <Shield className="ios-tab-icon" />
+                      <span className="ios-tab-text">{t("Keamanan")}</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -548,16 +559,16 @@ export default function ProfilePage() {
           setTabKey(prev => prev + 1) // Trigger re-render for animation
         }} className="space-y-4 sm:space-y-6">
           <div className="overflow-visible">
-            <TabsList className="inline-flex w-max sm:w-auto">
+            <TabsList className="ios-tab-list">
               {user?.role !== "GURU" && (
-                <TabsTrigger value="showcase" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                  <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {t("Portofolio")}
+                <TabsTrigger value="showcase" className="ios-tab-trigger">
+                  <Award className="ios-tab-icon" />
+                  <span className="ios-tab-text">{t("Portofolio")}</span>
                 </TabsTrigger>
               )}
-              <TabsTrigger value="courses" className="gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                {t("Kursus Saya")}
+              <TabsTrigger value="courses" className="ios-tab-trigger">
+                <BookOpen className="ios-tab-icon" />
+                <span className="ios-tab-text">{t("Kursus Saya")}</span>
               </TabsTrigger>
             </TabsList>
           </div>

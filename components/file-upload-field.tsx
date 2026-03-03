@@ -102,14 +102,14 @@ export function FileUploadField({
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
       
       <Tabs value={uploadType} onValueChange={(v) => setUploadType(v as 'link' | 'file')}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="link">
-            <Link2 className="mr-2 h-4 w-4" />
-            Link URL
+        <TabsList className="ios-tab-list">
+          <TabsTrigger value="link" className="ios-tab-trigger">
+            <Link2 className="ios-tab-icon" />
+            <span className="ios-tab-text">Link URL</span>
           </TabsTrigger>
-          <TabsTrigger value="file">
-            <Upload className="mr-2 h-4 w-4" />
-            Upload File
+          <TabsTrigger value="file" className="ios-tab-trigger">
+            <Upload className="ios-tab-icon" />
+            <span className="ios-tab-text">Upload File</span>
           </TabsTrigger>
         </TabsList>
 
