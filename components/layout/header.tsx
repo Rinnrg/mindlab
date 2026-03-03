@@ -82,7 +82,7 @@ export function Header({ onMenuClick, isMobile }: HeaderProps) {
         {!isMobile && navigationMode === "dock" && (
           <Link href="/dashboard" className="flex items-center gap-2 mr-4">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0">
-              <img src="/logo projecta.svg" alt="Projecta Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
             </div>
           </Link>
         )}

@@ -119,7 +119,7 @@ const translationDict: Record<string, { id: string; en: string }> = {
   
   // Users Management
   'Manajemen Pengguna': { id: 'Manajemen Pengguna', en: 'User Management' },
-  'Kelola data pengguna sistem Projecta': { id: 'Kelola data pengguna sistem Projecta', en: 'Manage Projecta system users data' },
+  'Kelola data pengguna sistem Mindlab': { id: 'Kelola data pengguna sistem Mindlab', en: 'Manage Mindlab system users data' },
   'Impor Pengguna': { id: 'Impor Pengguna', en: 'Import Users' },
   'Ekspor Pengguna': { id: 'Ekspor Pengguna', en: 'Export Users' },
   'Tambah Pengguna': { id: 'Tambah Pengguna', en: 'Add User' },

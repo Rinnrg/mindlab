@@ -27,12 +27,12 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Projecta",
+  title: "Mindlab",
   description: "Platform pembelajaran modern berbasis project-based learning untuk pendidikan yang lebih bermakna",
   openGraph: {
-    title: "Projecta",
+    title: "Mindlab",
     description: "Platform pembelajaran modern berbasis project-based learning untuk pendidikan yang lebih bermakna",
-    siteName: "Projecta",
+    siteName: "Mindlab",
     type: "website",
   },
 }

@@ -1,4 +1,4 @@
-// Types for the Projecta application
+// Types for the Mindlab application
 
 export type UserRole = "ADMIN" | "GURU" | "SISWA"
 export type TipeAsesmen = "KUIS" | "TUGAS"

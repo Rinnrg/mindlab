@@ -134,7 +134,7 @@ export default function AddUserPage() {
         <Card>
           <CardHeader>
             <CardTitle>Add New User</CardTitle>
-            <CardDescription>Create a new user account for Projecta platform</CardDescription>
+            <CardDescription>Create a new user account for Mindlab platform</CardDescription>
           </CardHeader>
           <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">

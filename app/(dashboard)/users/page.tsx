@@ -216,7 +216,7 @@ export default function UsersPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t("Manajemen Pengguna")}</h1>
-            <p className="text-sm text-muted-foreground">{t("Kelola data pengguna sistem Projecta")}</p>
+            <p className="text-sm text-muted-foreground">{t("Kelola data pengguna sistem Mindlab")}</p>
           </div>
           <div className="flex gap-2">
             <DropdownMenu>

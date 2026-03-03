@@ -12,9 +12,9 @@ export default function LandingPage() {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg">
-              <img src="/logo projecta.svg" alt="Projecta Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
             </div>
-            <span className="text-base font-semibold tracking-tight">Projecta</span>
+            <span className="text-base font-semibold tracking-tight">Mindlab</span>
           </Link>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" className="text-sm" asChild>
@@ -121,7 +121,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-2xl rounded-xl border border-border/60 bg-muted/30 p-8 text-center sm:p-12">
           <h2 className="text-xl font-semibold text-foreground sm:text-2xl">Siap untuk memulai?</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Bergabung dengan ribuan siswa dan guru yang telah menggunakan Projecta
+            Bergabung dengan ribuan siswa dan guru yang telah menggunakan Mindlab
           </p>
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button size="lg" asChild>
@@ -144,11 +144,11 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded">
-              <img src="/logo projecta.svg" alt="Projecta Logo" className="h-6 w-6 object-contain" />
+              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-6 w-6 object-contain" />
             </div>
-            <span className="text-sm font-medium">Projecta</span>
+            <span className="text-sm font-medium">Mindlab</span>
           </div>
-          <p className="text-xs text-muted-foreground">2025 Projecta. Hak cipta dilindungi.</p>
+          <p className="text-xs text-muted-foreground">2025 Mindlab. Hak cipta dilindungi.</p>
         </div>
       </footer>
     </div>

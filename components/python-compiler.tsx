@@ -57,7 +57,7 @@ interface PythonCompilerProps {
   onBack: () => void
 }
 
-const DEFAULT_PYTHON_CODE = `print("Halo dari Projecta!")
+const DEFAULT_PYTHON_CODE = `print("Halo dari Mindlab!")
 for i in range(6):
     print(i)`
 

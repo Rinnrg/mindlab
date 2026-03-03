@@ -163,7 +163,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
         <Link href="/dashboard" className="flex items-center gap-3 group overflow-hidden" onClick={onNavClick}>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg shrink-0">
-            <img src="/logo projecta.svg" alt="Projecta Logo" className="h-9 w-9 object-contain" />
+            <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-9 w-9 object-contain" />
           </div>
           <span 
             className={cn(
@@ -171,7 +171,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
               !isExpanded && !isMobile && "opacity-0 w-0"
             )}
           >
-            Projecta
+            Mindlab
           </span>
         </Link>
         {isMobile && (
