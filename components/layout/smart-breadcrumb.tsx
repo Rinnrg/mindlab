@@ -144,7 +144,7 @@ function useFetchBreadcrumbNames(pathname: string) {
             response = await fetch(`/api/asesmen/${item.id}`)
             if (response.ok) {
               const data = await response.json()
-              name = data.asesmen?.judul || data.judul || 'Asesmen'
+              name = data.asesmen?.nama || data.nama || 'Asesmen'
             } else {
               name = 'Asesmen'
             }
