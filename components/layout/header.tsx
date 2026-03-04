@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { cn } from "@/lib/utils"
-import { Bell, Moon, Sun, Search, LogOut, User, Languages } from "lucide-react"
+import { Bell, Moon, Sun, Search, LogOut, User, Languages, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SearchDropdown } from "@/components/layout/search-dropdown"
 import { SearchDialog } from "@/components/layout/search-dialog"
@@ -26,9 +26,10 @@ import { useTheme } from "next-themes"
 interface HeaderProps {
   onMenuClick: () => void
   isMobile: boolean
+  isMobileSidebar?: boolean
 }
 
-export function Header({ onMenuClick, isMobile }: HeaderProps) {
+export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
   const { locale, setLocale, t } = useAutoTranslate()
@@ -78,6 +79,28 @@ export function Header({ onMenuClick, isMobile }: HeaderProps) {
       "transform-gpu backface-hidden",
     )}>
       <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-2xl">
+        {/* Mobile hamburger menu + logo (only for sidebar mobile nav mode) */}
+        {isMobile && isMobileSidebar && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            onClick={onMenuClick}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Menu</span>
+          </Button>
+        )}
+
+        {/* Mobile logo — always show on mobile */}
+        {isMobile && (
+          <Link href="/dashboard" className="flex items-center gap-2 mr-1">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0">
+              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
+            </div>
+          </Link>
+        )}
+
         {/* Logo saat mode dock dan tidak mobile */}
         {!isMobile && navigationMode === "dock" && (
           <Link href="/dashboard" className="flex items-center gap-2 mr-4">

@@ -17,6 +17,7 @@ import {
   ChevronsRight,
   X,
   Code,
+  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -50,7 +51,8 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
     { title: t("Proyek"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-  ], [t])
+    ...(isMobile ? [{ title: t("Pengaturan"), href: "/settings", icon: Settings, roles: ["ADMIN", "GURU", "SISWA"] }] : []),
+  ], [t, isMobile])
 
   const adminMenuItems = useMemo(() => [
     { title: t("Manajemen Role"), href: "/users", icon: Users, roles: ["ADMIN"] },
@@ -153,11 +155,12 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
       onMouseEnter={() => !isMobile && isCollapsed && setIsHovered(true)}
       onMouseLeave={() => !isMobile && isCollapsed && setIsHovered(false)}
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-sidebar border-r border-sidebar-border flex flex-col",
+        "bg-sidebar border-r border-sidebar-border flex flex-col",
         /* Sidebar transition from tema/ion-menu.scss: --border: none, transparent bg */
         /* Transition easing: cubic-bezier(0.32, 0.72, 0, 1) from ios.transition.ts EASING */
         "transition-all duration-[540ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-        isMobile ? "w-[280px]" : isExpanded ? "w-[260px] shadow-lg" : "w-[70px]",
+        isMobile ? "w-full h-full" : "fixed left-0 top-0 z-40 h-screen",
+        !isMobile && (isExpanded ? "w-[260px] shadow-lg" : "w-[70px]"),
       )}
     >
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">

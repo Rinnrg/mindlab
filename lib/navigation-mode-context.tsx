@@ -1,49 +1,62 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
+import React, { createContext, useContext, useEffect, useState } from "react"
 
-type NavigationMode = "sidebar" | "dock"
+export type NavigationMode = "sidebar" | "dock"
+export type MobileNavigationMode = "sidebar" | "bottom-nav"
 
 interface NavigationModeContextType {
   navigationMode: NavigationMode
-  setNavigationMode: (mode: NavigationMode) => void
   toggleNavigationMode: () => void
+  mobileNavigationMode: MobileNavigationMode
+  setMobileNavigationMode: (mode: MobileNavigationMode) => void
 }
 
-const NavigationModeContext = createContext<NavigationModeContextType | undefined>(undefined)
+const NavigationModeContext = createContext<NavigationModeContextType>({
+  navigationMode: "dock",
+  toggleNavigationMode: () => {},
+  mobileNavigationMode: "sidebar",
+  setMobileNavigationMode: () => {},
+})
 
 export function NavigationModeProvider({ children }: { children: React.ReactNode }) {
-  const [navigationMode, setNavigationModeState] = useState<NavigationMode>("dock")
+  const [navigationMode, setNavigationMode] = useState<NavigationMode>("dock")
+  const [mobileNavigationMode, setMobileNavMode] = useState<MobileNavigationMode>("sidebar")
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem("navigation-mode") as NavigationMode
-    if (saved && (saved === "sidebar" || saved === "dock")) {
-      setNavigationModeState(saved)
+    const savedMode = localStorage.getItem("navigationMode") as NavigationMode
+    if (savedMode) {
+      setNavigationMode(savedMode)
     }
   }, [])
 
-  const setNavigationMode = useCallback((mode: NavigationMode) => {
-    setNavigationModeState(mode)
-    localStorage.setItem("navigation-mode", mode)
+  useEffect(() => {
+    // Reset localStorage untuk memastikan fresh start
+    localStorage.removeItem("mobileNavigationMode")
+    setMobileNavMode("sidebar")
+    localStorage.setItem("mobileNavigationMode", "sidebar")
   }, [])
 
-  const toggleNavigationMode = useCallback(() => {
-    setNavigationModeState((prev) => {
-      const newMode = prev === "sidebar" ? "dock" : "sidebar"
-      localStorage.setItem("navigation-mode", newMode)
-      return newMode
-    })
-  }, [])
+  const toggleNavigationMode = () => {
+    const newMode = navigationMode === "sidebar" ? "dock" : "sidebar"
+    setNavigationMode(newMode)
+    localStorage.setItem("navigationMode", newMode)
+  }
 
-  const value = useMemo(() => ({
+  const setMobileNavigationMode = (mode: MobileNavigationMode) => {
+    setMobileNavMode(mode)
+    localStorage.setItem("mobileNavigationMode", mode)
+  }
+
+  const contextValue = {
     navigationMode,
-    setNavigationMode,
     toggleNavigationMode,
-  }), [navigationMode, setNavigationMode, toggleNavigationMode])
+    mobileNavigationMode,
+    setMobileNavigationMode,
+  }
 
   return (
-    <NavigationModeContext.Provider value={value}>
+    <NavigationModeContext.Provider value={contextValue}>
       {children}
     </NavigationModeContext.Provider>
   )
@@ -51,8 +64,18 @@ export function NavigationModeProvider({ children }: { children: React.ReactNode
 
 export function useNavigationMode() {
   const context = useContext(NavigationModeContext)
+  
   if (context === undefined) {
     throw new Error("useNavigationMode must be used within a NavigationModeProvider")
   }
-  return context
+  
+  // Fallback untuk memastikan function tersedia
+  return {
+    navigationMode: context.navigationMode || "dock",
+    toggleNavigationMode: context.toggleNavigationMode || (() => {}),
+    mobileNavigationMode: context.mobileNavigationMode || "sidebar", 
+    setMobileNavigationMode: context.setMobileNavigationMode || (() => {
+      console.warn("setMobileNavigationMode not available")
+    }),
+  }
 }

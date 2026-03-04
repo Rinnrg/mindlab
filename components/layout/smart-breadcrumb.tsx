@@ -303,7 +303,7 @@ export function SmartBreadcrumb({ className, showMobile = false }: SmartBreadcru
             <React.Fragment key={`${crumb.href || crumb.label}-${index}`}>
               <BreadcrumbItem className="flex items-center">
                 {!crumb.href ? (
-                  <BreadcrumbPage className="flex items-center gap-1.5 text-foreground font-medium text-sm">
+                  <BreadcrumbPage className="flex items-center gap-1.5 text-primary font-medium text-sm">
                     {crumb.icon}
                     <span>{crumb.label}</span>
                   </BreadcrumbPage>
@@ -311,7 +311,7 @@ export function SmartBreadcrumb({ className, showMobile = false }: SmartBreadcru
                   <BreadcrumbLink asChild>
                     <Link 
                       href={crumb.href} 
-                      className="flex items-center gap-1.5 hover:text-foreground transition-colors text-muted-foreground text-sm"
+                      className="flex items-center gap-1.5 hover:text-primary transition-colors text-muted-foreground text-sm"
                     >
                       {crumb.icon}
                       <span>{crumb.label}</span>
