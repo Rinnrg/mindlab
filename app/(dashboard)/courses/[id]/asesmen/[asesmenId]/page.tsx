@@ -304,24 +304,6 @@ export default function AsesmenDetailPage({ params }: PageProps) {
                 )}
               </>
             )}
-            {isTeacherOrAdmin && asesmen.tipe === 'KUIS' && (
-              <>
-                <Button asChild>
-                  <Link href={`/courses/${courseId}/asesmen/${asesmenId}/soal/new`}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Soal
-                  </Link>
-                </Button>
-              </>
-            )}
-            {isTeacherOrAdmin && asesmen.tipe === 'TUGAS' && (
-              <Button asChild>
-                <Link href={`/courses/${courseId}/asesmen/${asesmenId}/soal/new`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Tambah Soal
-                </Link>
-              </Button>
-            )}
             {isTeacherOrAdmin && (
               <Button variant="outline" asChild>
                 <Link href={`/courses/${courseId}/asesmen/${asesmenId}/edit`}>
