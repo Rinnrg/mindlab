@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useAuth } from "@/lib/auth-context"
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Layout, Palette, Bell, Shield, Globe, Monitor, Moon, Sun,
   Menu, Navigation, Lock, Eye, EyeOff, Check, LogOut,
@@ -19,10 +20,26 @@ import {
 } from "lucide-react"
 
 export default function SettingsPage() {
-  const { navigationMode, toggleNavigationMode } = useNavigationMode()
+  const { navigationMode, toggleNavigationMode, mobileNavigationMode, setMobileNavigationMode } = useNavigationMode()
   const { t, locale, setLocale } = useAutoTranslate()
   const { theme, setTheme } = useTheme()
   const { user, logout } = useAuth()
+  const isMobile = useIsMobile()
+  
+  // Track mount state and actual mobile detection
+  const [isMobileResolved, setIsMobileResolved] = React.useState(false)
+  
+  React.useEffect(() => {
+    // Wait a tick so useIsMobile has resolved
+    const timer = setTimeout(() => {
+      setIsMobileResolved(true)
+    }, 50)
+    return () => clearTimeout(timer)
+  }, [])
+  
+  // Only show after mobile detection is resolved
+  const showDesktopNav = isMobileResolved && !isMobile
+  const showMobileNav = isMobileResolved && isMobile
 
   const [showOldPass, setShowOldPass] = useState(false)
   const [showNewPass, setShowNewPass] = useState(false)
@@ -70,7 +87,7 @@ export default function SettingsPage() {
 
   return (
     <div className="w-full space-y-5 sm:space-y-6 px-4 sm:px-6 pt-4 sm:pt-6">
-      <Tabs defaultValue="general" className="space-y-6">
+      <Tabs defaultValue="navigation" className="space-y-6">
         <TabsList className="ios-tab-list">
           <TabsTrigger value="general" className="ios-tab-trigger">
             <Palette className="ios-tab-icon" />
@@ -191,103 +208,200 @@ export default function SettingsPage() {
 
         {/* ═══ Navigation Tab ═══ */}
         <TabsContent value="navigation" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Navigation className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg">{t("Mode Navigasi")}</CardTitle>
-              </div>
-              <CardDescription>
-                {t("Pilih gaya navigasi yang sesuai dengan preferensi Anda")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Sidebar Option */}
-                <button
-                  onClick={() => {
-                    if (navigationMode === "dock") toggleNavigationMode()
-                  }}
-                  className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
-                    navigationMode === "sidebar"
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
-                  }`}
-                >
-                  {navigationMode === "sidebar" && (
-                    <div className="absolute top-2 right-2">
-                      <Check className="h-4 w-4 text-primary" />
+          {/* Desktop Navigation Mode - hanya tampil di desktop */}
+          {showDesktopNav && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">{t("Mode Navigasi Desktop")}</CardTitle>
+                </div>
+                <CardDescription>
+                  {t("Pilih gaya navigasi untuk tampilan desktop")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Sidebar Option */}
+                  <button
+                    onClick={() => {
+                      if (navigationMode === "dock") toggleNavigationMode()
+                    }}
+                    className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
+                      navigationMode === "sidebar"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
+                    }`}
+                  >
+                    {navigationMode === "sidebar" && (
+                      <div className="absolute top-2 right-2">
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                    <div className="w-full flex gap-1 h-16">
+                      <div className="w-8 bg-muted rounded-md flex flex-col items-center gap-0.5 p-1">
+                        <div className="w-4 h-4 bg-primary/20 rounded" />
+                        <div className="w-4 h-3 bg-muted-foreground/10 rounded" />
+                        <div className="w-4 h-3 bg-muted-foreground/10 rounded" />
+                      </div>
+                      <div className="flex-1 bg-muted/50 rounded-md" />
                     </div>
-                  )}
-                  <div className="w-full flex gap-1 h-16">
-                    <div className="w-8 bg-muted rounded-md flex flex-col items-center gap-0.5 p-1">
-                      <div className="w-4 h-4 bg-primary/20 rounded" />
-                      <div className="w-4 h-3 bg-muted-foreground/10 rounded" />
-                      <div className="w-4 h-3 bg-muted-foreground/10 rounded" />
+                    <div className="flex items-center gap-2">
+                      <Menu className="h-4 w-4" />
+                      <span
+                        className={`text-sm font-medium ${
+                          navigationMode === "sidebar" ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {t("Sidebar")}
+                      </span>
                     </div>
-                    <div className="flex-1 bg-muted/50 rounded-md" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Menu className="h-4 w-4" />
-                    <span
-                      className={`text-sm font-medium ${
-                        navigationMode === "sidebar" ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      {t("Sidebar")}
-                    </span>
-                  </div>
-                </button>
+                  </button>
 
-                {/* Dock Option */}
-                <button
-                  onClick={() => {
-                    if (navigationMode === "sidebar") toggleNavigationMode()
-                  }}
-                  className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
-                    navigationMode === "dock"
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
-                  }`}
-                >
-                  {navigationMode === "dock" && (
-                    <div className="absolute top-2 right-2">
-                      <Check className="h-4 w-4 text-primary" />
+                  {/* Dock Option */}
+                  <button
+                    onClick={() => {
+                      if (navigationMode === "sidebar") toggleNavigationMode()
+                    }}
+                    className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
+                      navigationMode === "dock"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
+                    }`}
+                  >
+                    {navigationMode === "dock" && (
+                      <div className="absolute top-2 right-2">
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                    <div className="w-full h-16 bg-muted/50 rounded-md relative">
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 bg-muted rounded-lg px-2 py-1">
+                        <div className="w-3 h-3 bg-primary/30 rounded" />
+                        <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
+                        <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
+                        <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
+                      </div>
                     </div>
-                  )}
-                  <div className="w-full h-16 bg-muted/50 rounded-md relative">
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1 bg-muted rounded-lg px-2 py-1">
-                      <div className="w-3 h-3 bg-primary/30 rounded" />
-                      <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
-                      <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
-                      <div className="w-3 h-3 bg-muted-foreground/10 rounded" />
+                    <div className="flex items-center gap-2">
+                      <Layout className="h-4 w-4" />
+                      <span
+                        className={`text-sm font-medium ${
+                          navigationMode === "dock" ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {t("Dock")}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="p-3 rounded-lg bg-muted/40 text-sm text-muted-foreground">
+                  <p>
+                    {navigationMode === "dock"
+                      ? t("Dock akan muncul di bagian bawah layar dengan efek magnifikasi seperti macOS")
+                      : t("Sidebar akan tampil di sisi kiri layar dengan menu navigasi lengkap")}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Mobile Navigation Mode - hanya tampil di mobile */}
+          {showMobileNav && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">{t("Mode Navigasi Mobile")}</CardTitle>
+                </div>
+                <CardDescription>
+                  {t("Pilih antara Hamburger atau Dynamic Bar")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Hamburger Option */}
+                  <button
+                    onClick={() => {
+                      setMobileNavigationMode("sidebar")
+                    }}
+                    className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
+                      mobileNavigationMode === "sidebar"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
+                    }`}
+                  >
+                    {mobileNavigationMode === "sidebar" && (
+                      <div className="absolute top-2 right-2">
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                    <div className="w-full h-16 bg-muted/50 rounded-md relative flex items-center justify-center">
+                      <Menu className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Menu className="h-4 w-4" />
+                      <span
+                        className={`text-sm font-medium ${
+                          mobileNavigationMode === "sidebar" ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {t("Hamburger")}
+                      </span>
+                    </div>
+                  </button>
+
+                  {/* Dynamic Bar Option */}
+                  <button
+                    onClick={() => {
+                      setMobileNavigationMode("bottom-nav")
+                    }}
+                    className={`relative flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all duration-200 ${
+                      mobileNavigationMode === "bottom-nav"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-muted hover:border-muted-foreground/25 hover:bg-muted/50"
+                    }`}
+                  >
+                    {mobileNavigationMode === "bottom-nav" && (
+                      <div className="absolute top-2 right-2">
+                        <Check className="h-4 w-4 text-primary" />
+                      </div>
+                    )}
+                    <div className="w-full h-16 bg-muted/50 rounded-md relative">
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-2 bg-muted rounded-lg px-3 py-1.5">
+                        <div className="w-4 h-4 bg-primary/30 rounded" />
+                        <div className="w-4 h-4 bg-muted-foreground/20 rounded" />
+                        <div className="w-4 h-4 bg-muted-foreground/20 rounded" />
+                        <div className="w-4 h-4 bg-muted-foreground/20 rounded" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      <span
+                        className={`text-sm font-medium ${
+                          mobileNavigationMode === "bottom-nav" ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {t("Dynamic Bar")}
+                      </span>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="p-4 rounded-lg bg-muted/40 text-sm text-muted-foreground">
+                  <div className="flex flex-col gap-2">
+                    <div className="font-medium">Mode saat ini: {mobileNavigationMode === "sidebar" ? "Hamburger" : "Dynamic Bar"}</div>
+                    <div>
+                      {mobileNavigationMode === "sidebar"
+                        ? t("🍔 Hamburger: Topbar dengan tombol ☰ untuk buka sidebar drawer")
+                        : t("📱 Dynamic Bar: Topbar tanpa hamburger + navigation bar di bawah layar")}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Layout className="h-4 w-4" />
-                    <span
-                      className={`text-sm font-medium ${
-                        navigationMode === "dock" ? "text-primary" : "text-muted-foreground"
-                      }`}
-                    >
-                      {t("Dock")}
-                    </span>
-                  </div>
-                </button>
-              </div>
-
-              <div className="p-3 rounded-lg bg-muted/40 text-sm text-muted-foreground">
-                <p>
-                  {navigationMode === "dock"
-                    ? t("Dock akan muncul di bagian bawah layar dengan efek magnifikasi seperti macOS")
-                    : t("Sidebar akan tampil di sisi kiri layar dengan menu navigasi lengkap")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ═══ Notifications Tab ═══ */}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>        {/* ═══ Notifications Tab ═══ */}
         <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
