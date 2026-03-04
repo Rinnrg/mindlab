@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 180
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -172,7 +174,9 @@ export async function GET(request: NextRequest) {
       new Date(a.date).getTime() - new Date(b.date).getTime()
     )
 
-    return NextResponse.json({ schedule: scheduleEvents })
+    const response = NextResponse.json({ schedule: scheduleEvents })
+    response.headers.set('Cache-Control', 'public, s-maxage=180, stale-while-revalidate=600')
+    return response
   } catch (error) {
     console.error('Error fetching schedule:', error)
     return NextResponse.json(

@@ -698,12 +698,22 @@ export function AutoTranslateProvider({ children }: { children: React.ReactNode 
     localStorage.setItem('locale', newLocale)
   }, [])
 
+  // Use ref to stabilize locale value for t function
+  const localeRef = React.useRef(locale)
+  localeRef.current = locale
+
   const t = useCallback((text: string) => {
-    return autoTranslate(text, locale)
-  }, [locale])
+    return autoTranslate(text, localeRef.current)
+  }, []) // Stable reference — locale is read from ref
+
+  const value = React.useMemo(() => ({
+    locale,
+    setLocale,
+    t,
+  }), [locale, setLocale, t])
 
   return (
-    <AutoTranslateContext.Provider value={{ locale, setLocale, t }}>
+    <AutoTranslateContext.Provider value={value}>
       {children}
     </AutoTranslateContext.Provider>
   )

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 300 // 5 minutes
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -115,7 +117,9 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    return NextResponse.json({ courses })
+    const response = NextResponse.json({ courses })
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+    return response
   } catch (error) {
     console.error('Error fetching courses:', error)
     return NextResponse.json(

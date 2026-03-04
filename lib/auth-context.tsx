@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react"
 import type { User, UserRole } from "./types"
 
 interface AuthContextType {
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
-  const setUserRole = (role: UserRole) => {
+  const setUserRole = useCallback((role: UserRole) => {
     // This is for backward compatibility with quick login buttons
     // For actual login, use setUser() directly
     setUser({
@@ -57,9 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
       createdAt: new Date(),
     })
-  }
+  }, [])
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!user?.id) return
     
     try {
@@ -73,24 +73,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to refresh user:', error)
     }
-  }
+  }, [user?.id])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem('user')
     document.cookie = 'user=;path=/;max-age=0'
-  }
+  }, [])
+
+  const value = useMemo(() => ({
+    user,
+    setUser,
+    setUserRole,
+    refreshUser,
+    isAuthenticated: !!user,
+    logout,
+    isLoading,
+  }), [user, setUserRole, refreshUser, logout, isLoading])
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      setUser, 
-      setUserRole, 
-      refreshUser,
-      isAuthenticated: !!user, 
-      logout,
-      isLoading 
-    }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   )

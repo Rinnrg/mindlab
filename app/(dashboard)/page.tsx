@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { redirect } from "next/navigation"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import {
   BookOpen,
   FileText,
@@ -27,6 +27,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { id as localeId, enUS } from "date-fns/locale"
 import { DashboardSkeleton } from "@/components/ui/loading-skeletons"
+import { fetchJSON } from "@/lib/fetch-cache"
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -43,60 +44,52 @@ export default function DashboardPage() {
   const [asesmenList, setAsesmenList] = useState<any[]>([])
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const abortRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
+  const fetchDashboardData = useCallback(async () => {
     if (!user) return
 
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true)
-        
-        // Fetch semua data secara paralel menggunakan Promise.all untuk performa optimal
-        const [statsRes, coursesRes, scheduleRes, asesmenRes, activityRes] = await Promise.all([
-          fetch(`/api/stats?userId=${user.id}&role=${user.role}`, { 
-            next: { revalidate: 60 } // Cache 60 detik
-          }),
-          user.role === 'SISWA' 
-            ? fetch(`/api/courses?siswaId=${user.id}`, { next: { revalidate: 300 } })
-            : user.role === 'GURU'
-            ? fetch(`/api/courses?guruId=${user.id}`, { next: { revalidate: 300 } })
-            : fetch('/api/courses', { next: { revalidate: 300 } }),
-          fetch(`/api/schedule?userId=${user.id}&role=${user.role}`, { 
-            next: { revalidate: 180 } 
-          }),
-          user.role === 'GURU'
-            ? fetch(`/api/asesmen?guruId=${user.id}`, { next: { revalidate: 120 } })
-            : fetch('/api/asesmen', { next: { revalidate: 120 } }),
-          fetch(`/api/activity?userId=${user.id}&role=${user.role}`, { 
-            next: { revalidate: 60 } 
-          }),
-        ])
+    // Abort previous request if still running
+    if (abortRef.current) abortRef.current.abort()
+    abortRef.current = new AbortController()
 
-        // Parse semua response secara paralel
-        const [statsData, coursesData, scheduleData, asesmenData, activityData] = await Promise.all([
-          statsRes.json(),
-          coursesRes.json(),
-          scheduleRes.json(),
-          asesmenRes.json(),
-          activityRes.json(),
-        ])
+    try {
+      setLoading(true)
+      
+      // Fetch semua data secara paralel dengan client-side caching (60s TTL)
+      const [statsData, coursesData, scheduleData, asesmenData, activityData] = await Promise.all([
+        fetchJSON(`/api/stats?userId=${user.id}&role=${user.role}`, 60000),
+        user.role === 'SISWA' 
+          ? fetchJSON(`/api/courses?siswaId=${user.id}`, 300000)
+          : user.role === 'GURU'
+          ? fetchJSON(`/api/courses?guruId=${user.id}`, 300000)
+          : fetchJSON('/api/courses', 300000),
+        fetchJSON(`/api/schedule?userId=${user.id}&role=${user.role}`, 180000),
+        user.role === 'GURU'
+          ? fetchJSON(`/api/asesmen?guruId=${user.id}`, 120000)
+          : fetchJSON('/api/asesmen', 120000),
+        fetchJSON(`/api/activity?userId=${user.id}&role=${user.role}`, 60000),
+      ])
 
-        // Set semua state
-        setStats(statsData.stats)
-        setCourses(coursesData.courses || [])
-        setScheduleEvents(scheduleData.schedule || [])
-        setAsesmenList(asesmenData.asesmen || [])
-        setActivities(activityData.activities || [])
+      // Set semua state in one batch
+      setStats(statsData.stats)
+      setCourses(coursesData.courses || [])
+      setScheduleEvents(scheduleData.schedule || [])
+      setAsesmenList(asesmenData.asesmen || [])
+      setActivities(activityData.activities || [])
 
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-      } finally {
-        setLoading(false)
-      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
     }
-
-    fetchDashboardData()
   }, [user])
+
+  useEffect(() => {
+    fetchDashboardData()
+    return () => { abortRef.current?.abort() }
+  }, [fetchDashboardData])
 
   // Show loading while checking auth
   if (authLoading) {

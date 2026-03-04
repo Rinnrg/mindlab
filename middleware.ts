@@ -27,7 +27,11 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
+  // Only run middleware on specific page routes that need role checking
+  // Exclude API routes, static files, images, etc.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/projects/:path*',
+    '/courses/:path*',
+    '/compiler/:path*',
   ],
 }

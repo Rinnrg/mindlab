@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { usePathname } from "next/navigation"
 import { Sidebar } from "./sidebar"
 import { Dockbar } from "./dockbar"
@@ -27,16 +27,24 @@ export function AppShell({ children }: AppShellProps) {
   const isSettingsPage = pathname === "/settings"
 
   useEffect(() => {
+    let rafId: number
+
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-      if (window.innerWidth < 768) {
-        setIsCollapsed(true)
-      }
+      // Debounce via rAF to avoid layout thrashing
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        const mobile = window.innerWidth < 768
+        setIsMobile(mobile)
+        if (mobile) setIsCollapsed(true)
+      })
     }
 
     checkMobile()
-    window.addEventListener("resize", checkMobile)
-    return () => window.removeEventListener("resize", checkMobile)
+    window.addEventListener("resize", checkMobile, { passive: true })
+    return () => {
+      window.removeEventListener("resize", checkMobile)
+      cancelAnimationFrame(rafId)
+    }
   }, [])
 
   return (

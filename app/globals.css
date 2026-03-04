@@ -168,8 +168,8 @@
 /* Glass Section - for header/container areas */
 .ios-glass-section {
   background: linear-gradient(135deg, rgba(var(--ios26-glass-bg-rgb), 0.45) 0%, rgba(var(--ios26-glass-bg-rgb), 0.15) 100%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
-  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  backdrop-filter: blur(12px) saturate(150%);
   border: 0.5px solid rgba(255, 255, 255, 0.2);
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.08),
@@ -187,8 +187,8 @@
 /* Glass Card - for card elements */
 .ios-glass-card {
   background: linear-gradient(135deg, rgba(var(--ios26-glass-bg-rgb), 0.55) 0%, rgba(var(--ios26-glass-bg-rgb), 0.25) 100%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
   border: 0.5px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
     0 4px 24px rgba(0, 0, 0, 0.06),
@@ -633,8 +633,8 @@
 
   /* Liquid Glass background — from api.scss glass-background mixin */
   background: rgba(var(--ios26-glass-bg-rgb), 0.72);
-  -webkit-backdrop-filter: blur(40px) saturate(360%);
-  backdrop-filter: blur(40px) saturate(360%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  backdrop-filter: blur(24px) saturate(200%);
   /* Water-glass refractive shadow layers — inner caustic + outer bloom */
   box-shadow:
     inset 0 0.5px 0 0 rgba(255, 255, 255, 0.4),

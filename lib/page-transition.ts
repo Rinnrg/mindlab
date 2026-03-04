@@ -25,16 +25,17 @@ export function runPageTransition(options: PageTransitionOptions): Promise<void>
   const isForward = direction === 'forward';
 
   // ── Duration: macOS uses ~350 ms for open, ~250 ms for close ──
-  const enterDuration = 380;
-  const leaveDuration = 260;
+  const enterDuration = 300;
+  const leaveDuration = 200;
 
   // ── Enter: page scales up from small + blurred (like opening from dock) ──
+  // Reduced blur intensity for better GPU performance
   const enterFrom = {
     transform: isForward
-      ? 'scale(0.92) translateY(30px)'
-      : 'scale(1.04) translateY(-14px)',
+      ? 'scale(0.95) translateY(20px)'
+      : 'scale(1.02) translateY(-10px)',
     opacity: '0',
-    filter: 'blur(16px)',
+    filter: 'blur(6px)',
   };
 
   const enterTo = {
@@ -52,10 +53,10 @@ export function runPageTransition(options: PageTransitionOptions): Promise<void>
 
   const leaveTo = {
     transform: isForward
-      ? 'scale(1.05) translateY(-18px)'
-      : 'scale(0.92) translateY(30px)',
+      ? 'scale(1.03) translateY(-12px)'
+      : 'scale(0.95) translateY(20px)',
     opacity: '0',
-    filter: 'blur(14px)',
+    filter: 'blur(4px)',
   };
 
   // Set initial state
@@ -65,15 +66,6 @@ export function runPageTransition(options: PageTransitionOptions): Promise<void>
   const enterAnim = enteringEl.animate(
     [
       enterFrom,
-      // slight overshoot at 60 %
-      {
-        transform: isForward
-          ? 'scale(1.012) translateY(-3px)'
-          : 'scale(0.994) translateY(2px)',
-        opacity: '0.95',
-        filter: 'blur(0.5px)',
-        offset: 0.6,
-      },
       enterTo,
     ],
     { duration: enterDuration, easing: SPRING_IN, fill: 'forwards' },

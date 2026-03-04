@@ -15,7 +15,16 @@ import { Separator } from "@/components/ui/separator"
 import { FileUploadField } from "@/components/file-upload-field"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
-import Editor from "@monaco-editor/react"
+import dynamic from "next/dynamic"
+
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[300px] bg-muted/20 rounded-lg">
+      <div className="animate-pulse text-sm text-muted-foreground">Loading editor...</div>
+    </div>
+  ),
+})
 import {
   Upload,
   Loader2,

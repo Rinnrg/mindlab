@@ -69,8 +69,11 @@ function isIdSegment(seg: string): boolean {
     || /^[a-zA-Z0-9]{15,}$/.test(seg)              // Generic long alphanumeric ID (like cuid/nanoid)
     || /^[0-9]+$/.test(seg)                        // Pure numeric ID
     || /^c[a-z0-9]{24,}$/i.test(seg)              // cuid style (starts with c)
-    || seg.match(/^[a-z0-9_-]{20,}$/i)            // Generic long ID with common chars
+    || /^[a-z0-9_-]{20,}$/i.test(seg)             // Generic long ID with common chars
 }
+
+// Global breadcrumb name cache — persists across navigations
+const globalNameCache = new Map<string, string>()
 
 // Hook untuk fetch nama berdasarkan ID dan context
 function useFetchBreadcrumbNames(pathname: string) {
@@ -87,6 +90,9 @@ function useFetchBreadcrumbNames(pathname: string) {
       const prevSegment = pathSegments[i - 1]
       
       if (isIdSegment(segment)) {
+        // Skip if already in global cache
+        if (globalNameCache.has(segment)) continue
+
         const path = '/' + pathSegments.slice(0, i + 1).join('/')
         
         // Tentukan type berdasarkan context
@@ -105,83 +111,92 @@ function useFetchBreadcrumbNames(pathname: string) {
     }
 
     if (namesToFetch.length === 0) {
+      // Load from global cache
+      const cached: Record<string, string> = {}
+      const pathSegs = pathname.split('/').filter(Boolean)
+      for (const seg of pathSegs) {
+        if (isIdSegment(seg) && globalNameCache.has(seg)) {
+          cached[seg] = globalNameCache.get(seg)!
+        }
+      }
+      setNameCache(cached)
       setLoading(false)
       return
     }
 
     setLoading(true)
 
-    // Fetch names yang belum ada di cache
-    const newCache: Record<string, string> = {}
-    
-    for (const item of namesToFetch) {
-      try {
-        let response
-        let name = 'Loading...'
+    // Fetch names in PARALLEL instead of sequential
+    const results = await Promise.allSettled(
+      namesToFetch.map(async (item) => {
+        try {
+          let response
+          let name = 'Detail'
 
-        switch (item.type) {
-          case 'course':
-            response = await fetch(`/api/courses/${item.id}`)
-            if (response.ok) {
-              const data = await response.json()
-              name = data.course?.judul || 'Kursus'
-            } else {
-              name = 'Kursus'
-            }
-            break
-            
-          case 'materi':
-            response = await fetch(`/api/materi/${item.id}`)
-            if (response.ok) {
-              const data = await response.json()
-              name = data.materi?.judul || data.judul || 'Materi'
-            } else {
-              name = 'Materi'
-            }
-            break
-            
-          case 'asesmen':
-            response = await fetch(`/api/asesmen/${item.id}`)
-            if (response.ok) {
-              const data = await response.json()
-              name = data.asesmen?.nama || data.nama || 'Asesmen'
-            } else {
-              name = 'Asesmen'
-            }
-            break
-            
-          case 'proyek':
-            response = await fetch(`/api/proyek/${item.id}`)
-            if (response.ok) {
-              const data = await response.json()
-              name = data.proyek?.judul || data.judul || 'Proyek'
-            } else {
-              name = 'Proyek'
-            }
-            break
-            
-          case 'user':
-            response = await fetch(`/api/users/${item.id}`)
-            if (response.ok) {
-              const data = await response.json()
-              name = data.user?.nama || data.nama || 'User'
-            } else {
-              name = 'User'
-            }
-            break
-            
-          default:
-            name = 'Detail'
+          switch (item.type) {
+            case 'course':
+              response = await fetch(`/api/courses/${item.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                name = data.course?.judul || 'Kursus'
+              } else name = 'Kursus'
+              break
+            case 'materi':
+              response = await fetch(`/api/materi/${item.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                name = data.materi?.judul || data.judul || 'Materi'
+              } else name = 'Materi'
+              break
+            case 'asesmen':
+              response = await fetch(`/api/asesmen/${item.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                name = data.asesmen?.nama || data.nama || 'Asesmen'
+              } else name = 'Asesmen'
+              break
+            case 'proyek':
+              response = await fetch(`/api/proyek/${item.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                name = data.proyek?.judul || data.judul || 'Proyek'
+              } else name = 'Proyek'
+              break
+            case 'user':
+              response = await fetch(`/api/users/${item.id}`)
+              if (response.ok) {
+                const data = await response.json()
+                name = data.user?.nama || data.nama || 'User'
+              } else name = 'User'
+              break
+            default:
+              name = 'Detail'
+          }
+          return { id: item.id, name }
+        } catch {
+          const fallback = item.type === 'course' ? 'Kursus' :
+                           item.type === 'materi' ? 'Materi' :
+                           item.type === 'asesmen' ? 'Asesmen' :
+                           item.type === 'proyek' ? 'Proyek' :
+                           item.type === 'user' ? 'User' : 'Detail'
+          return { id: item.id, name: fallback }
         }
-        
-        newCache[item.id] = name
-      } catch (error) {
-        console.warn(`Failed to fetch name for ${item.type} ${item.id}:`, error)
-        newCache[item.id] = item.type === 'course' ? 'Kursus' :
-                             item.type === 'materi' ? 'Materi' :
-                             item.type === 'asesmen' ? 'Asesmen' :
-                             item.type === 'proyek' ? 'Proyek' :
-                             item.type === 'user' ? 'User' : 'Detail'
+      })
+    )
+
+    const newCache: Record<string, string> = {}
+    // Include existing global cache entries
+    const pathSegs = pathname.split('/').filter(Boolean)
+    for (const seg of pathSegs) {
+      if (isIdSegment(seg) && globalNameCache.has(seg)) {
+        newCache[seg] = globalNameCache.get(seg)!
+      }
+    }
+    // Merge new results
+    for (const result of results) {
+      if (result.status === 'fulfilled') {
+        newCache[result.value.id] = result.value.name
+        globalNameCache.set(result.value.id, result.value.name)
       }
     }
 

@@ -68,7 +68,7 @@ export function Header({ onMenuClick, isMobile }: HeaderProps) {
     <header className={cn(
       "sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between border-b px-3 sm:px-5",
       /* Glass navbar from tema/api.scss glass-background mixin */
-      "bg-background/72 backdrop-blur-[20px] backdrop-saturate-[360%]",
+      "bg-background/80 backdrop-blur-md backdrop-saturate-150",
       /* Border from api.scss: asymmetric glass border */
       "border-b-white/80 dark:border-b-[rgba(120,120,120,0.3)]",
       /* Shadow from glass-background: inner glow + outer bloom */

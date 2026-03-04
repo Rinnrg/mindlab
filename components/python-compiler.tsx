@@ -1,7 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import Editor from "@monaco-editor/react"
+import dynamic from "next/dynamic"
+
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full bg-muted/20 rounded-lg">
+      <div className="animate-pulse text-sm text-muted-foreground">Loading editor...</div>
+    </div>
+  ),
+})
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { cn } from "@/lib/utils"
 import {

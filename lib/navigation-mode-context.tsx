@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react"
 
 type NavigationMode = "sidebar" | "dock"
 
@@ -23,24 +23,27 @@ export function NavigationModeProvider({ children }: { children: React.ReactNode
     }
   }, [])
 
-  const setNavigationMode = (mode: NavigationMode) => {
+  const setNavigationMode = useCallback((mode: NavigationMode) => {
     setNavigationModeState(mode)
     localStorage.setItem("navigation-mode", mode)
-  }
+  }, [])
 
-  const toggleNavigationMode = () => {
-    const newMode = navigationMode === "sidebar" ? "dock" : "sidebar"
-    setNavigationMode(newMode)
-  }
+  const toggleNavigationMode = useCallback(() => {
+    setNavigationModeState((prev) => {
+      const newMode = prev === "sidebar" ? "dock" : "sidebar"
+      localStorage.setItem("navigation-mode", newMode)
+      return newMode
+    })
+  }, [])
+
+  const value = useMemo(() => ({
+    navigationMode,
+    setNavigationMode,
+    toggleNavigationMode,
+  }), [navigationMode, setNavigationMode, toggleNavigationMode])
 
   return (
-    <NavigationModeContext.Provider
-      value={{
-        navigationMode,
-        setNavigationMode,
-        toggleNavigationMode,
-      }}
-    >
+    <NavigationModeContext.Provider value={value}>
       {children}
     </NavigationModeContext.Provider>
   )

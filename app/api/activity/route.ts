@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 60
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -560,7 +562,9 @@ export async function GET(request: NextRequest) {
     // Limit results
     const limitedActivities = activities.slice(0, limit)
 
-    return NextResponse.json({ activities: limitedActivities })
+    const response = NextResponse.json({ activities: limitedActivities })
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+    return response
   } catch (error) {
     console.error('Error fetching activities:', error)
     return NextResponse.json(

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Revalidate stats every 60 seconds
+export const revalidate = 60
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -10,17 +13,10 @@ export async function GET(request: NextRequest) {
     let stats: any = {}
 
     if (role === 'SISWA' && userId) {
-      // Stats untuk siswa
-      const [coursesCount, nilaiCount, proyekCount, avgNilai] = await Promise.all([
-        // Courses yang diikuti (bisa lewat asesmen yang sudah dikerjakan)
-        prisma.nilai.findMany({
+      // Stats untuk siswa — optimized: use count + aggregate only
+      const [enrollmentCount, nilaiCount, proyekCount, avgNilai] = await Promise.all([
+        prisma.enrollment.count({
           where: { siswaId: userId },
-          select: {
-            asesmen: {
-              select: { courseId: true }
-            }
-          },
-          distinct: ['asesmenId']
         }),
         // Total asesmen yang sudah dikerjakan
         prisma.nilai.count({
@@ -37,11 +33,8 @@ export async function GET(request: NextRequest) {
         }),
       ])
 
-      // Get unique courses
-      const uniqueCourses = new Set(coursesCount.map(n => n.asesmen.courseId))
-
       stats = {
-        coursesCount: uniqueCourses.size,
+        coursesCount: enrollmentCount,
         asesmenCount: nilaiCount,
         proyekCount,
         avgNilai: avgNilai._avg.skor || 0,
@@ -102,7 +95,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ stats })
+    const response = NextResponse.json({ stats })
+    response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300')
+    return response
   } catch (error) {
     console.error('Error fetching stats:', error)
     return NextResponse.json(

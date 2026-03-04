@@ -137,8 +137,10 @@ export function SearchDropdown() {
     return () => document.removeEventListener("keydown", down)
   }, [])
 
-  // Fetch search results from API (including recent suggestions when empty)
+  // Fetch search results from API (only when dropdown is open)
   React.useEffect(() => {
+    if (!open) return
+
     const fetchSearchResults = async () => {
       setIsLoading(true)
       try {
@@ -165,7 +167,7 @@ export function SearchDropdown() {
     }
 
     fetchSearchResults()
-  }, [debouncedSearch])
+  }, [debouncedSearch, open])
 
   const searchItems: SearchItem[] = React.useMemo(() => {
     const items: SearchItem[] = [

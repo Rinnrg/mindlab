@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -44,20 +44,20 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
   const LIQUID_SETTLE = "cubic-bezier(0.23, 1, 0.32, 1)"
   const WATER_EASING = "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
     { title: t("Proyek"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-  ]
+  ], [t])
 
-  const adminMenuItems = [
+  const adminMenuItems = useMemo(() => [
     { title: t("Manajemen Role"), href: "/users", icon: Users, roles: ["ADMIN"] },
-  ]
+  ], [t])
 
-  const filteredMenu = menuItems.filter((item) => user && item.roles.includes(user.role))
-  const filteredAdminMenu = adminMenuItems.filter((item) => user && item.roles.includes(user.role))
+  const filteredMenu = useMemo(() => menuItems.filter((item) => user && item.roles.includes(user.role)), [menuItems, user])
+  const filteredAdminMenu = useMemo(() => adminMenuItems.filter((item) => user && item.roles.includes(user.role)), [adminMenuItems, user])
 
   // Combine all menu items for blob positioning
   const allMenuItems = [...filteredMenu, ...filteredAdminMenu]

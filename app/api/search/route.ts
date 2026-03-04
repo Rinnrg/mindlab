@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+export const revalidate = 30
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -86,6 +88,8 @@ export async function GET(request: NextRequest) {
           schedules: recentSchedules,
         },
         isRecent: true,
+      }, {
+        headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120' },
       })
     }
 
@@ -220,6 +224,8 @@ export async function GET(request: NextRequest) {
         schedules,
         users,
       },
+    }, {
+      headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=120' },
     })
   } catch (error) {
     console.error('Error searching:', error)
