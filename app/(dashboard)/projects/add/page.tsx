@@ -3,13 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "            throw new Error(data.error || t("Gagal membuat PBL"))
-          }
-        },
-        {
-          loadingMessage: t("Membuat PBL..."),
-          successTitle: t("Berhasil!"),
-          successDescription: t("PBL berhasil dibuat"),uto-translate-context"
+import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
