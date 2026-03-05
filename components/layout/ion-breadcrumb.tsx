@@ -101,7 +101,7 @@ export function IonStyleBreadcrumb({ className }: IonStyleBreadcrumbProps) {
     // Map common segments to readable names
     const segmentLabels: { [key: string]: string } = {
       'courses': 'Kursus',
-      'projects': 'PBL',
+      'projects': 'Masalah',
       'proyek': 'Proyek Saya', 
       'users': 'Pengguna',
       'schedule': 'Jadwal',

@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
+import { useAutoTranslate } from "            throw new Error(data.error || t("Gagal membuat PBL"))
+          }
+        },
+        {
+          loadingMessage: t("Membuat PBL..."),
+          successTitle: t("Berhasil!"),
+          successDescription: t("PBL berhasil dibuat"),uto-translate-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -234,16 +240,16 @@ export default function AddProjectPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Judul Proyek */}
+              {/* Judul Masalah */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul PBL")} <span className="text-red-500">*</span>
+                  {t("Judul Masalah")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul PBL...")}
+                  placeholder={t("Masukkan judul masalah...")}
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -259,7 +265,7 @@ export default function AddProjectPage() {
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
+                  placeholder={t("Jelaskan tujuan dan detail masalah...")}
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -307,7 +313,7 @@ export default function AddProjectPage() {
                   {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
+                  {t("Pilih tahapan-tahapan masalah yang akan dijalankan")}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -348,7 +354,7 @@ export default function AddProjectPage() {
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung PBL")}
+                  placeholder={t("Upload file pendukung masalah")}
                 />
               </div>
 
@@ -360,7 +366,7 @@ export default function AddProjectPage() {
                       {t("Enrollment Siswa")} <span className="text-muted-foreground">({t("Opsional")})</span>
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Pilih kelas untuk mendaftarkan siswa ke dalam PBL ini")}
+                      {t("Pilih kelas untuk mendaftarkan siswa ke dalam masalah ini")}
                     </p>
                   </div>
                   {totalSelectedStudents > 0 && (
@@ -450,7 +456,7 @@ export default function AddProjectPage() {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Buat PBL")}
+                  {isSubmitting ? t("Menyimpan...") : t("Buat Masalah")}
                 </Button>
               </div>
             </form>

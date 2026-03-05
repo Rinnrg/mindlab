@@ -42,7 +42,7 @@ model User {
   createdAt DateTime @default(now())
 
   course        Course[]
-  proyekDibuat  Proyek[]
+  masalahDibuat  PBL[] @relation("PBLDibuat")
   asesmenDibuat Asesmen[]
 
   nilai           Nilai[]
@@ -203,7 +203,7 @@ model Nilai {
   @@index([tanggal])
 }
 
-model Proyek {
+model PBL {
   id          String   @id @default(cuid())
   judul       String
   deskripsi   String   @db.Text
@@ -219,26 +219,27 @@ model Proyek {
   fileSize       Int?     // File size in bytes
 
   guruId String
-  guru   User   @relation(fields: [guruId], references: [id])
+  guru   User   @relation(fields: [guruId], references: [id], name: "PBLDibuat")
 
   kelompok Kelompok[]
 
   @@index([guruId])
   @@index([tgl_mulai])
   @@index([tgl_selesai])
+  @@map("pbl")
 }
 
 model Kelompok {
   id   String @id @default(cuid())
   nama String
 
-  proyekId String
-  proyek   Proyek @relation(fields: [proyekId], references: [id])
+  pblId String
+  pbl   PBL @relation(fields: [pblId], references: [id])
 
   anggota     AnggotaKelompok[]
   pengumpulan PengumpulanProyek[]
 
-  @@index([proyekId])
+  @@index([pblId])
 }
 
 model AnggotaKelompok {

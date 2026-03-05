@@ -1,4 +1,4 @@
-import type { User, Course, Asesmen, Proyek, ProfileShowcase, ScheduleEvent } from "./types"
+import type { User, Course, Asesmen, Masalah, ProfileShowcase, ScheduleEvent } from "./types"
 import { SINTAKS_MAP, type SintaksKey } from "./constants/project"
 
 // Mock current user - change role to test different views
@@ -115,7 +115,7 @@ export const mockAsesmenList: Asesmen[] = [
   },
 ]
 
-export const mockProyek: Proyek[] = [
+export const mockProyek: Masalah[] = [
   {
     id: "p1",
     judul: "Orientasi Masalah",
@@ -166,7 +166,7 @@ export const mockProyek: Proyek[] = [
   },
 ]
 
-export function getProjectBySintaks(sintaksKey: SintaksKey): Proyek | undefined {
+export function getProjectBySintaks(sintaksKey: SintaksKey): Masalah | undefined {
   const sintaksInfo = SINTAKS_MAP[sintaksKey]
   if (!sintaksInfo) return undefined
   return mockProyek.find((p) => p.judul === sintaksInfo.title)

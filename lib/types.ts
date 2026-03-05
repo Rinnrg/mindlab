@@ -113,7 +113,7 @@ export interface PengumpulanProyek {
   asesmen?: Asesmen
 }
 
-export interface Proyek {
+export interface Masalah {
   id: string
   judul: string
   deskripsi: string
@@ -127,7 +127,7 @@ export interface Proyek {
 export interface Kelompok {
   id: string
   nama: string
-  proyekId: string
+  masalahId: string
   anggota?: AnggotaKelompok[]
   pengumpulan?: PengumpulanProyek[]
 }

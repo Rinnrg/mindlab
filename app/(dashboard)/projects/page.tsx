@@ -24,14 +24,15 @@ import {
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { format, isPast, isFuture, isWithinInterval } from "date-fns"
 import { id as idLocale, enUS } from "date-fns/locale"
 import { AnimateIn } from "@/components/ui/animate-in"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
-import { SINTAKS_MAP } from "@/lib/constants/project"
+import { SINTAKS_MAP, SintaksKey } from "@/lib/constants/project"
 
-interface Proyek {
+interface PBL {
   id: string
   judul: string
   deskripsi: string
@@ -66,6 +67,7 @@ interface Proyek {
 export default function ProjectsPage() {
   const { user } = useAuth()
   const { t, locale } = useAutoTranslate()
+  const router = useRouter()
   const { error: showError, confirm, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   
@@ -79,7 +81,7 @@ export default function ProjectsPage() {
   
   useBreadcrumbPage('PBL', breadcrumbItems)
   
-  const [proyeks, setProyeks] = useState<Proyek[]>([])
+  const [proyeks, setProyeks] = useState<PBL[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -98,7 +100,7 @@ export default function ProjectsPage() {
       const data = await response.json()
 
       if (response.ok) {
-        setProyeks(data.proyek || [])
+        setProyeks(data.pbl || [])
       } else {
         showError(t("Gagal"), data.error || t("Gagal memuat data PBL"))
       }
@@ -410,7 +412,7 @@ export default function ProjectsPage() {
                     {/* Sintaks badges */}
                     <div className="flex flex-wrap gap-1 pt-3 border-t">
                       {proyek.sintaks.slice(0, 3).map((sintaksKey) => {
-                        const sintaksInfo = SINTAKS_MAP[sintaksKey]
+                        const sintaksInfo = SINTAKS_MAP[sintaksKey as SintaksKey]
                         return sintaksInfo ? (
                           <Badge key={sintaksKey} variant="secondary" className="text-xs">
                             {sintaksInfo.icon} {t(sintaksInfo.title)}

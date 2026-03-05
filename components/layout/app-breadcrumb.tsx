@@ -27,7 +27,7 @@ const breadcrumbConfig: BreadcrumbConfig = {
   'courses': { label: 'Kursus' },
   'materi': { label: 'Materi' },
   'asesmen': { label: 'Asesmen' },
-  'projects': { label: 'PBL' },
+  'projects': { label: 'Masalah' },
   'proyek': { label: 'Proyek Saya' },
   'users': { label: 'Pengguna' },
   'schedule': { label: 'Jadwal' },

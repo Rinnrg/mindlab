@@ -31,7 +31,7 @@ const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } 
   'dashboard':    { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
   'courses':      { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
   'asesmen':      { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
-  'projects':     { label: 'PBL', icon: <BookOpen className="h-4 w-4" /> },
+  'projects':     { label: 'Masalah', icon: <BookOpen className="h-4 w-4" /> },
   'proyek':       { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
   'users':        { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
   'schedule':     { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },

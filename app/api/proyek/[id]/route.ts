@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const proyek = await prisma.proyek.findUnique({
+    const proyek = await prisma.pBL.findUnique({
       where: { id },
       include: {
         guru: {
@@ -48,7 +48,7 @@ export async function GET(
 
     if (!proyek) {
       return NextResponse.json(
-        { error: 'Proyek tidak ditemukan' },
+        { error: 'PBL tidak ditemukan' },
         { status: 404 }
       )
     }
@@ -100,18 +100,18 @@ export async function PUT(
     }
 
     // Check if project exists
-    const existingProyek = await prisma.proyek.findUnique({
+    const existingProyek = await prisma.pBL.findUnique({
       where: { id },
     })
 
     if (!existingProyek) {
       return NextResponse.json(
-        { error: "Proyek tidak ditemukan" },
+        { error: "PBL tidak ditemukan" },
         { status: 404 }
       )
     }
 
-    const proyek = await prisma.proyek.update({
+    const proyek = await prisma.pBL.update({
       where: { id },
       data: {
         judul,
@@ -132,11 +132,11 @@ export async function PUT(
       },
     })
 
-    return NextResponse.json({ proyek })
+    return NextResponse.json({ pbl: proyek })
   } catch (error) {
     console.error('Error updating proyek:', error)
     return NextResponse.json(
-      { error: 'Gagal mengupdate proyek' },
+      { error: 'Gagal mengupdate PBL' },
       { status: 500 }
     )
   }
@@ -149,15 +149,15 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
-    await prisma.proyek.delete({
+    await prisma.pBL.delete({
       where: { id },
     })
 
-    return NextResponse.json({ message: 'Proyek berhasil dihapus' })
+    return NextResponse.json({ message: 'PBL berhasil dihapus' })
   } catch (error) {
     console.error('Error deleting proyek:', error)
     return NextResponse.json(
-      { error: 'Gagal menghapus proyek' },
+      { error: 'Gagal menghapus PBL' },
       { status: 500 }
     )
   }

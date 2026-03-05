@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(proyek)
     }
 
-    const proyek = await prisma.proyek.findMany({
+    const proyek = await prisma.pBL.findMany({
       where: guruId ? { guruId } : {},
       include: {
         guru: {
@@ -65,11 +65,11 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ proyek })
+    return NextResponse.json({ pbl: proyek })
   } catch (error) {
     console.error('Error fetching proyek:', error)
     return NextResponse.json(
-      { error: 'Gagal mengambil data proyek' },
+      { error: 'Gagal mengambil data PBL' },
       { status: 500 }
     )
   }
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     const proyek = await prisma.$transaction(async (tx) => {
       // Create the project
-      const newProyek = await tx.proyek.create({
+      const newProyek = await tx.pBL.create({
         data: {
           judul,
           deskripsi,
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
           const kelompok = await tx.kelompok.create({
             data: {
               nama: 'Kelompok Utama',
-              proyekId: newProyek.id,
+              pblId: newProyek.id,
             },
           })
 
@@ -181,10 +181,10 @@ export async function POST(request: NextRequest) {
       return newProyek
     })
 
-    return NextResponse.json({ proyek }, { status: 201 })
+    return NextResponse.json({ masalah: proyek }, { status: 201 })
   } catch (error) {
     console.error('Error creating proyek:', error)
-    const message = error instanceof Error ? error.message : 'Gagal membuat proyek'
+    const message = error instanceof Error ? error.message : 'Gagal membuat PBL'
     return NextResponse.json(
       { error: message },
       { status: 500 }
