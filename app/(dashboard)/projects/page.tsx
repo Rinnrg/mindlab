@@ -72,12 +72,12 @@ export default function ProjectsPage() {
   // Set custom breadcrumb with useMemo to prevent re-renders
   const breadcrumbItems = useMemo(() => [
     {
-      label: 'Proyek',
+      label: 'PBL',
       icon: <BookOpen className="h-4 w-4" />
     }
   ], [])
   
-  useBreadcrumbPage('Proyek', breadcrumbItems)
+  useBreadcrumbPage('PBL', breadcrumbItems)
   
   const [proyeks, setProyeks] = useState<Proyek[]>([])
   const [loading, setLoading] = useState(true)
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
       if (response.ok) {
         setProyeks(data.proyek || [])
       } else {
-        showError(t("Gagal"), data.error || t("Gagal memuat data proyek"))
+        showError(t("Gagal"), data.error || t("Gagal memuat data PBL"))
       }
     } catch (error) {
       console.error("Error loading proyeks:", error)
@@ -139,8 +139,8 @@ export default function ProjectsPage() {
   }
 
   const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-    const confirmed = await confirm(t("Hapus Proyek"), {
-      description: t("Apakah Anda yakin ingin menghapus proyek") + ` "${projectTitle}"? ` + t("Tindakan ini tidak dapat dibatalkan."),
+    const confirmed = await confirm(t("Hapus PBL"), {
+      description: t("Apakah Anda yakin ingin menghapus PBL") + ` "${projectTitle}"? ` + t("Tindakan ini tidak dapat dibatalkan."),
       confirmText: t("Hapus"),
       cancelText: t("Batal"),
       type: "warning",
@@ -156,11 +156,11 @@ export default function ProjectsPage() {
 
         if (!response.ok) {
           const data = await response.json()
-          throw new Error(data.error || t("Gagal menghapus proyek"))
+          throw new Error(data.error || t("Gagal menghapus PBL"))
         }
       },
       {
-        loadingMessage: t("Menghapus proyek..."),
+        loadingMessage: t("Menghapus PBL..."),
         successTitle: t("Berhasil!"),
         successDescription: `"${projectTitle}" ${t("berhasil dihapus")}`,
         errorTitle: t("Gagal"),
@@ -196,16 +196,16 @@ export default function ProjectsPage() {
       <AnimateIn>
         <div className="mb-6 sm:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">{t("Proyek")}</h1>
+            <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">{t("PBL")}</h1>
             <p className="text-sm text-muted-foreground mt-1 sm:text-base">
-              {isTeacher ? t("Kelola dan pantau proyek pembelajaran") : t("Lihat dan kerjakan proyek yang diberikan")}
+              {isTeacher ? t("Kelola dan pantau project based learning") : t("Lihat dan kerjakan PBL yang diberikan")}
             </p>
           </div>
           {isTeacher && (
             <Link href="/projects/add">
               <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
-                {t("Buat Proyek")}
+                {t("Buat PBL")}
               </Button>
             </Link>
           )}
@@ -222,7 +222,7 @@ export default function ProjectsPage() {
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{totalProyeks}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Total Proyek")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Total PBL")}</p>
               </div>
             </CardContent>
           </Card>
@@ -274,7 +274,7 @@ export default function ProjectsPage() {
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder={t("Cari proyek...")}
+              placeholder={t("Cari PBL...")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -306,16 +306,16 @@ export default function ProjectsPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">
               <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">{t("Belum ada proyek")}</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("Belum ada PBL")}</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery ? t("Tidak ada proyek yang cocok dengan pencarian") : 
-                 isTeacher ? t("Mulai dengan membuat proyek pertama") : t("Belum ada proyek yang diberikan")}
+                {searchQuery ? t("Tidak ada PBL yang cocok dengan pencarian") : 
+                 isTeacher ? t("Mulai dengan membuat PBL pertama") : t("Belum ada PBL yang diberikan")}
               </p>
               {isTeacher && !searchQuery && (
                 <Link href="/projects/add">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    {t("Buat Proyek")}
+                    {t("Buat PBL")}
                   </Button>
                 </Link>
               )}

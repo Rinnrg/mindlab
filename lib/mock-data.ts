@@ -120,7 +120,7 @@ export const mockProyek: Proyek[] = [
     id: "p1",
     judul: "Orientasi Masalah",
     deskripsi:
-      "Pada tahap ini, siswa akan diperkenalkan dengan permasalahan nyata yang akan menjadi fokus proyek. Siswa diharapkan dapat mengidentifikasi, menganalisis, dan memahami konteks masalah secara mendalam.",
+      "Mengorientasikan siswa pada masalah nyata yang akan menjadi dasar proyek. Siswa diharapkan dapat mengidentifikasi, menganalisis, dan memahami konteks masalah secara mendalam.",
     tgl_mulai: new Date("2024-12-01"),
     tgl_selesai: new Date("2024-12-07"),
     lampiran: "/documents/jobsheet-sintaks-1.pdf",
@@ -128,9 +128,9 @@ export const mockProyek: Proyek[] = [
   },
   {
     id: "p2",
-    judul: "Menyusun Rencana Proyek",
+    judul: "Mengorganisasi",
     deskripsi:
-      "Siswa menyusun rencana proyek secara sistematis, termasuk menentukan tujuan, ruang lingkup, sumber daya yang dibutuhkan, dan strategi penyelesaian masalah.",
+      "Mengorganisasi siswa untuk belajar dan membagi tugas dalam kelompok. Siswa menyusun rencana kerja, pembagian peran, dan strategi penyelesaian masalah.",
     tgl_mulai: new Date("2024-12-08"),
     tgl_selesai: new Date("2024-12-14"),
     lampiran: "/documents/jobsheet-sintaks-2.pdf",
@@ -138,9 +138,9 @@ export const mockProyek: Proyek[] = [
   },
   {
     id: "p3",
-    judul: "Membuat Jadwal Proyek",
+    judul: "Membimbing Penyelidikan",
     deskripsi:
-      "Siswa membuat timeline proyek dengan milestone yang jelas, pembagian tugas antar anggota kelompok, dan target penyelesaian untuk setiap tahapan.",
+      "Membimbing penyelidikan individu maupun kelompok untuk mengumpulkan data dan informasi yang relevan dengan permasalahan proyek.",
     tgl_mulai: new Date("2024-12-15"),
     tgl_selesai: new Date("2024-12-21"),
     lampiran: "/documents/jobsheet-sintaks-3.pdf",
@@ -148,47 +148,20 @@ export const mockProyek: Proyek[] = [
   },
   {
     id: "p4",
-    judul: "Monitoring Pelaksanaan",
+    judul: "Mengembangkan dan Menyajikan Hasil Karya",
     deskripsi:
-      "Tahap pemantauan progress proyek secara berkala. Siswa melaporkan kemajuan, kendala yang dihadapi, dan solusi yang diterapkan.",
+      "Mengembangkan dan menyajikan hasil karya berupa laporan, model, atau produk. Siswa mempresentasikan hasil proyek di depan kelas.",
     tgl_mulai: new Date("2024-12-22"),
     tgl_selesai: new Date("2024-12-28"),
     guruId: "2",
   },
   {
     id: "p5",
-    judul: "Pengumpulan Proyek",
+    judul: "Menganalisis dan Mengevaluasi Proses Pemecahan Masalah",
     deskripsi:
-      "Siswa mengumpulkan hasil proyek final termasuk dokumentasi, source code, dan deliverables lainnya sesuai dengan requirements yang telah ditentukan.",
+      "Menganalisis dan mengevaluasi proses pemecahan masalah yang telah dilakukan. Siswa melakukan refleksi dan memberikan feedback terhadap proses pembelajaran.",
     tgl_mulai: new Date("2024-12-29"),
     tgl_selesai: new Date("2025-01-04"),
-    guruId: "2",
-  },
-  {
-    id: "p6",
-    judul: "Presentasi Proyek",
-    deskripsi:
-      "Siswa mempresentasikan hasil proyek di depan kelas. Termasuk demo aplikasi, penjelasan arsitektur, dan menjawab pertanyaan dari guru dan siswa lain.",
-    tgl_mulai: new Date("2025-01-05"),
-    tgl_selesai: new Date("2025-01-11"),
-    guruId: "2",
-  },
-  {
-    id: "p7",
-    judul: "Penilaian dan Evaluasi",
-    deskripsi:
-      "Guru memberikan penilaian dan evaluasi terhadap hasil proyek. Siswa menerima feedback konstruktif untuk perbaikan di masa mendatang.",
-    tgl_mulai: new Date("2025-01-12"),
-    tgl_selesai: new Date("2025-01-18"),
-    guruId: "2",
-  },
-  {
-    id: "p8",
-    judul: "Refleksi",
-    deskripsi:
-      "Siswa melakukan refleksi terhadap proses pembelajaran selama proyek. Mengidentifikasi pembelajaran yang didapat, kekuatan, kelemahan, dan rencana improvement.",
-    tgl_mulai: new Date("2025-01-19"),
-    tgl_selesai: new Date("2025-01-25"),
     guruId: "2",
   },
 ]
@@ -212,9 +185,6 @@ export const mockSintaksSubmissions: Record<
   sintaks_3: { submitted: true, grade: null, submittedAt: new Date("2024-12-20") },
   sintaks_4: { submitted: false, grade: null, submittedAt: null },
   sintaks_5: { submitted: false, grade: null, submittedAt: null },
-  sintaks_6: { submitted: false, grade: null, submittedAt: null },
-  sintaks_7: { submitted: false, grade: null, submittedAt: null },
-  sintaks_8: { submitted: false, grade: null, submittedAt: null },
 }
 
 export const mockShowcase: ProfileShowcase[] = [

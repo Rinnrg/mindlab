@@ -31,7 +31,7 @@ const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } 
   'dashboard':    { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
   'courses':      { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
   'asesmen':      { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
-  'projects':     { label: 'Proyek', icon: <BookOpen className="h-4 w-4" /> },
+  'projects':     { label: 'PBL', icon: <BookOpen className="h-4 w-4" /> },
   'proyek':       { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
   'users':        { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
   'schedule':     { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
@@ -51,14 +51,6 @@ const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } 
   'stats':        { label: 'Statistik', icon: <BarChart3 className="h-4 w-4" /> },
   'search':       { label: 'Pencarian', icon: <SearchIcon className="h-4 w-4" /> },
   'students':     { label: 'Siswa', icon: <Users className="h-4 w-4" /> },
-  'sintaks_1':    { label: 'Sintaks 1: Orientasi Masalah' },
-  'sintaks_2':    { label: 'Sintaks 2: Organisasi Belajar' },
-  'sintaks_3':    { label: 'Sintaks 3: Investigasi' },
-  'sintaks_4':    { label: 'Sintaks 4: Pengembangan' },
-  'sintaks_5':    { label: 'Sintaks 5: Analisis & Evaluasi' },
-  'sintaks_6':    { label: 'Sintaks 6: Refleksi' },
-  'sintaks_7':    { label: 'Sintaks 7: Assessment' },
-  'sintaks_8':    { label: 'Sintaks 8: Closure' },
 }
 
 // Helper: detect whether a segment is a dynamic ID (MongoDB ObjectId, UUID, or numeric)

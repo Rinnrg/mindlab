@@ -49,7 +49,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
     { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("Proyek"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
     ...(isMobile ? [{ title: t("Pengaturan"), href: "/settings", icon: Settings, roles: ["ADMIN", "GURU", "SISWA"] }] : []),
   ], [t, isMobile])

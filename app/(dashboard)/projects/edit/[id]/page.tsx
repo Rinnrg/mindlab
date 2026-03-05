@@ -74,7 +74,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
             sintaks: proyekData.sintaks || []
           })
         } else {
-          showError(t("Gagal"), data.error || t("Gagal memuat data proyek"))
+          showError(t("Gagal"), data.error || t("Gagal memuat data PBL"))
           router.push("/projects")
         }
       } catch (error) {
@@ -118,12 +118,12 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
     
     // Validation
     if (!formData.judul.trim()) {
-      showError(t("Validasi"), t("Judul proyek harus diisi"))
+      showError(t("Validasi"), t("Judul PBL harus diisi"))
       return
     }
 
     if (!formData.deskripsi.trim()) {
-      showError(t("Validasi"), t("Deskripsi proyek harus diisi"))
+      showError(t("Validasi"), t("Deskripsi PBL harus diisi"))
       return
     }
 
@@ -163,13 +163,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           const data = await response.json()
 
           if (!response.ok) {
-            throw new Error(data.error || t("Gagal mengupdate proyek"))
+            throw new Error(data.error || t("Gagal mengupdate PBL"))
           }
         },
         {
           loadingMessage: t("Menyimpan perubahan..."),
           successTitle: t("Berhasil"),
-          successDescription: t("Proyek berhasil diupdate"),
+          successDescription: t("PBL berhasil diupdate"),
           errorTitle: t("Gagal"),
           onSuccess: () => {
             setTimeout(() => {
@@ -207,8 +207,8 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Edit className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t("Proyek tidak ditemukan")}</h3>
-            <p className="text-muted-foreground mb-4">{t("Proyek yang ingin Anda edit tidak ada.")}</p>
+            <h3 className="text-lg font-semibold mb-2">{t("PBL tidak ditemukan")}</h3>
+            <p className="text-muted-foreground mb-4">{t("PBL yang ingin Anda edit tidak ada.")}</p>
           </CardContent>
         </Card>
       </div>
@@ -223,7 +223,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Edit className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-semibold mb-2">{t("Tidak ada akses")}</h3>
-            <p className="text-muted-foreground mb-4">{t("Anda tidak memiliki izin untuk mengedit proyek ini.")}</p>
+            <p className="text-muted-foreground mb-4">{t("Anda tidak memiliki izin untuk mengedit PBL ini.")}</p>
           </CardContent>
         </Card>
       </div>
@@ -239,9 +239,9 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
       <AnimateIn>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">{t("Edit Proyek")}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">{t("Edit PBL")}</h1>
             <p className="text-sm text-muted-foreground mt-1 sm:text-base">
-              {t("Ubah detail proyek")} "{proyek.judul}"
+              {t("Ubah detail PBL")} "{proyek.judul}"
             </p>
           </div>
         </div>
@@ -252,7 +252,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              {t("Detail Proyek")}
+              {t("Detail PBL")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -260,13 +260,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               {/* Judul Proyek */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul Proyek")} <span className="text-red-500">*</span>
+                  {t("Judul PBL")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul proyek...")}
+                  placeholder={t("Masukkan judul PBL...")}
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -282,7 +282,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail proyek...")}
+                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -329,7 +329,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                   {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan yang akan dijalankan dalam proyek ini")}
+                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -370,7 +370,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung proyek")}
+                  placeholder={t("Upload file pendukung PBL")}
                 />
               </div>
 
@@ -386,7 +386,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Update Proyek")}
+                  {isSubmitting ? t("Menyimpan...") : t("Update PBL")}
                 </Button>
               </div>
             </form>

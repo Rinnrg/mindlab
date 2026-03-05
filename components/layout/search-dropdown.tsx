@@ -190,8 +190,8 @@ export function SearchDropdown() {
       },
       {
         id: "projects",
-        title: t("Proyek"),
-        description: t("Kelola proyek dan tugas Anda"),
+        title: t("PBL"),
+        description: t("Kelola project based learning"),
         icon: FolderOpen,
         href: "/projects",
         category: t("Navigasi"),

@@ -79,7 +79,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       if (response.ok) {
         setProyek(data.proyek)
       } else {
-        showError(t("Gagal"), data.error || t("Gagal memuat data proyek"))
+        showError(t("Gagal"), data.error || t("Gagal memuat data PBL"))
       }
     } catch (error) {
       console.error("Error loading proyek:", error)
@@ -145,8 +145,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t("Proyek tidak ditemukan")}</h3>
-            <p className="text-muted-foreground mb-4">{t("Proyek yang Anda cari tidak ada atau telah dihapus")}</p>
+            <h3 className="text-lg font-semibold mb-2">{t("PBL tidak ditemukan")}</h3>
+            <p className="text-muted-foreground mb-4">{t("PBL yang Anda cari tidak ada atau telah dihapus")}</p>
           </CardContent>
         </Card>
       </div>
@@ -200,7 +200,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <Link href={`/projects/edit/${proyek.id}`} className="flex-1 sm:flex-none">
                 <Button variant="outline" size="sm" className="w-full">
                   <Settings className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{t("Edit Proyek")}</span>
+                  <span className="hidden sm:inline">{t("Edit PBL")}</span>
                 </Button>
               </Link>
             </div>
@@ -244,7 +244,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{status === "active" ? t("Aktif") : status === "completed" ? t("Selesai") : t("Menunggu")}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Status Proyek")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Status PBL")}</p>
               </div>
             </CardContent>
           </Card>
@@ -290,7 +290,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               {/* Project Info */}
               <Card>
                 <CardHeader>
-                  <CardTitle>{t("Informasi Proyek")}</CardTitle>
+                  <CardTitle>{t("Informasi PBL")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>

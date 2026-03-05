@@ -101,7 +101,7 @@ export function IonStyleBreadcrumb({ className }: IonStyleBreadcrumbProps) {
     // Map common segments to readable names
     const segmentLabels: { [key: string]: string } = {
       'courses': 'Kursus',
-      'projects': 'Proyek',
+      'projects': 'PBL',
       'proyek': 'Proyek Saya', 
       'users': 'Pengguna',
       'schedule': 'Jadwal',
@@ -122,14 +122,6 @@ export function IonStyleBreadcrumb({ className }: IonStyleBreadcrumbProps) {
       'activity': 'Aktivitas',
       'stats': 'Statistik',
       'search': 'Pencarian',
-      'sintaks_1': 'Sintaks 1',
-      'sintaks_2': 'Sintaks 2',
-      'sintaks_3': 'Sintaks 3',
-      'sintaks_4': 'Sintaks 4',
-      'sintaks_5': 'Sintaks 5',
-      'sintaks_6': 'Sintaks 6',
-      'sintaks_7': 'Sintaks 7',
-      'sintaks_8': 'Sintaks 8',
     }
 
     // Skip dynamic IDs

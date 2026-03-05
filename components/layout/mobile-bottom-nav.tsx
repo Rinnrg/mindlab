@@ -61,7 +61,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
     { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("Proyek"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
     { title: t("Kelola"), href: "/users", icon: Users, roles: ["ADMIN"] },
   ], [t])

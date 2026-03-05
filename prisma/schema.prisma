@@ -210,7 +210,7 @@ model Proyek {
   tgl_mulai   DateTime
   tgl_selesai DateTime
   lampiran    String?
-  sintaks     String[] // Array sintaks yang aktif untuk proyek ini
+  sintaks     String[] // Array sintaks PBL yang aktif (sintaks_1 sampai sintaks_5)
 
   // File storage fields (untuk file yang diupload)
   fileData       Bytes?   // Binary file data stored in database

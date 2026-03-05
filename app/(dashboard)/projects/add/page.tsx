@@ -135,12 +135,12 @@ export default function AddProjectPage() {
 
     // Validation
     if (!formData.judul.trim()) {
-      showError(t("Validasi"), t("Judul proyek harus diisi"))
+      showError(t("Validasi"), t("Judul PBL harus diisi"))
       return
     }
 
     if (!formData.deskripsi.trim()) {
-      showError(t("Validasi"), t("Deskripsi proyek harus diisi"))
+      showError(t("Validasi"), t("Deskripsi PBL harus diisi"))
       return
     }
 
@@ -184,13 +184,13 @@ export default function AddProjectPage() {
           const data = await response.json()
 
           if (!response.ok) {
-            throw new Error(data.error || t("Gagal membuat proyek"))
+            throw new Error(data.error || t("Gagal membuat PBL"))
           }
         },
         {
-          loadingMessage: t("Membuat proyek..."),
+          loadingMessage: t("Membuat PBL..."),
           successTitle: t("Berhasil"),
-          successDescription: t("Proyek berhasil dibuat"),
+          successDescription: t("PBL berhasil dibuat"),
           errorTitle: t("Gagal"),
           onSuccess: () => {
             setTimeout(() => {
@@ -216,9 +216,9 @@ export default function AddProjectPage() {
       <AnimateIn>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">{t("Buat Proyek Baru")}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">{t("Buat PBL Baru")}</h1>
             <p className="text-sm text-muted-foreground mt-1 sm:text-base">
-              {t("Buat proyek pembelajaran untuk siswa")}
+              {t("Buat project based learning untuk siswa")}
             </p>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function AddProjectPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              {t("Detail Proyek")}
+              {t("Detail PBL")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -237,13 +237,13 @@ export default function AddProjectPage() {
               {/* Judul Proyek */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul Proyek")} <span className="text-red-500">*</span>
+                  {t("Judul PBL")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul proyek...")}
+                  placeholder={t("Masukkan judul PBL...")}
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -259,7 +259,7 @@ export default function AddProjectPage() {
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail proyek...")}
+                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -307,7 +307,7 @@ export default function AddProjectPage() {
                   {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan yang akan dijalankan dalam proyek ini")}
+                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -348,7 +348,7 @@ export default function AddProjectPage() {
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung proyek")}
+                  placeholder={t("Upload file pendukung PBL")}
                 />
               </div>
 
@@ -360,7 +360,7 @@ export default function AddProjectPage() {
                       {t("Enrollment Siswa")} <span className="text-muted-foreground">({t("Opsional")})</span>
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Pilih kelas untuk mendaftarkan siswa ke dalam proyek ini")}
+                      {t("Pilih kelas untuk mendaftarkan siswa ke dalam PBL ini")}
                     </p>
                   </div>
                   {totalSelectedStudents > 0 && (
@@ -450,7 +450,7 @@ export default function AddProjectPage() {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Buat Proyek")}
+                  {isSubmitting ? t("Menyimpan...") : t("Buat PBL")}
                 </Button>
               </div>
             </form>

@@ -22,7 +22,7 @@ export default function Sintaks2Page() {
 
     async function fetchProyek() {
       try {
-        const response = await fetch("/api/proyek?judul=Menyusun Rencana Proyek")
+        const response = await fetch("/api/proyek?judul=Mengorganisasi")
         if (response.ok) {
           const data = await response.json()
           setProyek(data)
@@ -48,13 +48,13 @@ export default function Sintaks2Page() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">Proyek Pemrograman Berorientasi Objek</h1>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">PBL - Project Based Learning</h1>
           </div>
           {isGuruOrAdmin && (
             <Link href="/projects/add/sintaks_2">
               <Button className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
-                Tambah Tahapan Proyek
+                Tambah Tahapan PBL
               </Button>
             </Link>
           )}
@@ -63,9 +63,9 @@ export default function Sintaks2Page() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Tahapan Proyek Ini Belum Ditambahkan</h3>
+            <h3 className="text-lg font-semibold mb-2">Tahapan PBL Ini Belum Ditambahkan</h3>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Tahapan proyek ini belum tersedia. Silakan hubungi guru atau tunggu hingga tahapan proyek ditambahkan.
+              Tahapan PBL ini belum tersedia. Silakan hubungi guru atau tunggu hingga tahapan PBL ditambahkan.
             </p>
           </CardContent>
         </Card>
@@ -83,14 +83,14 @@ export default function Sintaks2Page() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">Proyek Pemrograman Berorientasi Objek</h1>
-          <p className="text-muted-foreground">Menyusun Rencana Proyek</p>
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">PBL - Project Based Learning</h1>
+          <p className="text-muted-foreground">Mengorganisasi</p>
         </div>
         {isGuruOrAdmin && proyek && (
           <Link href="/projects/edit/sintaks_2">
             <Button variant="outline">
               <Pencil className="w-4 h-4 mr-2" />
-              Edit Tahapan Proyek
+              Edit Tahapan PBL
             </Button>
           </Link>
         )}
