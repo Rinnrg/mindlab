@@ -134,38 +134,79 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { judul, deskripsi, gambar, kategori, guruId } = body
 
+    console.log('POST /api/courses - Request body:', { judul, deskripsi, gambar, kategori, guruId })
+
     if (!judul || !kategori || !guruId) {
+      console.log('POST /api/courses - Missing required fields:', { judul: !!judul, kategori: !!kategori, guruId: !!guruId })
       return NextResponse.json(
         { error: 'Data tidak lengkap' },
         { status: 400 }
       )
     }
 
+    // Validate that the guru exists
+    const guru = await prisma.user.findUnique({
+      where: { id: guruId },
+      select: { id: true, role: true }
+    })
+
+    if (!guru) {
+      console.log('POST /api/courses - Guru not found:', guruId)
+      return NextResponse.json(
+        { error: 'Guru tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
+    if (guru.role !== 'GURU' && guru.role !== 'ADMIN') {
+      console.log('POST /api/courses - Invalid role for course creation:', guru.role)
+      return NextResponse.json(
+        { error: 'Hanya guru atau admin yang dapat membuat course' },
+        { status: 403 }
+      )
+    }
+
+    console.log('POST /api/courses - Creating course with data:', {
+      judul,
+      deskripsi: deskripsi || null,
+      gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
+      kategori,
+      guruId
+    })
+
     const course = await prisma.course.create({
       data: {
         judul,
-        deskripsi,
+        deskripsi: deskripsi || null,
         gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
         kategori,
         guruId,
       },
-      include: {
-        guru: {
-          select: {
-            id: true,
-            nama: true,
-            email: true,
-            foto: true,
-          },
-        },
-      },
     })
 
+    console.log('POST /api/courses - Course created successfully:', course.id)
     return NextResponse.json({ course }, { status: 201 })
   } catch (error) {
     console.error('Error creating course:', error)
+    
+    // More specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('foreign key constraint')) {
+        return NextResponse.json(
+          { error: 'Invalid guru ID or database constraint error' },
+          { status: 400 }
+        )
+      }
+      if (error.message.includes('Unique constraint')) {
+        return NextResponse.json(
+          { error: 'Course with this title already exists' },
+          { status: 409 }
+        )
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'Gagal membuat course' },
+      { error: 'Gagal membuat course', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
