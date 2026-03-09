@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
             kelompok: {
               select: {
                 nama: true,
-                proyek: {
+                pbl: {
                   select: {
                     judul: true
                   }
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
           activities.push({
             id: `project-sub-${p.id}`,
             action: 'submitted',
-            item: p.kelompok.proyek.judul,
+            item: p.kelompok.pbl.judul,
             group: p.kelompok.nama,
             time: p.tgl_unggah.toISOString(),
             type: 'submission',
@@ -235,7 +235,7 @@ export async function GET(request: NextRequest) {
           take: 5
         }),
         // Projects created by teacher
-        prisma.proyek.findMany({
+        prisma.pBL.findMany({
           where: { guruId: userId },
           select: {
             id: true,
@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
             OR: [
               {
                 kelompok: {
-                  proyek: {
+                  pbl: {
                     guruId: userId
                   }
                 },
@@ -272,7 +272,7 @@ export async function GET(request: NextRequest) {
             kelompok: {
               select: {
                 nama: true,
-                proyek: {
+                pbl: {
                   select: {
                     judul: true
                   }
@@ -372,7 +372,7 @@ export async function GET(request: NextRequest) {
       })
 
       recentGrades.forEach(g => {
-        const itemName = g.kelompok?.proyek?.judul || g.asesmen?.nama || 'Item'
+        const itemName = g.kelompok?.pbl?.judul || g.asesmen?.nama || 'Item'
         const courseName = g.asesmen?.course?.judul || undefined
         activities.push({
           id: `grade-${g.id}`,

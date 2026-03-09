@@ -8,7 +8,7 @@ export async function GET(
   try {
     const { id } = await params
 
-    const proyek = await prisma.proyek.findUnique({
+    const proyek = await prisma.pBL.findUnique({
       where: { id },
       select: {
         fileData: true,

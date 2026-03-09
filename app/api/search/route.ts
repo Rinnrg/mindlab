@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
           take: 5,
           orderBy: { id: 'desc' },
         }),
-        prisma.proyek.findMany({
+        prisma.pBL.findMany({
           select: {
             id: true,
             judul: true,
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest) {
       }),
 
       // Search Jadwal/Schedule (Proyek)
-      prisma.proyek.findMany({
+      prisma.pBL.findMany({
         where: {
           OR: [
             { judul: { contains: searchLower, mode: 'insensitive' } },

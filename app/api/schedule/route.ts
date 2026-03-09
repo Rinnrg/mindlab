@@ -29,10 +29,13 @@ export async function GET(request: NextRequest) {
         prisma.anggotaKelompok.findMany({
           where: { siswaId: userId },
           select: {
+            id: true,
+            siswaId: true,
+            kelompokId: true,
             kelompok: {
               select: {
                 nama: true,
-                proyek: {
+                pbl: {
                   select: {
                     id: true,
                     judul: true,
@@ -91,15 +94,15 @@ export async function GET(request: NextRequest) {
 
       // Add projects to schedule
       anggotaKelompok.forEach(ak => {
-        if (ak.kelompok.proyek.tgl_selesai >= today) {
+        if (ak.kelompok.pbl.tgl_selesai >= today) {
           scheduleEvents.push({
-            id: `proyek-${ak.kelompok.proyek.id}`,
-            title: ak.kelompok.proyek.judul,
+            id: `proyek-${ak.kelompok.pbl.id}`,
+            title: ak.kelompok.pbl.judul,
             type: 'project',
-            date: ak.kelompok.proyek.tgl_selesai.toISOString(),
-            description: ak.kelompok.proyek.deskripsi,
+            date: ak.kelompok.pbl.tgl_selesai.toISOString(),
+            description: ak.kelompok.pbl.deskripsi,
             group: ak.kelompok.nama,
-            status: ak.kelompok.proyek.tgl_mulai <= today ? 'ongoing' : 'upcoming'
+            status: ak.kelompok.pbl.tgl_mulai <= today ? 'ongoing' : 'upcoming'
           })
         }
       })
@@ -125,7 +128,7 @@ export async function GET(request: NextRequest) {
             }
           }
         }),
-        prisma.proyek.findMany({
+        prisma.pBL.findMany({
           where: { guruId: userId },
           select: {
             id: true,

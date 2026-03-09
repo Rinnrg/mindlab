@@ -21,14 +21,19 @@ export function useCourses(userId?: string, role?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCourses = useCallback(async () => {
+  const fetchCourses = useCallback(async (skipCache = false) => {
     const cacheKey = userId && role ? `courses-${role}-${userId}` : 'courses'
-    const cachedData = getCachedData(cacheKey)
     
-    if (cachedData) {
-      setCourses(cachedData)
-      setLoading(false)
-      return
+    if (!skipCache) {
+      const cachedData = getCachedData(cacheKey)
+      if (cachedData) {
+        setCourses(cachedData)
+        setLoading(false)
+        return
+      }
+    } else {
+      // Clear cache when forcing refetch
+      cache.delete(cacheKey)
     }
 
     try {
@@ -42,9 +47,7 @@ export function useCourses(userId?: string, role?: string) {
         url += `?guruId=${userId}`
       }
       
-      const response = await fetch(url, {
-        next: { revalidate: 300 }, // Cache 5 menit
-      })
+      const response = await fetch(url)
       const data = await response.json()
       
       if (response.ok) {
@@ -65,7 +68,9 @@ export function useCourses(userId?: string, role?: string) {
     fetchCourses()
   }, [fetchCourses])
 
-  return { courses, loading, error, refetch: fetchCourses }
+  const refetch = useCallback(() => fetchCourses(true), [fetchCourses])
+
+  return { courses, loading, error, refetch }
 }
 
 export function useUsers(role?: string) {
@@ -91,9 +96,7 @@ export function useUsers(role?: string) {
     try {
       setLoading(true)
       const url = role ? `/api/users?role=${role}` : '/api/users'
-      const response = await fetch(url, {
-        next: { revalidate: 180 }, // Cache 3 menit
-      })
+      const response = await fetch(url)
       const data = await response.json()
       
       if (response.ok) {
@@ -124,22 +127,24 @@ export function useProyek(guruId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchProyek = useCallback(async () => {
+  const fetchProyek = useCallback(async (skipCache = false) => {
     const cacheKey = guruId ? `proyek-${guruId}` : 'proyek'
-    const cachedData = getCachedData(cacheKey)
     
-    if (cachedData) {
-      setProyek(cachedData)
-      setLoading(false)
-      return
+    if (!skipCache) {
+      const cachedData = getCachedData(cacheKey)
+      if (cachedData) {
+        setProyek(cachedData)
+        setLoading(false)
+        return
+      }
+    } else {
+      cache.delete(cacheKey)
     }
 
     try {
       setLoading(true)
       const url = guruId ? `/api/proyek?guruId=${guruId}` : '/api/proyek'
-      const response = await fetch(url, {
-        next: { revalidate: 180 },
-      })
+      const response = await fetch(url)
       const data = await response.json()
       
       if (response.ok) {
@@ -160,7 +165,9 @@ export function useProyek(guruId?: string) {
     fetchProyek()
   }, [fetchProyek])
 
-  return { proyek, loading, error, refetch: fetchProyek }
+  const refetch = useCallback(() => fetchProyek(true), [fetchProyek])
+
+  return { proyek, loading, error, refetch }
 }
 
 export function useAsesmen(courseId?: string) {
@@ -168,22 +175,24 @@ export function useAsesmen(courseId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAsesmen = useCallback(async () => {
+  const fetchAsesmen = useCallback(async (skipCache = false) => {
     const cacheKey = courseId ? `asesmen-${courseId}` : 'asesmen'
-    const cachedData = getCachedData(cacheKey)
     
-    if (cachedData) {
-      setAsesmen(cachedData)
-      setLoading(false)
-      return
+    if (!skipCache) {
+      const cachedData = getCachedData(cacheKey)
+      if (cachedData) {
+        setAsesmen(cachedData)
+        setLoading(false)
+        return
+      }
+    } else {
+      cache.delete(cacheKey)
     }
 
     try {
       setLoading(true)
       const url = courseId ? `/api/asesmen?courseId=${courseId}` : '/api/asesmen'
-      const response = await fetch(url, {
-        next: { revalidate: 120 },
-      })
+      const response = await fetch(url)
       const data = await response.json()
       
       if (response.ok) {
@@ -204,7 +213,9 @@ export function useAsesmen(courseId?: string) {
     fetchAsesmen()
   }, [fetchAsesmen])
 
-  return { asesmen, loading, error, refetch: fetchAsesmen }
+  const refetch = useCallback(() => fetchAsesmen(true), [fetchAsesmen])
+
+  return { asesmen, loading, error, refetch }
 }
 
 export function useStats(userId?: string, role?: string) {

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useCourses } from "@/hooks/use-api"
 import { useDebounce } from "@/hooks/use-debounce"
@@ -27,6 +28,7 @@ type ViewMode = "grid" | "list" | "compact"
 
 export default function CoursesPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const { t, locale, setLocale } = useAutoTranslate()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(locale === 'id' ? "Semua" : "All")

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
+import { useRouter } from "next/navigation"
 import { useUsers } from "@/hooks/use-api"
 import type { UserRole } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -47,6 +48,7 @@ import { useAsyncAction } from "@/hooks/use-async-action"
 
 export default function UsersPage() {
   const { t, locale: currentLocale, setLocale } = useAutoTranslate()
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [filterRole, setFilterRole] = useState("all")
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)

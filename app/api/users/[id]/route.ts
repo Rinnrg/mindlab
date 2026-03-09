@@ -22,7 +22,7 @@ export async function GET(
         _count: {
           select: {
             course: true,
-            proyekDibuat: true,
+            masalahDibuat: true,
             asesmenDibuat: true,
             nilai: true,
           },

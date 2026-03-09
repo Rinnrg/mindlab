@@ -10,7 +10,7 @@ export async function GET(
     const { id } = await params
 
     const kelompok = await prisma.kelompok.findMany({
-      where: { proyekId: id },
+      where: { pblId: id },
       include: {
         anggota: {
           include: {
@@ -62,7 +62,7 @@ export async function POST(
     }
 
     // Verify project exists
-    const proyek = await prisma.proyek.findUnique({
+    const proyek = await prisma.pBL.findUnique({
       where: { id }
     })
 
@@ -79,7 +79,7 @@ export async function POST(
       const newKelompok = await tx.kelompok.create({
         data: {
           nama,
-          proyekId: id,
+          pblId: id,
         }
       })
 

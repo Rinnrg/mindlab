@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
     // If judul is specified, return single proyek
     if (judul) {
-      const proyek = await prisma.proyek.findFirst({
+      const proyek = await prisma.pBL.findFirst({
         where: { judul },
         include: {
           guru: {

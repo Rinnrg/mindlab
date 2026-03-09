@@ -11,7 +11,7 @@ interface PageProps {
 export default async function ProjectGroupsPage({ params }: PageProps) {
   const { id: proyekId } = await params
   
-  const proyek = await prisma.proyek.findUnique({
+  const proyek = await prisma.pBL.findUnique({
     where: { id: proyekId },
     select: { 
       id: true, 

@@ -42,7 +42,7 @@ interface UserProfile {
   createdAt: string
   _count: {
     course: number
-    proyekDibuat: number
+    masalahDibuat: number
     asesmenDibuat: number
     nilai: number
   }
@@ -382,7 +382,7 @@ export default function StudentProfilePage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground sm:text-sm">Proyek Dibuat</p>
-                  <p className="text-xl font-bold sm:text-2xl">{profile._count.proyekDibuat}</p>
+                  <p className="text-xl font-bold sm:text-2xl">{profile._count.masalahDibuat}</p>
                 </div>
               </CardContent>
             </Card>

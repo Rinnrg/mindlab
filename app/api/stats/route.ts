@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
         prisma.asesmen.count({
           where: { guruId: userId },
         }),
-        prisma.proyek.count({
+        prisma.pBL.count({
           where: { guruId: userId },
         }),
         // Total siswa yang mengambil course guru ini
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
         prisma.user.count(),
         prisma.course.count(),
         prisma.asesmen.count(),
-        prisma.proyek.count(),
+        prisma.pBL.count(),
       ])
 
       const usersByRole = await prisma.user.groupBy({
