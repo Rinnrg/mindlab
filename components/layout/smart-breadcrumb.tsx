@@ -207,6 +207,10 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
   const pathSegments = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItemType[] = []
 
+  // Check if we're in a course context
+  const courseIndex = pathSegments.indexOf('courses')
+  const isInCourse = courseIndex !== -1 && courseIndex + 1 < pathSegments.length
+
   // Walk through every segment and build the trail
   for (let i = 0; i < pathSegments.length; i++) {
     const segment = pathSegments[i]
@@ -217,6 +221,12 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
     // Skip the "dashboard" segment — tidak perlu ditampilkan
     if (segment === 'dashboard') continue
 
+    // Skip "courses" segment ketika dalam konteks kursus
+    if (segment === 'courses' && isInCourse) continue
+
+    // Skip "asesmen" dan "materi" segment ketika dalam konteks kursus
+    if (isInCourse && (segment === 'asesmen' || segment === 'materi')) continue
+
     // Handle dynamic IDs - sekarang kita tampilkan dengan nama yang sudah di-fetch
     if (isIdSegment(segment)) {
       const name = nameCache[segment]
@@ -224,8 +234,12 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
       if (name && name !== 'Loading...') {
         // Tentukan icon berdasarkan context
         let icon = undefined
+        let href = isLast ? undefined : builtPath
+        
         if (prevSegment === 'courses') {
           icon = <BookOpen className="h-4 w-4" />
+          // Untuk course ID, href ke halaman course
+          href = isLast ? undefined : `/courses/${segment}`
         } else if (prevSegment === 'materi') {
           icon = <FileText className="h-4 w-4" />
         } else if (prevSegment === 'asesmen') {
@@ -238,7 +252,7 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
 
         breadcrumbs.push({
           label: name,
-          href: isLast ? undefined : builtPath,
+          href,
           icon,
         })
       }
