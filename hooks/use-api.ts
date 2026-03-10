@@ -24,9 +24,12 @@ export function useCourses(userId?: string, role?: string) {
   const fetchCourses = useCallback(async (skipCache = false) => {
     const cacheKey = userId && role ? `courses-${role}-${userId}` : 'courses'
     
+    console.log('useCourses - fetchCourses called:', { userId, role, skipCache, cacheKey })
+    
     if (!skipCache) {
       const cachedData = getCachedData(cacheKey)
       if (cachedData) {
+        console.log('useCourses - Using cached data:', cachedData?.length)
         setCourses(cachedData)
         setLoading(false)
         return
@@ -34,6 +37,7 @@ export function useCourses(userId?: string, role?: string) {
     } else {
       // Clear cache when forcing refetch
       cache.delete(cacheKey)
+      console.log('useCourses - Cache cleared for:', cacheKey)
     }
 
     try {
@@ -48,8 +52,17 @@ export function useCourses(userId?: string, role?: string) {
       }
       // For ADMIN role, fetch all courses without filter
       
+      console.log('useCourses - Fetching from URL:', url)
+      
       const response = await fetch(url)
       const data = await response.json()
+      
+      console.log('useCourses - API Response:', { 
+        ok: response.ok, 
+        status: response.status,
+        courses: data?.courses?.length,
+        error: data?.error 
+      })
       
       if (response.ok) {
         setCourses(data.courses)
@@ -58,8 +71,8 @@ export function useCourses(userId?: string, role?: string) {
         setError(data.error || 'Gagal mengambil data courses')
       }
     } catch (err) {
+      console.error('useCourses - Fetch error:', err)
       setError('Terjadi kesalahan saat mengambil data')
-      console.error('Error fetching courses:', err)
     } finally {
       setLoading(false)
     }

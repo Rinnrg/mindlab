@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useCourses } from "@/hooks/use-api"
@@ -35,16 +35,22 @@ export default function CoursesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const { confirm, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
+  
+  // Debug log user data
+  console.log('CoursesPage - User data:', { 
+    user: user ? { id: user.id, role: user.role, nama: user.nama } : null 
+  })
+  
   const { courses, loading, error, refetch } = useCourses(user?.id, user?.role)
-
-  // Force refresh when component mounts (useful after course creation)
-  useEffect(() => {
-    const shouldRefresh = sessionStorage.getItem('refresh-courses')
-    if (shouldRefresh) {
-      sessionStorage.removeItem('refresh-courses')
-      refetch()
-    }
-  }, [refetch])
+  
+  // Debug log courses data
+  console.log('CoursesPage - Courses data:', { 
+    courses: courses?.length, 
+    loading, 
+    error,
+    userId: user?.id,
+    userRole: user?.role
+  })
 
   // Debounce search query untuk mengurangi re-render
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
