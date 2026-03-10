@@ -61,7 +61,16 @@ export default function AddCoursePage() {
           setGurus(data.users)
           // Auto-select current user if they are a guru
           if (user?.role === 'GURU') {
-            setSelectedGuruId(user.id)
+            const currentUserAsGuru = data.users.find(guru => guru.id === user.id)
+            if (currentUserAsGuru) {
+              setSelectedGuruId(user.id)
+              console.log('Auto-selected current user as guru:', user.id)
+            } else {
+              console.log('Current user not found in guru list, ID mismatch:', user.id)
+              // User login sebagai GURU tapi tidak ada di tabel User dengan role GURU
+              // Buat fallback: tambahkan user ke list guru atau update role
+              showError("Error", `User Anda tidak ditemukan dalam daftar guru. Silakan hubungi admin untuk memperbarui data Anda.`)
+            }
           }
         }
       } catch (error) {
@@ -323,7 +332,11 @@ export default function AddCoursePage() {
                   <span className="text-sm text-muted-foreground">Loading guru...</span>
                 </div>
               ) : (
-                <Select value={selectedGuruId} onValueChange={setSelectedGuruId}>
+                <Select 
+                  value={selectedGuruId} 
+                  onValueChange={setSelectedGuruId}
+                  disabled={user?.role === 'GURU'} // GURU cannot change - locked to themselves
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih guru pengampu" />
                   </SelectTrigger>
@@ -339,6 +352,11 @@ export default function AddCoursePage() {
                     ))}
                   </SelectContent>
                 </Select>
+              )}
+              {user?.role === 'GURU' && (
+                <p className="text-xs text-blue-600">
+                  Sebagai guru, Anda hanya dapat membuat course untuk diri sendiri.
+                </p>
               )}
             </div>
 
