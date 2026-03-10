@@ -106,15 +106,29 @@ export default function CoursesPage() {
 
     await execute(
       async () => {
+        console.log('Deleting course:', { courseId, courseTitle })
+        
         const response = await fetch(`/api/courses/${courseId}`, {
           method: "DELETE",
         })
 
         if (!response.ok) {
           const data = await response.json()
-          throw new Error(data.error || "Failed to delete course")
+          console.error('Failed to delete course:', data)
+          
+          // Handle specific error types
+          if (response.status === 404) {
+            throw new Error("Course tidak ditemukan")
+          } else if (response.status === 409) {
+            throw new Error(data.details || "Course masih memiliki data terkait yang tidak dapat dihapus")
+          } else {
+            throw new Error(data.error || "Failed to delete course")
+          }
         }
 
+        const result = await response.json()
+        console.log('Course deleted successfully:', result)
+        
         refetch()
         router.refresh()
       },

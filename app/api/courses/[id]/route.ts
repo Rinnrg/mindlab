@@ -141,15 +141,72 @@ export async function DELETE(
   try {
     const { id } = await params
     
+    console.log('DELETE course - Course ID:', id)
+    
+    // Check if course exists
+    const course = await prisma.course.findUnique({
+      where: { id },
+      include: {
+        materi: true,
+        asesmen: true,
+        enrollments: true,
+        guru: {
+          select: {
+            nama: true,
+          },
+        },
+      },
+    })
+
+    if (!course) {
+      console.log('DELETE course - Course not found:', id)
+      return NextResponse.json(
+        { error: 'Course tidak ditemukan' },
+        { status: 404 }
+      )
+    }
+
+    console.log('DELETE course - Found course:', {
+      id: course.id,
+      judul: course.judul,
+      materiCount: course.materi.length,
+      asesmenCount: course.asesmen.length,
+      enrollmentCount: course.enrollments.length,
+    })
+
+    // Delete the course - database cascade will handle related records
     await prisma.course.delete({
       where: { id },
     })
 
-    return NextResponse.json({ message: 'Course berhasil dihapus' })
+    console.log('DELETE course - Successfully deleted course:', id)
+
+    return NextResponse.json({ 
+      message: 'Course berhasil dihapus',
+      deletedCourse: {
+        id: course.id,
+        judul: course.judul,
+      }
+    })
   } catch (error) {
     console.error('Error deleting course:', error)
+    
+    // Check if it's a foreign key constraint error
+    if (error instanceof Error && error.message.includes('foreign key constraint')) {
+      return NextResponse.json(
+        { 
+          error: 'Tidak dapat menghapus course karena masih memiliki data terkait yang tidak dapat dihapus',
+          details: 'Pastikan semua data terkait sudah dihapus terlebih dahulu'
+        },
+        { status: 409 } // Conflict
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Gagal menghapus course' },
+      { 
+        error: 'Gagal menghapus course',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
