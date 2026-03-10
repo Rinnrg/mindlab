@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useCourses } from "@/hooks/use-api"
@@ -40,6 +40,31 @@ export default function CoursesPage() {
   console.log('CoursesPage - User data:', { 
     user: user ? { id: user.id, role: user.role, nama: user.nama } : null 
   })
+
+  // Redirect admin to admin panel
+  useEffect(() => {
+    if (user && user.role === 'ADMIN') {
+      router.push('/admin')
+      return
+    }
+  }, [user, router])
+
+  // Only allow GURU and SISWA to access courses
+  if (user && user.role === 'ADMIN') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-gray-900">Akses Dibatasi</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Admin tidak memiliki akses ke halaman courses. Silakan gunakan panel admin.
+          </p>
+        </div>
+        <Button onClick={() => router.push('/admin')} className="mt-4">
+          Ke Panel Admin
+        </Button>
+      </div>
+    )
+  }
   
   const { courses, loading, error, refetch } = useCourses(user?.id, user?.role)
   

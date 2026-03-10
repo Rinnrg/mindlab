@@ -129,6 +129,14 @@ export default function AddCoursePage() {
 
     await execute(
       async () => {
+        console.log('Creating course with data:', {
+          judul: title,
+          kategori: category,
+          guruId: selectedGuruId,
+          userLoginId: user.id,
+          userRole: user.role
+        })
+        
         // 1. Create course
         const courseResponse = await fetch("/api/courses", {
           method: "POST",
@@ -186,7 +194,12 @@ export default function AddCoursePage() {
           sessionStorage.setItem('refresh-courses', 'true')
           
           setTimeout(() => {
-            router.push("/courses")
+            // Redirect based on user role
+            if (user?.role === 'ADMIN') {
+              router.push("/dashboard") // Admin goes to main dashboard
+            } else {
+              router.push("/courses") // Guru goes to courses page
+            }
           }, 1500)
         },
       }

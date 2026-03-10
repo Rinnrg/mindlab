@@ -44,13 +44,25 @@ export function useCourses(userId?: string, role?: string) {
       setLoading(true)
       let url = '/api/courses'
       
-      // Add filters based on role and userId
+      // Add filters based on role and userId  
       if (userId && role === 'SISWA') {
         url += `?siswaId=${userId}`
-      } else if (userId && role === 'GURU') {
+      } else if (role === 'GURU') {
         url += `?guruId=${userId}`
+      } else if (role === 'ADMIN') {
+        // Admin should not access courses directly - they use admin panel
+        console.log('Admin trying to access courses - redirecting to admin panel')
+        setCourses([])
+        setError('Admin tidak memiliki akses langsung ke courses. Silakan gunakan panel admin untuk manajemen sistem.')
+        setLoading(false)
+        return
+      } else {
+        // Unknown role - deny access
+        setCourses([])
+        setError('Role tidak dikenali untuk mengakses courses.')
+        setLoading(false)
+        return
       }
-      // For ADMIN role, fetch all courses without filter
       
       console.log('useCourses - Fetching from URL:', url)
       
