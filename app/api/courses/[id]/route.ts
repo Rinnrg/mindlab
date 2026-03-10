@@ -181,13 +181,20 @@ export async function DELETE(
 
     console.log('DELETE course - Successfully deleted course:', id)
 
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       message: 'Course berhasil dihapus',
       deletedCourse: {
         id: course.id,
         judul: course.judul,
       }
     })
+    
+    // Ensure no caching on delete response
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
   } catch (error) {
     console.error('Error deleting course:', error)
     

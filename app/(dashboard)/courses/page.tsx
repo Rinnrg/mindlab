@@ -33,6 +33,7 @@ export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(locale === 'id' ? "Semua" : "All")
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
+  const [deletingCourseIds, setDeletingCourseIds] = useState<Set<string>>(new Set())
   const { confirm, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   
@@ -88,9 +89,10 @@ export default function CoursesPage() {
     return courses.filter((course) => {
       const matchesSearch = course.judul.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       const matchesCategory = selectedCategory === allCategory || course.kategori === selectedCategory
-      return matchesSearch && matchesCategory
+      const notBeingDeleted = !deletingCourseIds.has(course.id)
+      return matchesSearch && matchesCategory && notBeingDeleted
     })
-  }, [courses, debouncedSearchQuery, selectedCategory, allCategory])
+  }, [courses, debouncedSearchQuery, selectedCategory, allCategory, deletingCourseIds])
 
   const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
 
@@ -104,6 +106,9 @@ export default function CoursesPage() {
 
     if (!confirmed) return
 
+    // Add to deleting set for immediate UI feedback
+    setDeletingCourseIds(prev => new Set(prev).add(courseId))
+
     await execute(
       async () => {
         console.log('Deleting course:', { courseId, courseTitle })
@@ -113,6 +118,13 @@ export default function CoursesPage() {
         })
 
         if (!response.ok) {
+          // Remove from deleting set if failed
+          setDeletingCourseIds(prev => {
+            const newSet = new Set(prev)
+            newSet.delete(courseId)
+            return newSet
+          })
+          
           const data = await response.json()
           console.error('Failed to delete course:', data)
           
@@ -129,7 +141,18 @@ export default function CoursesPage() {
         const result = await response.json()
         console.log('Course deleted successfully:', result)
         
-        refetch()
+        // Keep in deleting set until refetch completes
+        // Then refetch from server to ensure consistency
+        await refetch()
+        
+        // Remove from deleting set after successful refetch
+        setDeletingCourseIds(prev => {
+          const newSet = new Set(prev)
+          newSet.delete(courseId)
+          return newSet
+        })
+        
+        // Also refresh router for any server-side updates
         router.refresh()
       },
       {
@@ -137,9 +160,16 @@ export default function CoursesPage() {
         successTitle: t("Berhasil!"),
         successDescription: `"${courseTitle}" ${t("berhasil dihapus")}`,
         errorTitle: t("Gagal"),
-        autoCloseMs: 1500,
+        autoCloseMs: 2000, // Increase time to see the success message
       }
     )
+    
+    // Ensure course is removed from deleting set even if there's an error
+    setDeletingCourseIds(prev => {
+      const newSet = new Set(prev)
+      newSet.delete(courseId)
+      return newSet
+    })
   }
 
   if (loading) {

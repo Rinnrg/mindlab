@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export const revalidate = 300 // 5 minutes
+// Disable caching for dynamic content
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -118,7 +119,10 @@ export async function GET(request: NextRequest) {
     }
 
     const response = NextResponse.json({ courses })
-    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600')
+    // Disable caching to ensure fresh data after deletions
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
     return response
   } catch (error) {
     console.error('Error fetching courses:', error)

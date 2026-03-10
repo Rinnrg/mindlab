@@ -95,10 +95,16 @@ export function useCourses(userId?: string, role?: string) {
   }, [fetchCourses])
 
   const refetch = useCallback(() => {
+    console.log('useCourses - refetch called, clearing cache...')
+    
     // Clear all course-related cache entries
     const keysToDelete = Array.from(cache.keys()).filter(key => key.startsWith('courses'))
-    keysToDelete.forEach(key => cache.delete(key))
+    keysToDelete.forEach(key => {
+      console.log('useCourses - Deleting cache key:', key)
+      cache.delete(key)
+    })
     
+    // Force reload without cache
     return fetchCourses(true)
   }, [fetchCourses])
 
