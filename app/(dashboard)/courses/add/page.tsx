@@ -182,9 +182,11 @@ export default function AddCoursePage() {
         successDescription: `Kursus berhasil dibuat${selectedKelasIds.length > 0 ? ` dan dienroll ke ${selectedKelasIds.length} kelas` : ''}`,
         errorTitle: "Gagal",
         onSuccess: () => {
+          // Set flag untuk refresh courses page
+          sessionStorage.setItem('refresh-courses', 'true')
+          
           setTimeout(() => {
             router.push("/courses")
-            router.refresh()
           }, 1500)
         },
       }

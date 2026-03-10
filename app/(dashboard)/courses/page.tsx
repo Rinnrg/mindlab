@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useCourses } from "@/hooks/use-api"
@@ -36,6 +36,15 @@ export default function CoursesPage() {
   const { confirm, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   const { courses, loading, error, refetch } = useCourses(user?.id, user?.role)
+
+  // Force refresh when component mounts (useful after course creation)
+  useEffect(() => {
+    const shouldRefresh = sessionStorage.getItem('refresh-courses')
+    if (shouldRefresh) {
+      sessionStorage.removeItem('refresh-courses')
+      refetch()
+    }
+  }, [refetch])
 
   // Debounce search query untuk mengurangi re-render
   const debouncedSearchQuery = useDebounce(searchQuery, 300)

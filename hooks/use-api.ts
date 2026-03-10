@@ -46,6 +46,7 @@ export function useCourses(userId?: string, role?: string) {
       } else if (userId && role === 'GURU') {
         url += `?guruId=${userId}`
       }
+      // For ADMIN role, fetch all courses without filter
       
       const response = await fetch(url)
       const data = await response.json()
@@ -68,7 +69,13 @@ export function useCourses(userId?: string, role?: string) {
     fetchCourses()
   }, [fetchCourses])
 
-  const refetch = useCallback(() => fetchCourses(true), [fetchCourses])
+  const refetch = useCallback(() => {
+    // Clear all course-related cache entries
+    const keysToDelete = Array.from(cache.keys()).filter(key => key.startsWith('courses'))
+    keysToDelete.forEach(key => cache.delete(key))
+    
+    return fetchCourses(true)
+  }, [fetchCourses])
 
   return { courses, loading, error, refetch }
 }
