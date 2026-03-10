@@ -68,8 +68,7 @@ export default function AddCoursePage() {
             } else {
               console.log('Current user not found in guru list, ID mismatch:', user.id)
               // User login sebagai GURU tapi tidak ada di tabel User dengan role GURU
-              // Buat fallback: tambahkan user ke list guru atau update role
-              showError("Error", `User Anda tidak ditemukan dalam daftar guru. Silakan hubungi admin untuk memperbarui data Anda.`)
+              // Allow them to select any guru from the list
             }
           }
         }
@@ -335,7 +334,7 @@ export default function AddCoursePage() {
                 <Select 
                   value={selectedGuruId} 
                   onValueChange={setSelectedGuruId}
-                  disabled={user?.role === 'GURU'} // GURU cannot change - locked to themselves
+                  disabled={user?.role === 'GURU' && gurus.find(guru => guru.id === user.id)} // Only disable if user found as guru
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih guru pengampu" />
@@ -353,9 +352,14 @@ export default function AddCoursePage() {
                   </SelectContent>
                 </Select>
               )}
-              {user?.role === 'GURU' && (
+              {user?.role === 'GURU' && gurus.find(guru => guru.id === user.id) && (
                 <p className="text-xs text-blue-600">
                   Sebagai guru, Anda hanya dapat membuat course untuk diri sendiri.
+                </p>
+              )}
+              {user?.role === 'GURU' && !gurus.find(guru => guru.id === user.id) && (
+                <p className="text-xs text-orange-600">
+                  User Anda tidak ditemukan sebagai guru di database. Silakan pilih guru pengampu atau hubungi admin.
                 </p>
               )}
             </div>
