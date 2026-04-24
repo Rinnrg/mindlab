@@ -227,7 +227,7 @@ export default function AddUserPage() {
 
             {/* Conditional fields based on role */}
             {role === "SISWA" && (
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="kelas">Kelas</Label>
                 </div>
@@ -236,41 +236,56 @@ export default function AddUserPage() {
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     <span className="text-sm text-muted-foreground">Loading classes...</span>
                   </div>
-                ) : availableClasses.length >= 0 ? (
-                  <div className="space-y-3">
-                    <Select value={kelas} onValueChange={setKelas}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kelas yang sudah ada" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableClasses.map((className) => (
-                          <SelectItem key={className} value={className}>
-                            <div className="flex items-center">
-                              <GraduationCap className="h-4 w-4 mr-2" />
-                              {className}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="text-center text-sm text-muted-foreground">
-                      atau
+                ) : (
+                  <div className="space-y-4 border rounded-md p-4 bg-muted/30">
+                    <div className="space-y-2">
+                       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Pilih Dari Daftar</Label>
+                       <Select value={kelas} onValueChange={setKelas}>
+                         <SelectTrigger>
+                           <SelectValue placeholder="Pilih kelas yang sudah ada" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {availableClasses.map((className) => (
+                             <SelectItem key={className} value={className}>
+                               <div className="flex items-center">
+                                 <GraduationCap className="h-4 w-4 mr-2" />
+                                 {className}
+                               </div>
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="relative flex-1">
-                        <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          id="kelas"
-                          placeholder="Ketik nama kelas (opsional jika sudah pilih dari atas)"
-                          value={kelas}
-                          onChange={(e) => setKelas(e.target.value)}
-                          className="pl-9"
-                        />
+
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t" />
                       </div>
-                      <AddClassDialog onClassAdded={handleClassAdded} />
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Atau
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Ketik Manual / Tambah Baru</Label>
+                       <div className="flex items-center space-x-2">
+                         <div className="relative flex-1">
+                           <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                           <Input
+                             id="kelas_manual"
+                             placeholder="Ketik nama kelas..."
+                             value={kelas}
+                             onChange={(e) => setKelas(e.target.value)}
+                             className="pl-9"
+                           />
+                         </div>
+                         <AddClassDialog onClassAdded={handleClassAdded} />
+                       </div>
                     </div>
                   </div>
-                ) : null}
+                )}
               </div>
             )}
 
