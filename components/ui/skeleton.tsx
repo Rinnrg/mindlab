@@ -14,23 +14,23 @@ function Skeleton({
   const roundedClasses = {
     sm: 'rounded-sm',
     md: 'rounded-md', 
-    lg: 'rounded-lg',
-    xl: 'rounded-xl',
+    lg: 'rounded-[12px]',
+    xl: 'rounded-[16px]',
     full: 'rounded-full'
   }
 
   const variantClasses = {
-    default: 'bg-accent animate-pulse',
-    shimmer: 'bg-gradient-to-r from-accent via-accent/50 to-accent bg-[length:200%_100%] animate-shimmer',
-    wave: 'bg-accent animate-wave',
-    pulse: 'bg-accent animate-pulse-soft'
+    default: 'bg-muted/80 animate-pulse',
+    shimmer: 'bg-gradient-to-r from-muted/50 via-muted/90 to-muted/50 bg-[length:400%_100%] animate-shimmer',
+    wave: 'bg-muted animate-wave',
+    pulse: 'bg-muted/60 animate-pulse'
   }
 
   return (
     <div
       data-slot="skeleton"
       className={cn(
-        'relative overflow-hidden',
+        'relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.5s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent',
         variantClasses[variant],
         roundedClasses[rounded],
         className
@@ -47,17 +47,17 @@ function SkeletonText({
   ...props 
 }: { lines?: number } & SkeletonProps) {
   if (lines === 1) {
-    return <Skeleton className={cn('h-4', className)} {...props} />
+    return <Skeleton className={cn('h-3.5', className)} {...props} />
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton 
           key={i}
           className={cn(
-            'h-4',
-            i === lines - 1 ? 'w-3/4' : 'w-full', // Last line shorter
+            'h-3.5',
+            i === lines - 1 ? 'w-2/3' : i === lines - 2 ? 'w-[85%]' : 'w-full',
             className
           )} 
           {...props} 
@@ -94,14 +94,14 @@ function SkeletonButton({
   ...props 
 }: { size?: 'sm' | 'md' | 'lg' } & SkeletonProps) {
   const sizeClasses = {
-    sm: 'h-8 w-20',
-    md: 'h-10 w-24',
-    lg: 'h-12 w-28'
+    sm: 'h-9 w-24',
+    md: 'h-10 w-28',
+    lg: 'h-11 w-32'
   }
 
   return (
     <Skeleton 
-      rounded="md"
+      rounded="lg"
       className={cn(sizeClasses[size], className)} 
       {...props} 
     />
