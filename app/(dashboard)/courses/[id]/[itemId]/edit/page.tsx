@@ -3,7 +3,7 @@
 import { useEffect, use, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
+import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { AsesmenEditForm } from "@/components/asesmen-edit-form"
 import { Loader2, BookOpen, FileText, Pencil } from "lucide-react"
 

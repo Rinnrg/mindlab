@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
 import { AutoTranslateProvider } from "@/lib/auto-translate-context"
 import { NavigationModeProvider } from "@/lib/navigation-mode-context"
-import { BreadcrumbProvider } from "@/hooks/simple-breadcrumb"
+import { BreadcrumbProvider } from "@/hooks/use-breadcrumb"
 import { PageTransitionProvider } from "@/lib/page-transition-context"
 import "./globals.css"
 

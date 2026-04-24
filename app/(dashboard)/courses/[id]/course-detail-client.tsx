@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
-import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
+import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import type { Course, Asesmen } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

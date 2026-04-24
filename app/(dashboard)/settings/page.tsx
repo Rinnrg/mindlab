@@ -13,7 +13,7 @@ import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useAuth } from "@/lib/auth-context"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
+import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { User, Settings as SettingsIcon } from "lucide-react"
 import {
   Layout, Palette, Bell, Shield, Globe, Monitor, Moon, Sun,
