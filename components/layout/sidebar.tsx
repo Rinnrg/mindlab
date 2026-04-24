@@ -161,23 +161,30 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
         !isMobile && (isExpanded ? "w-[260px] shadow-lg" : "w-[70px]"),
       )}
     >
-      <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border flex-shrink-0">
-        <Link href="/dashboard" className="flex items-center gap-3 group overflow-hidden" onClick={onNavClick}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg shrink-0">
-            <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-9 w-9 object-contain" />
+      <div className="flex h-16 items-center justify-between px-3 border-b border-sidebar-border flex-shrink-0">
+        <Link 
+          href="/dashboard" 
+          className={cn(
+            "flex items-center group overflow-hidden transition-all duration-300",
+            !isExpanded && !isMobile ? "mx-auto justify-center" : "gap-3"
+          )} 
+          onClick={onNavClick}
+        >
+          <div className="flex h-8 w-8 items-center justify-center shrink-0">
+            <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
           </div>
           <span 
             className={cn(
               "text-base font-semibold tracking-tight text-foreground whitespace-nowrap transition-all duration-300",
-              !isExpanded && !isMobile && "opacity-0 w-0"
+              !isExpanded && !isMobile ? "opacity-0 w-0 hidden" : "opacity-100"
             )}
           >
             Mindlab
           </span>
         </Link>
         {isMobile && (
-          <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" onClick={onNavClick}>
-            <X className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground ml-auto" onClick={onNavClick}>
+            <X className="h-4 w-4" />
           </Button>
         )}
       </div>

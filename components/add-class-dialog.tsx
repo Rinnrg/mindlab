@@ -50,10 +50,17 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     }
   }
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (newOpen) {
+      setClassName("")
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="ml-2">
+        <Button variant="outline" size="sm" className="ml-2" type="button">
           <Plus className="h-4 w-4 mr-1" />
           Tambah Kelas
         </Button>
