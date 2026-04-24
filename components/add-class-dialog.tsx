@@ -24,7 +24,7 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
   const [open, setOpen] = useState(false)
   const [className, setClassName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { error: showError, success: showSuccess } = useAdaptiveAlert()
+  const { error: showError } = useAdaptiveAlert()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,8 +39,10 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     try {
       // Simulate adding class - in real app, you might call an API
       // For now, we'll just call the callback with the new class
-      onClassAdded?.(className.trim())
-      showSuccess("Berhasil!", "Kelas berhasil ditambahkan")
+      console.log("[DEBUG] AddClassDialog submitting class:", className);
+      if (onClassAdded) {
+        onClassAdded(className.trim())
+      }
       setClassName("")
       setOpen(false)
     } catch (error) {
