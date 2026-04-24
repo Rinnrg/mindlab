@@ -100,7 +100,11 @@ function DropdownMenuContent({
           'data-[state=closed]:animate-out data-[state=closed]:fade-out-0',
           'data-[state=closed]:zoom-out-[0.85]',
           'data-[state=closed]:duration-[200ms] data-[state=closed]:ease-[cubic-bezier(0.32,0.72,0,1)]',
-          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem]',
+          'z-50 max-h-(--radix-dropdown-menu-content-available-height)',
+          /* Responsive sizing: mobile optimized like mobile alert */
+          'min-w-[8rem] sm:min-w-[10rem]',
+          'max-w-[270px] sm:max-w-[300px]',
+          'w-auto sm:w-auto',
           'origin-(--radix-dropdown-menu-content-transform-origin)',
           'overflow-x-hidden overflow-y-auto',
           'transform-gpu backface-hidden will-change-[transform,border-radius,opacity,filter]',
@@ -141,7 +145,10 @@ function DropdownMenuItem({
         "dark:data-[variant=destructive]:focus:bg-destructive/20 data-[variant=destructive]:focus:text-destructive",
         "data-[variant=destructive]:*:[svg]:!text-destructive",
         "[&_svg:not([class*='text-'])]:text-muted-foreground",
-        "relative flex cursor-default items-center gap-2 rounded-xl px-2.5 py-2 text-sm outline-hidden select-none",
+        /* Responsive sizing like mobile alert */
+        "relative flex cursor-default items-center gap-2 rounded-xl outline-hidden select-none",
+        "px-2.5 py-2 text-sm sm:px-3 sm:py-2.5 sm:text-[15px]",
+        "min-h-[44px] sm:min-h-[36px]", // Touch-friendly height on mobile
         /* Liquid blob transition — smooth morphing color/bg/scale/shadow */
         "transition-[background,color,transform,box-shadow,filter] duration-[350ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
         /* Hover: liquid glass glow — water surface refraction */
@@ -169,7 +176,9 @@ function DropdownMenuCheckboxItem({
     <DropdownMenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
       className={cn(
-        "focus:bg-accent/50 focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xl py-2 pr-2.5 pl-8 text-sm outline-hidden select-none",
+        "focus:bg-accent/50 focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xl outline-hidden select-none",
+        "py-2 pr-2.5 pl-8 text-sm sm:py-2.5 sm:text-[15px]",
+        "min-h-[44px] sm:min-h-[36px]", // Touch-friendly height on mobile
         "transition-[background,color,transform,box-shadow,filter] duration-[350ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
         "active:scale-[1.03] active:brightness-[1.03] transform-gpu backface-hidden",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -208,7 +217,9 @@ function DropdownMenuRadioItem({
     <DropdownMenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        "focus:bg-accent/50 focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xl py-2 pr-2.5 pl-8 text-sm outline-hidden select-none",
+        "focus:bg-accent/50 focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-xl outline-hidden select-none",
+        "py-2 pr-2.5 pl-8 text-sm sm:py-2.5 sm:text-[15px]",
+        "min-h-[44px] sm:min-h-[36px]", // Touch-friendly height on mobile
         "transition-[background,color,transform,box-shadow,filter] duration-[350ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
         "active:scale-[1.03] active:brightness-[1.03] transform-gpu backface-hidden",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",

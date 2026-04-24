@@ -67,36 +67,38 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           /**
-           * Liquid Glass dialog panel
-           * From tema/src/styles/components/ion-modal.scss:
-           * - modal-sheet: --border-radius: 30px
-           * - glass-background(1) on ::part(content)
-           * From tema/src/styles/utils/api.scss: full glass mixin
+           * Mobile alert style with liquid glass effect
+           * Consistent with MobileAlert component styling
            */
-          'bg-background/90 dark:bg-background/85',
-          'backdrop-blur-[8px] backdrop-saturate-[360%]',
-          /* Asymmetric borders from api.scss */
-          'border-[0.5px] border-t-white/100 border-b-white/100 border-r-white/80 border-l-white/60',
-          'dark:border-t-white/12 dark:border-b-white/12 dark:border-r-white/10 dark:border-l-white/8',
-          /* Glass shadow from api.scss */
-          'shadow-[inset_0_0_8px_0_rgba(220,220,220,0.2),0_0_10px_0_rgba(220,220,220,0.82)]',
-          'dark:shadow-[inset_0_0_8px_0_rgba(40,40,40,0.3),0_0_10px_0_rgba(0,0,0,0.5)]',
-          /* border-radius: 30px from ion-modal.scss modal-sheet */
-          'rounded-[30px] p-6 gap-4',
-          /* Animations — easing from ios.transition.ts */
+          /* Mobile-first responsive background like mobile alert */
+          'bg-[rgba(248,248,248,0.8)] dark:bg-[rgba(28,28,30,0.8)]',
+          'backdrop-blur-[25px] backdrop-saturate-[180%] backdrop-brightness-[1.1]',
+          /* Border like mobile alert */
+          'border-[0.5px] border-[rgba(0,0,0,0.04)] dark:border-[rgba(255,255,255,0.1)]',
+          /* Shadow like mobile alert */
+          'shadow-[0_0_0_1px_rgba(255,255,255,0.05),0_1px_1px_rgba(0,0,0,0.05),0_0_0_1px_rgba(0,0,0,0.05),0_2px_5px_rgba(0,0,0,0.1)]',
+          'dark:shadow-[0_0_0_1px_rgba(255,255,255,0.02),0_1px_1px_rgba(0,0,0,0.3),0_0_0_1px_rgba(0,0,0,0.2),0_2px_5px_rgba(0,0,0,0.3)]',
+          /* Responsive border radius like mobile alert */
+          'rounded-[13px] sm:rounded-[20px]',
+          'overflow-hidden',
+          /* Responsive sizing like mobile alert */
+          'w-full max-w-[270px] sm:max-w-[400px] md:max-w-lg',
+          'mx-4 sm:mx-auto',
+          /* Position and animations */
+          'fixed top-[50%] left-[50%] z-50',
+          'translate-x-[-50%] translate-y-[-50%]',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
           'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)]',
-          'translate-x-[-50%] translate-y-[-50%]',
           'duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
-          'sm:max-w-lg',
           'transform-gpu backface-hidden',
           className,
         )}
         {...props}
       >
-        {children}
+        <div className="px-4 py-5 sm:px-6 sm:py-6">
+          {children}
+        </div>
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
@@ -125,7 +127,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      className={cn('flex flex-col gap-2 text-center', className)}
       {...props}
     />
   )
@@ -133,14 +135,18 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
 
 function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div
-      data-slot="dialog-footer"
-      className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        className,
-      )}
-      {...props}
-    />
+    <>
+      {/* Button separator line like mobile alert */}
+      <div className="h-[0.33px] -mx-4 sm:-mx-6 bg-[rgba(60,60,67,0.36)]" />
+      <div
+        data-slot="dialog-footer"
+        className={cn(
+          'flex gap-0', // No gap between buttons like mobile alert
+          className,
+        )}
+        {...props}
+      />
+    </>
   )
 }
 
@@ -151,7 +157,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn('text-lg leading-none font-semibold', className)}
+      className={cn('text-[17px] font-semibold text-black dark:text-white leading-tight', className)}
       {...props}
     />
   )
@@ -164,7 +170,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-muted-foreground text-sm', className)}
+      className={cn('text-[13px] text-black/70 dark:text-white/70 leading-[18px]', className)}
       {...props}
     />
   )

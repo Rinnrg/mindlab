@@ -9,6 +9,298 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model User {
+  id                String              @id @default(uuid()) @db.Uuid
+  username          String?             @unique @db.VarChar(255)
+  email             String              @unique @db.VarChar(255)
+  nama              String              @db.VarChar(255)
+  password          String?             @db.VarChar(255)
+  role              Role                @default(SISWA)
+  foto              String?             @db.VarChar(255)
+  kelas             Int?
+  createdAt         DateTime            @default(now())
+  anggotaKelompok   AnggotaKelompok[]
+  asesmenDibuat     Asesmen[]
+  balasanForum      BalasanForum[]
+  course            Course[]
+  enrollments       Enrollment[]
+  forumDiskusi      ForumDiskusi[]
+  jawabanSiswa      JawabanSiswa[]
+  nilai             Nilai[]
+  pengumpulanProyek PengumpulanProyek[]
+  profileShowcase   ProfileShowcase[]
+  masalahDibuat     PBL[]               @relation("PBLDibuat")
+}
+
+model Course {
+  id          String       @id @default(uuid()) @db.Uuid
+  judul       String       @db.VarChar(255)
+  deskripsi   String?      @db.VarChar(1000)
+  gambar      String       @db.VarChar(255)
+  kategori    String       @db.VarChar(255)
+  guruId      String       @db.Uuid
+  asesmen     Asesmen[]
+  guru        User         @relation(fields: [guruId], references: [id])
+  enrollments Enrollment[]
+  materi      Materi[]
+
+  @@index([guruId])
+  @@index([kategori])
+}
+
+model Materi {
+  id          String   @id @default(uuid()) @db.Uuid
+  judul       String   @db.VarChar(255)
+  deskripsi   String?  @db.VarChar(1000)
+  kelasTarget String[] @db.VarChar(255)
+  tgl_unggah  DateTime @default(now())
+  lampiran    String?  @db.VarChar(255)
+  fileData    Bytes?
+  fileName    String?  @db.VarChar(255)
+  fileType    String?  @db.VarChar(255)
+  fileSize    Int?
+  courseId    String   @db.Uuid
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([tgl_unggah])
+  @@index([kelasTarget])
+}
+
+model Asesmen {
+  id                String              @id @default(uuid()) @db.Uuid
+  nama              String              @db.VarChar(255)
+  deskripsi         String?             @db.VarChar(1000)
+  kelasTarget       String[]            @db.VarChar(255)
+  tipe              TipeAsesmen         @default(KUIS)
+  tipePengerjaan    TipePengerjaan?
+  jml_soal          Int?
+  durasi            Int?
+  tgl_mulai         DateTime?
+  tgl_selesai       DateTime?
+  lampiran          String?             @db.VarChar(255)
+  antiCurang        Boolean             @default(false)
+  fileData          Bytes?
+  fileName          String?             @db.VarChar(255)
+  fileType          String?             @db.VarChar(255)
+  fileSize          Int?
+  guruId            String              @db.Uuid
+  courseId          String              @db.Uuid
+  acakJawaban       Boolean             @default(false)
+  acakSoal          Boolean             @default(false)
+  course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  guru              User                @relation(fields: [guruId], references: [id])
+  forumDiskusi      ForumDiskusi[]
+  nilai             Nilai[]
+  pengumpulanProyek PengumpulanProyek[]
+  soal              Soal[]
+
+  @@index([guruId])
+  @@index([courseId])
+  @@index([tipe])
+  @@index([tgl_mulai])
+  @@index([tgl_selesai])
+  @@index([kelasTarget])
+}
+
+model Soal {
+  id           String         @id @default(uuid()) @db.Uuid
+  pertanyaan   String         @db.VarChar(1000)
+  gambar       String?        @db.VarChar(255)
+  bobot        Int            @default(10)
+  tipeJawaban  TipeJawaban    @default(PILIHAN_GANDA)
+  asesmenId    String         @db.Uuid
+  jawabanSiswa JawabanSiswa[]
+  opsi         Opsi[]
+  asesmen      Asesmen        @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+
+  @@index([asesmenId])
+}
+
+model Opsi {
+  id      String  @id @default(uuid()) @db.Uuid
+  teks    String  @db.VarChar(1000)
+  isBenar Boolean @default(false)
+  soalId  String  @db.Uuid
+  soal    Soal    @relation(fields: [soalId], references: [id], onDelete: Cascade)
+
+  @@index([soalId])
+}
+
+model JawabanSiswa {
+  id           String   @id @default(uuid()) @db.Uuid
+  jawaban      String?  @db.VarChar(1000)
+  isBenar      Boolean?
+  skorDidapat  Float?
+  tanggalJawab DateTime @default(now())
+  siswaId      String   @db.Uuid
+  soalId       String   @db.Uuid
+  nilaiId      String?  @db.Uuid
+  nilai        Nilai?   @relation(fields: [nilaiId], references: [id], onDelete: Cascade)
+  siswa        User     @relation(fields: [siswaId], references: [id])
+  soal         Soal     @relation(fields: [soalId], references: [id], onDelete: Cascade)
+
+  @@unique([siswaId, soalId], name: "siswaId_soalId")
+  @@index([siswaId])
+  @@index([soalId])
+  @@index([nilaiId])
+}
+
+model Nilai {
+  id           String         @id @default(uuid()) @db.Uuid
+  skor         Float
+  tanggal      DateTime       @default(now())
+  siswaId      String         @db.Uuid
+  asesmenId    String         @db.Uuid
+  jawabanSiswa JawabanSiswa[]
+  asesmen      Asesmen        @relation(fields: [asesmenId], references: [id])
+  siswa        User           @relation(fields: [siswaId], references: [id])
+
+  @@unique([siswaId, asesmenId], name: "siswaId_asesmenId")
+  @@index([siswaId])
+  @@index([asesmenId])
+  @@index([tanggal])
+}
+
+model PBL {
+  id          String     @id @default(uuid()) @db.Uuid
+  judul       String     @db.VarChar(255)
+  deskripsi   String     @db.VarChar(1000)
+  tgl_mulai   DateTime
+  tgl_selesai DateTime
+  lampiran    String?    @db.VarChar(255)
+  sintaks     String[]   @db.VarChar(255)
+  fileData    Bytes?
+  fileName    String?    @db.VarChar(255)
+  fileType    String?    @db.VarChar(255)
+  fileSize    Int?
+  guruId      String     @db.Uuid
+  kelompok    Kelompok[]
+  guru        User       @relation("PBLDibuat", fields: [guruId], references: [id])
+
+  @@index([guruId])
+  @@index([tgl_mulai])
+  @@index([tgl_selesai])
+  @@map("pbl")
+}
+
+model Kelompok {
+  id          String              @id @default(uuid()) @db.Uuid
+  nama        String              @db.VarChar(255)
+  pblId       String              @db.Uuid
+  anggota     AnggotaKelompok[]
+  pbl         PBL                 @relation(fields: [pblId], references: [id])
+  pengumpulan PengumpulanProyek[]
+
+  @@index([pblId])
+}
+
+model AnggotaKelompok {
+  id         String   @id @default(uuid()) @db.Uuid
+  kelompokId String   @db.Uuid
+  siswaId    String   @db.Uuid
+  kelompok   Kelompok @relation(fields: [kelompokId], references: [id])
+  siswa      User     @relation(fields: [siswaId], references: [id])
+
+  @@index([kelompokId])
+  @@index([siswaId])
+}
+
+model PengumpulanProyek {
+  id              String           @id @default(uuid()) @db.Uuid
+  catatan         String?          @db.VarChar(1000)
+  sourceCode      String?          @db.VarChar(5000)
+  output          String?          @db.VarChar(5000)
+  tgl_unggah      DateTime         @default(now())
+  nilai           Float?
+  namaKelompok    String?          @db.VarChar(255)
+  ketua           String?          @db.VarChar(255)
+  anggota         String[]         @db.VarChar(255)
+  fileUrl         String?          @db.VarChar(255)
+  status          StatusPengumpulan @default(PENDING)
+  feedback        String?          @db.VarChar(1000)
+  validatedAt     DateTime?
+  validatedBy     String?          @db.VarChar(255)
+  kelompokId      String?          @db.Uuid
+  siswaId         String?          @db.Uuid
+  asesmenId       String?          @db.Uuid
+  asesmen         Asesmen?         @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+  kelompok        Kelompok?        @relation(fields: [kelompokId], references: [id])
+  siswa           User?            @relation(fields: [siswaId], references: [id])
+  profileShowcase ProfileShowcase?
+
+  @@index([kelompokId])
+  @@index([siswaId])
+  @@index([asesmenId])
+  @@index([tgl_unggah])
+  @@index([status])
+}
+
+model ProfileShowcase {
+  id                  String            @id @default(uuid()) @db.Uuid
+  judul               String            @db.VarChar(255)
+  deskripsi           String?           @db.VarChar(1000)
+  nilai               Float
+  tanggalDinilai      DateTime          @default(now())
+  isPublic            Boolean           @default(true)
+  siswaId             String            @db.Uuid
+  pengumpulanProyekId String            @unique @db.Uuid
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  pengumpulanProyek   PengumpulanProyek @relation(fields: [pengumpulanProyekId], references: [id], onDelete: Cascade)
+  siswa               User              @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@index([siswaId])
+  @@index([isPublic])
+  @@index([tanggalDinilai])
+}
+
+model Enrollment {
+  id         String   @id @default(uuid()) @db.Uuid
+  enrolledAt DateTime @default(now())
+  progress   Int      @default(0)
+  courseId   String   @db.Uuid
+  siswaId    String   @db.Uuid
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  siswa      User     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, siswaId])
+  @@index([courseId])
+  @@index([siswaId])
+  @@index([enrolledAt])
+}
+
+model ForumDiskusi {
+  id        String         @id @default(uuid()) @db.Uuid
+  pesan     String         @db.VarChar(2000)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  userId    String         @db.Uuid
+  asesmenId String         @db.Uuid
+  balasan   BalasanForum[]
+  asesmen   Asesmen        @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([asesmenId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model BalasanForum {
+  id             String       @id @default(uuid()) @db.Uuid
+  pesan          String       @db.VarChar(2000)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  userId         String       @db.Uuid
+  forumDiskusiId String       @db.Uuid
+  forumDiskusi   ForumDiskusi @relation(fields: [forumDiskusiId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([forumDiskusiId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
 enum Role {
   ADMIN
   GURU
@@ -30,342 +322,8 @@ enum TipeJawaban {
   ISIAN
 }
 
-model User {
-  id        String   @id @default(uuid())
-  username  String?  @unique
-  email     String   @unique
-  nama      String
-  password  String?
-  role      Role     @default(SISWA)
-  foto      String?
-  kelas     String?  // Kelas untuk siswa
-  createdAt DateTime @default(now())
-
-  course        Course[]
-  masalahDibuat  PBL[] @relation("PBLDibuat")
-  asesmenDibuat Asesmen[]
-
-  nilai           Nilai[]
-  anggotaKelompok AnggotaKelompok[]
-  profileShowcase ProfileShowcase[]
-  enrollments     Enrollment[]
-  pengumpulanProyek PengumpulanProyek[] // For individual task submissions
-  jawabanSiswa    JawabanSiswa[]
-  forumDiskusi    ForumDiskusi[]
-  balasanForum    BalasanForum[]
-}
-
-model Course {
-  id       String @id @default(cuid())
-  judul    String
-  deskripsi String? @db.Text
-  gambar   String
-  kategori String
-
-  guruId String
-  guru   User   @relation(fields: [guruId], references: [id])
-
-  asesmen     Asesmen[]
-  materi      Materi[]
-  enrollments Enrollment[]
-
-  @@index([guruId])
-  @@index([kategori])
-}
-
-model Materi {
-  id         String   @id @default(cuid())
-  judul      String
-  deskripsi  String?  @db.Text
-  kelasTarget String[] // Array kelas yang dapat mengakses materi ini, empty array = semua kelas
-  tgl_unggah DateTime @default(now())
-  lampiran   String?  @db.Text // URL or base64 for external resources
-  
-  // File storage fields (untuk file yang diupload)
-  fileData       Bytes?   // Binary file data stored in database
-  fileName       String?  // Original filename
-  fileType       String?  // MIME type
-  fileSize       Int?     // File size in bytes
-
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@index([courseId])
-  @@index([tgl_unggah])
-  @@index([kelasTarget])
-}
-
-model Asesmen {
-  id             String          @id @default(cuid())
-  nama           String
-  deskripsi      String?
-  kelasTarget    String[]        // Array kelas yang dapat mengakses asesmen ini, empty array = semua kelas
-  tipe           TipeAsesmen     @default(KUIS)
-  tipePengerjaan TipePengerjaan? // Hanya untuk TUGAS, nullable untuk KUIS
-  jml_soal       Int?            // Optional - untuk KUIS akan dihitung otomatis dari jumlah soal
-  durasi         Int?            // Optional - untuk KUIS akan diisi jika ada waktu
-  tgl_mulai      DateTime?
-  tgl_selesai    DateTime?
-  lampiran       String?         @db.Text // URL or base64 for file attachment
-  antiCurang     Boolean         @default(false) // Anti-cheat: detect tab/window leave
-
-  // File storage fields (untuk file yang diupload)
-  fileData       Bytes?   // Binary file data stored in database
-  fileName       String?  // Original filename
-  fileType       String?  // MIME type
-  fileSize       Int?     // File size in bytes
-
-  guruId String
-  guru   User   @relation(fields: [guruId], references: [id])
-
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  soal Soal[]
-
-  nilai             Nilai[]
-  pengumpulanProyek PengumpulanProyek[] // Renamed from pengumpulanTugas
-  forumDiskusi      ForumDiskusi[]
-
-  @@index([guruId])
-  @@index([courseId])
-  @@index([tipe])
-  @@index([tgl_mulai])
-  @@index([tgl_selesai])
-  @@index([kelasTarget])
-}
-
-model Soal {
-  id          String       @id @default(cuid())
-  pertanyaan  String       @db.Text
-  gambar      String?      @db.Text // Optional image (base64 data URL)
-  bobot       Int          @default(10)
-  tipeJawaban TipeJawaban  @default(PILIHAN_GANDA)
-
-  asesmenId String
-  asesmen   Asesmen @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-
-  opsi          Opsi[]
-  jawabanSiswa  JawabanSiswa[]
-
-  @@index([asesmenId])
-}
-
-model Opsi {
-  id      String  @id @default(cuid())
-  teks    String
-  isBenar Boolean @default(false)
-
-  soalId String
-  soal   Soal   @relation(fields: [soalId], references: [id], onDelete: Cascade)
-
-  @@index([soalId])
-}
-
-model JawabanSiswa {
-  id            String   @id @default(cuid())
-  jawaban       String?  @db.Text // Untuk isian atau pilihan yang dipilih
-  isBenar       Boolean? // Auto-scored untuk pilihan ganda, manual untuk isian
-  skorDidapat   Float?   // Skor yang didapat untuk soal ini
-  tanggalJawab  DateTime @default(now())
-
-  siswaId String
-  siswa   User   @relation(fields: [siswaId], references: [id])
-
-  soalId String
-  soal   Soal   @relation(fields: [soalId], references: [id], onDelete: Cascade)
-
-  nilaiId String?
-  nilai   Nilai?  @relation(fields: [nilaiId], references: [id], onDelete: Cascade)
-
-  @@unique([siswaId, soalId], name: "siswaId_soalId")
-  @@index([siswaId])
-  @@index([soalId])
-  @@index([nilaiId])
-}
-
-model Nilai {
-  id      String   @id @default(cuid())
-  skor    Float
-  tanggal DateTime @default(now())
-
-  siswaId String
-  siswa   User   @relation(fields: [siswaId], references: [id])
-
-  asesmenId String
-  asesmen   Asesmen @relation(fields: [asesmenId], references: [id])
-
-  jawabanSiswa JawabanSiswa[]
-
-  @@unique([siswaId, asesmenId], name: "siswaId_asesmenId")
-  @@index([siswaId])
-  @@index([asesmenId])
-  @@index([tanggal])
-}
-
-model PBL {
-  id          String   @id @default(cuid())
-  judul       String
-  deskripsi   String   @db.Text
-  tgl_mulai   DateTime
-  tgl_selesai DateTime
-  lampiran    String?
-  sintaks     String[] // Array sintaks PBL yang aktif (sintaks_1 sampai sintaks_5)
-
-  // File storage fields (untuk file yang diupload)
-  fileData       Bytes?   // Binary file data stored in database
-  fileName       String?  // Original filename
-  fileType       String?  // MIME type
-  fileSize       Int?     // File size in bytes
-
-  guruId String
-  guru   User   @relation(fields: [guruId], references: [id], name: "PBLDibuat")
-
-  kelompok Kelompok[]
-
-  @@index([guruId])
-  @@index([tgl_mulai])
-  @@index([tgl_selesai])
-  @@map("pbl")
-}
-
-model Kelompok {
-  id   String @id @default(cuid())
-  nama String
-
-  pblId String
-  pbl   PBL @relation(fields: [pblId], references: [id])
-
-  anggota     AnggotaKelompok[]
-  pengumpulan PengumpulanProyek[]
-
-  @@index([pblId])
-}
-
-model AnggotaKelompok {
-  id String @id @default(cuid())
-
-  kelompokId String
-  kelompok   Kelompok @relation(fields: [kelompokId], references: [id])
-
-  siswaId String
-  siswa   User   @relation(fields: [siswaId], references: [id])
-
-  @@index([kelompokId])
-  @@index([siswaId])
-}
-
-model PengumpulanProyek {
-  id         String   @id @default(cuid())
-  catatan    String?  @db.Text
-  sourceCode String?  @db.Text
-  output     String?  @db.Text
-  tgl_unggah DateTime @default(now())
-  nilai      Float?
-
-  // Fields untuk tugas individu/kelompok
-  namaKelompok String? // Jika kelompok (tugas)
-  ketua        String? // Nama ketua kelompok (tugas)
-  anggota      String? // Nama anggota kelompok (tugas)
-  fileUrl      String? @db.Text // URL or base64 for file attachment
-
-  // Validation & Feedback fields
-  status       String   @default("PENDING") // PENDING, VALIDATED, REVISION
-  feedback     String?  @db.Text // Feedback dari guru
-  validatedAt  DateTime? // Tanggal divalidasi
-  validatedBy  String?  // ID guru yang memvalidasi
-
-  // Relations
-  kelompokId String? // Optional: untuk proyek kelompok
-  kelompok   Kelompok? @relation(fields: [kelompokId], references: [id])
-
-  siswaId String? // Optional: untuk tugas individu, yang mengupload
-  siswa   User?   @relation(fields: [siswaId], references: [id])
-
-  asesmenId String? // Optional: untuk tugas dari asesmen
-  asesmen   Asesmen? @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-
-  profileShowcase ProfileShowcase?
-
-  @@index([kelompokId])
-  @@index([siswaId])
-  @@index([asesmenId])
-  @@index([tgl_unggah])
-  @@index([status])
-}
-
-model ProfileShowcase {
-  id             String   @id @default(cuid())
-  judul          String
-  deskripsi      String?  @db.Text
-  nilai          Float
-  tanggalDinilai DateTime @default(now())
-  isPublic       Boolean  @default(true)
-
-  siswaId String
-  siswa   User   @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-
-  pengumpulanProyekId String            @unique
-  pengumpulanProyek   PengumpulanProyek @relation(fields: [pengumpulanProyekId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([siswaId])
-  @@index([isPublic])
-  @@index([tanggalDinilai])
-}
-
-model Enrollment {
-  id         String   @id @default(cuid())
-  enrolledAt DateTime @default(now())
-  progress   Int      @default(0)
-
-  courseId String
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  siswaId String
-  siswa   User   @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-
-  @@unique([courseId, siswaId])
-  @@index([courseId])
-  @@index([siswaId])
-  @@index([enrolledAt])
-}
-
-// Forum Diskusi Asesmen
-model ForumDiskusi {
-  id        String   @id @default(cuid())
-  pesan     String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  asesmenId String
-  asesmen   Asesmen @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-
-  balasan BalasanForum[]
-
-  @@index([asesmenId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model BalasanForum {
-  id        String   @id @default(cuid())
-  pesan     String   @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  forumDiskusiId String
-  forumDiskusi   ForumDiskusi @relation(fields: [forumDiskusiId], references: [id], onDelete: Cascade)
-
-  @@index([forumDiskusiId])
-  @@index([userId])
-  @@index([createdAt])
+enum StatusPengumpulan {
+  PENDING
+  DINILAI
+  REVISI
 }

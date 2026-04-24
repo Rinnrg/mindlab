@@ -7,6 +7,21 @@ const ADMIN_RESTRICTED_ROUTES = ['/projects', '/courses', '/compiler']
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Redirect old routing structure to new structure
+  const materiMatch = pathname.match(/^\/courses\/([^\/]+)\/materi\/([^\/]+)(.*)$/)
+  if (materiMatch) {
+    const [, courseId, materiId, rest] = materiMatch
+    const newUrl = new URL(`/courses/${courseId}/${materiId}${rest}`, request.url)
+    return NextResponse.redirect(newUrl)
+  }
+
+  const asesmenMatch = pathname.match(/^\/courses\/([^\/]+)\/asesmen\/([^\/]+)(.*)$/)
+  if (asesmenMatch) {
+    const [, courseId, asesmenId, rest] = asesmenMatch
+    const newUrl = new URL(`/courses/${courseId}/${asesmenId}${rest}`, request.url)
+    return NextResponse.redirect(newUrl)
+  }
+
   // Cek role dari cookie/session
   const userCookie = request.cookies.get('user')?.value
   if (userCookie) {
@@ -27,8 +42,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Only run middleware on specific page routes that need role checking
-  // Exclude API routes, static files, images, etc.
+  // Run middleware on all pages that might need redirect or role checking
   matcher: [
     '/projects/:path*',
     '/courses/:path*',

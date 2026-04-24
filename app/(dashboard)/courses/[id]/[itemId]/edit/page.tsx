@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, use } from "react"
+import { useEffect, use, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { AsesmenEditForm } from "@/components/asesmen-edit-form"
-import { Loader2 } from "lucide-react"
+import { Loader2, BookOpen, FileText, Pencil } from "lucide-react"
 
 interface PageProps {
   params: Promise<{ 
@@ -18,6 +19,31 @@ export default function EditAsesmenPage({ params }: PageProps) {
   const router = useRouter()
   const resolvedParams = use(params)
   const { id: courseId, asesmenId } = resolvedParams
+
+  // Set custom breadcrumb - we'll need to fetch course and asesmen names
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Loading...', // Will be replaced by smart-breadcrumb
+      href: `/courses/${courseId}?tab=assessments`,
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Loading...', // Will be replaced by smart-breadcrumb  
+      href: `/courses/${courseId}/${asesmenId}`,
+      icon: <FileText className="h-4 w-4" />
+    },
+    {
+      label: 'Edit',
+      icon: <Pencil className="h-4 w-4" />
+    }
+  ], [courseId, asesmenId])
+
+  useBreadcrumbPage('Edit Asesmen', breadcrumbItems)
 
   useEffect(() => {
     if (isLoading) return

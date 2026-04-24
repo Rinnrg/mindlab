@@ -1,8 +1,9 @@
 "use client"
 
-import { use, useEffect, useState, useCallback, useRef } from "react"
+import { use, useEffect, useState, useCallback, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,8 @@ import {
   AlertCircle,
   CheckCircle,
   HelpCircle,
+  BookOpen,
+  FileText,
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -49,6 +52,34 @@ interface Jawaban {
   jawaban: string
 }
 
+// Seeded Random Number Generator (Mulberry32)
+function seededRandom(seed: string) {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(31, h) + seed.charCodeAt(i) | 0
+  }
+  
+  return function() {
+    h = Math.imul(h ^ h >>> 16, 0x85ebca6b)
+    h = Math.imul(h ^ h >>> 13, 0xc2b2ae35)
+    return ((h = h ^ h >>> 16) >>> 0) / 4294967296
+  }
+}
+
+// Fisher-Yates Shuffle dengan Seeded Random
+function shuffleArray<T>(array: T[], seed: string): T[] {
+  const arr = [...array] // Clone array
+  const rng = seededRandom(seed)
+  
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  
+  return arr
+}
+
+
 export default function KuisPage({ params }: PageProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
@@ -66,6 +97,7 @@ export default function KuisPage({ params }: PageProps) {
   const [startTime, setStartTime] = useState<Date | null>(null)
   const [durasiMenit, setDurasiMenit] = useState<number | null>(null)
   const [timeExpired, setTimeExpired] = useState(false)
+  const [shuffledSoal, setShuffledSoal] = useState<Soal[]>([])
   
   // Ragu-ragu state
   const [raguRagu, setRaguRagu] = useState<Set<string>>(new Set())
@@ -80,6 +112,55 @@ export default function KuisPage({ params }: PageProps) {
   // Check if already submitted
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
+  // Set custom breadcrumb
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Loading...', // Will be replaced by smart-breadcrumb
+      href: `/courses/${courseId}?tab=assessments`,
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: asesmen?.judul || 'Loading...', 
+      href: `/courses/${courseId}/${asesmenId}`,
+      icon: <FileText className="h-4 w-4" />
+    },
+    {
+      label: 'Kuis',
+      icon: <HelpCircle className="h-4 w-4" />
+    }
+  ], [courseId, asesmenId, asesmen?.judul])
+
+  useBreadcrumbPage('Kuis', breadcrumbItems)
+
+  // Fungsi untuk mengacak array menggunakan Fisher-Yates shuffle
+  const shuffleArray = <T,>(array: T[], seed: string): T[] => {
+    const arr = [...array]
+    // Generate seeded random number based on user ID + asesmen ID
+    let hash = 0
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash) + seed.charCodeAt(i)
+      hash = hash & hash
+    }
+    
+    // Seeded random function
+    const random = () => {
+      hash = (hash * 9301 + 49297) % 233280
+      return hash / 233280
+    }
+    
+    // Fisher-Yates shuffle with seeded random
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  }
+
   useEffect(() => {
     if (authLoading) return
 
@@ -89,7 +170,7 @@ export default function KuisPage({ params }: PageProps) {
     }
 
     if (user.role !== 'SISWA') {
-      router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+      router.push(`/courses/${courseId}/${asesmenId}`)
       return
     }
 
@@ -104,14 +185,14 @@ export default function KuisPage({ params }: PageProps) {
           // Check if asesmen has started
           if (asesmenData.tgl_mulai && new Date(asesmenData.tgl_mulai) > new Date()) {
             showError("Belum Dimulai", "Kuis ini belum bisa dimulai")
-            router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+            router.push(`/courses/${courseId}/${asesmenId}`)
             return
           }
           
           // Check if deadline has passed
           if (asesmenData.tgl_selesai && new Date(asesmenData.tgl_selesai) < new Date()) {
             showError("Sudah Ditutup", "Kuis ini sudah ditutup")
-            router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+            router.push(`/courses/${courseId}/${asesmenId}`)
             return
           }
           
@@ -123,9 +204,34 @@ export default function KuisPage({ params }: PageProps) {
             setHasSubmitted(true)
           }
           
+          // Process soal - apply shuffling if enabled
+          let processedSoal = asesmenData.soal || []
+          
+          // Acak soal jika diaktifkan
+          if (asesmenData.acakSoal && user?.id) {
+            const seed = `${user.id}-${asesmenId}-soal`
+            processedSoal = shuffleArray(processedSoal, seed)
+          }
+          
+          // Acak jawaban jika diaktifkan
+          if (asesmenData.acakJawaban && user?.id) {
+            processedSoal = processedSoal.map((soal: Soal) => {
+              if (soal.tipeJawaban === 'PILIHAN_GANDA' && soal.opsi && soal.opsi.length > 0) {
+                const seed = `${user.id}-${asesmenId}-opsi-${soal.id}`
+                return {
+                  ...soal,
+                  opsi: shuffleArray(soal.opsi, seed)
+                }
+              }
+              return soal
+            })
+          }
+          
+          setShuffledSoal(processedSoal)
+          
           // Initialize jawaban array
-          if (asesmenData.soal) {
-            setJawaban(asesmenData.soal.map((s: Soal) => ({
+          if (processedSoal.length > 0) {
+            setJawaban(processedSoal.map((s: Soal) => ({
               soalId: s.id,
               jawaban: ''
             })))
@@ -332,7 +438,7 @@ export default function KuisPage({ params }: PageProps) {
   }
 
   const handleNext = () => {
-    if (asesmen?.soal && currentSoalIndex < asesmen.soal.length - 1) {
+    if (shuffledSoal.length > 0 && currentSoalIndex < shuffledSoal.length - 1) {
       setCurrentSoalIndex(prev => prev + 1)
     }
   }
@@ -397,7 +503,7 @@ export default function KuisPage({ params }: PageProps) {
             autoCloseMs: 2000,
             onSuccess: () => {
               setTimeout(() => {
-                router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+                router.push(`/courses/${courseId}/${asesmenId}`)
               }, 2000)
             },
           }
@@ -434,7 +540,7 @@ export default function KuisPage({ params }: PageProps) {
             sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
             setHasSubmitted(true)
             setTimeout(() => {
-              router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+              router.push(`/courses/${courseId}/${asesmenId}`)
             }, 2000)
           },
         }
@@ -452,7 +558,7 @@ export default function KuisPage({ params }: PageProps) {
     )
   }
 
-  if (!asesmen || !asesmen.soal || asesmen.soal.length === 0) {
+  if (!asesmen || shuffledSoal.length === 0) {
     return (
       <div className="w-full py-6 sm:py-8">
         <Alert variant="destructive">
@@ -483,10 +589,10 @@ export default function KuisPage({ params }: PageProps) {
     )
   }
 
-  const currentSoal = asesmen.soal[currentSoalIndex]
+  const currentSoal = shuffledSoal[currentSoalIndex]
   const currentJawaban = jawaban.find(j => j.soalId === currentSoal.id)
   const answeredCount = jawaban.filter(j => j.jawaban !== '').length
-  const progress = (answeredCount / asesmen.soal.length) * 100
+  const progress = (answeredCount / shuffledSoal.length) * 100
   const isCurrentRagu = raguRagu.has(currentSoal.id)
 
   return (
@@ -665,7 +771,7 @@ export default function KuisPage({ params }: PageProps) {
               Sebelumnya
             </Button>
             
-            {currentSoalIndex === asesmen.soal.length - 1 ? (
+            {currentSoalIndex === shuffledSoal.length - 1 ? (
               <Button
                 onClick={() => handleSubmit(false)}
                 disabled={submitting}
@@ -709,7 +815,7 @@ export default function KuisPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {asesmen.soal.map((soal: Soal, index: number) => {
+            {shuffledSoal.map((soal: Soal, index: number) => {
               const isAnswered = jawaban.find(j => j.soalId === soal.id)?.jawaban !== ''
               const isCurrent = index === currentSoalIndex
               const isRagu = raguRagu.has(soal.id)

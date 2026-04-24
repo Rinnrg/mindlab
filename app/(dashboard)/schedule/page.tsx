@@ -154,7 +154,7 @@ export default function SchedulePage() {
     if (event.type === 'assessment' && event.courseId) {
       // Extract asesmenId from event.id (format: "asesmen-{id}")
       const asesmenId = event.id.replace('asesmen-', '')
-      return `/courses/${event.courseId}/asesmen/${asesmenId}`
+      return `/courses/${event.courseId}/${asesmenId}`
     }
     if (event.type === 'project') {
       // Extract proyekId from event.id (format: "proyek-{id}")

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, AlertTriangle, XCircle, Info, HelpCircle, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import "./mobile-alert.css" // Import CSS for animations
 
 type AlertType = "success" | "error" | "warning" | "info" | "question"
 
@@ -97,69 +98,84 @@ export function SweetAlert({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className={cn(
-        /* From ion-alert.scss: --max-width: 322px, border-radius: 32px */
-        "max-w-[90vw] sm:max-w-[322px] rounded-[32px]",
-        /* Glass-background-overlay from api.scss */
-        "bg-background/67 dark:bg-background/67",
-        "backdrop-blur-[8px] backdrop-saturate-[360%]",
-        /* Asymmetric glass borders */
-        "border-[0.5px] border-t-white/100 border-b-white/100 border-r-white/80 border-l-white/60",
-        "dark:border-t-white/12 dark:border-b-white/12 dark:border-r-white/10 dark:border-l-white/8",
-        /* Glass shadow from api.scss */
-        "shadow-[inset_0_0_8px_0_rgba(220,220,220,0.2),0_0_10px_0_rgba(220,220,220,0.82)]",
-        "dark:shadow-[inset_0_0_8px_0_rgba(40,40,40,0.3),0_0_10px_0_rgba(0,0,0,0.5)]",
-        /* Scale(1.016) on activated from ion-alert.scss */
-        "transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]",
-        "active:scale-[1.016]",
-      )}>
-        <AlertDialogHeader className="flex flex-col items-center text-center">
-          {/* Icon with glass background circle */}
-          <div className={cn(
-            "mb-4 flex h-16 w-16 items-center justify-center rounded-full",
-            "transition-transform duration-[140ms] ease-[cubic-bezier(0.32,0.72,0,1)]",
-            config.bgColor,
-          )}>
-            <Icon className={cn("h-8 w-8", config.color)} />
-          </div>
-          <AlertDialogTitle className="text-xl">{title}</AlertDialogTitle>
-          {description && (
-            <AlertDialogDescription className={cn(
-              /* From ion-alert.scss: text-align left, margin 14px, font-size 0.98rem */
-              "text-center text-[0.98rem] leading-[1.2rem]",
-            )}>
-              {description}
-            </AlertDialogDescription>
-          )}
-        </AlertDialogHeader>
-        {/* Button group from ion-alert.scss: padding 0 8px 12px, gap 8px */}
-        <AlertDialogFooter className="flex-col gap-2 sm:flex-row sm:justify-center px-2 pb-3">
+      <AlertDialogContent 
+        style={{
+          /* Direct style override for iOS look */
+          background: "rgba(248, 248, 248, 0.8)",
+          border: "0.5px solid rgba(0, 0, 0, 0.04)",
+          boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.05), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 5px rgba(0, 0, 0, 0.1)",
+          borderRadius: "13px",
+          backdropFilter: "blur(25px) saturate(180%) brightness(1.1)",
+          maxWidth: "270px",
+          width: "100%",
+          padding: "0", /* Remove padding to match mobile alert */
+        }}
+        className="mx-4"
+      >
+        {/* Content wrapper with proper padding */}
+        <div className="px-4 py-5">
+          <AlertDialogHeader>
+            <AlertDialogTitle 
+              style={{ 
+                fontSize: "17px", 
+                fontWeight: "600", 
+                color: "black", 
+                lineHeight: "1.2", 
+                marginBottom: "4px" 
+              }}
+            >
+              {title}
+            </AlertDialogTitle>
+            {description && (
+              <AlertDialogDescription 
+                style={{ 
+                  fontSize: "13px", 
+                  color: "rgba(0, 0, 0, 0.7)", 
+                  lineHeight: "18px" 
+                }}
+              >
+                {description}
+              </AlertDialogDescription>
+            )}
+          </AlertDialogHeader>
+        </div>
+        
+        {/* Button separator line */}
+        <div className="h-[0.33px] bg-[rgba(60,60,67,0.36)]" />
+        
+        <AlertDialogFooter>
           {showCancelButton && (
             <Button
-              variant="outline"
+              variant="ghost"
               onClick={handleCancel}
               disabled={isLoading}
-              className={cn(
-                "w-full sm:w-auto",
-                /* From ion-alert.scss: glass-background-overlay-button, border-radius: 32px, height: 48px */
-                "rounded-[32px] h-12 font-semibold bg-transparent",
-                "border-none",
-              )}
+              className="flex-1 h-[44px] text-[17px] font-normal flex items-center justify-center text-[#007AFF] transition-all duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] active:scale-[0.98] active:bg-black/5 hover:bg-transparent border-0 shadow-none disabled:opacity-50 disabled:cursor-not-allowed rounded-none bg-transparent"
             >
               {cancelText}
             </Button>
           )}
+          {/* Vertical separator like iOS */}
+          {showCancelButton && (
+            <div className="w-[0.33px] h-[44px] bg-[rgba(60,60,67,0.36)]" />
+          )}
           <Button
             onClick={handleConfirm}
             disabled={isLoading}
-            variant={type === "error" ? "destructive" : "default"}
+            variant="ghost"
             className={cn(
-              "w-full sm:w-auto",
-              /* From ion-alert.scss: button height 48px, rounded 32px, font-weight 550 */
-              "rounded-[32px] h-12 font-semibold",
+              /* iOS alert button style - exactly like MobileAlert */
+              showCancelButton ? 'flex-1' : 'w-full',
+              'h-[44px] text-[17px] font-semibold',
+              'flex items-center justify-center gap-2',
+              'text-[#007AFF]',
+              'transition-all duration-150 ease-[cubic-bezier(0.4,0,0.2,1)]',
+              'active:scale-[0.98] active:bg-black/5',
+              'hover:bg-transparent border-0 shadow-none',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+              'rounded-none bg-transparent', // Remove border radius for iOS style
             )}
           >
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {confirmText}
           </Button>
         </AlertDialogFooter>

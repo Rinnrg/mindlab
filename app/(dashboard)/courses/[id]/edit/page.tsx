@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, X, ImageIcon, Loader2, Save } from "lucide-react"
+import { ArrowLeft, X, ImageIcon, Loader2, Save, BookOpen, Pencil } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
@@ -52,6 +53,26 @@ export default function EditCoursePage() {
   const [originalThumbnail, setOriginalThumbnail] = useState<string | null>(null)
 
   const categories = categoriesMap[locale]
+  
+  // Set custom breadcrumb
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: title || 'Loading...', // Will be replaced after data loads
+      href: `/courses/${courseId}`,
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Edit',
+      icon: <Pencil className="h-4 w-4" />
+    }
+  ], [courseId, title])
+
+  useBreadcrumbPage('Edit Kursus', breadcrumbItems)
   
   // Check if there are any changes
   const hasChanges = 

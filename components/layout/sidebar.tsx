@@ -17,7 +17,6 @@ import {
   ChevronsRight,
   X,
   Code,
-  Settings,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -51,8 +50,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
     { title: t("Masalah"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-    ...(isMobile ? [{ title: t("Pengaturan"), href: "/settings", icon: Settings, roles: ["ADMIN", "GURU", "SISWA"] }] : []),
-  ], [t, isMobile])
+  ], [t])
 
   const adminMenuItems = useMemo(() => [
     { title: t("Manajemen Role"), href: "/users", icon: Users, roles: ["ADMIN"] },

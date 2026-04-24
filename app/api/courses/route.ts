@@ -9,20 +9,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const guruId = searchParams.get('guruId')
     const siswaId = searchParams.get('siswaId')
+    
+    console.log('GET /api/courses - Parameters:', { guruId, siswaId, url: request.url })
 
-    let courses
+    let courses = []
 
     if (guruId) {
-      // Get courses by teacher - optimized with select
+      // Fetch courses for a specific teacher
+      console.log('Fetching courses for guruId:', guruId)
       courses = await prisma.course.findMany({
         where: { guruId },
-        select: {
-          id: true,
-          judul: true,
-          deskripsi: true,
-          gambar: true,
-          kategori: true,
-          guruId: true,
+        include: {
           guru: {
             select: {
               id: true,
@@ -38,26 +35,29 @@ export async function GET(request: NextRequest) {
               enrollments: true,
             },
           },
+          materi: {
+            take: 5,
+            select: {
+              id: true,
+              judul: true,
+              deskripsi: true,
+              tgl_unggah: true,
+              kelasTarget: true,
+            }
+          }
         },
         orderBy: {
           judul: 'asc',
         },
       })
     } else if (siswaId) {
-      // Get enrolled courses by student - optimized with select
+      // Fetch courses for a specific student (enrolled courses)
+      console.log('Fetching courses for siswaId:', siswaId)
       const enrollments = await prisma.enrollment.findMany({
         where: { siswaId },
-        select: {
-          progress: true,
-          enrolledAt: true,
+        include: {
           course: {
-            select: {
-              id: true,
-              judul: true,
-              deskripsi: true,
-              gambar: true,
-              kategori: true,
-              guruId: true,
+            include: {
               guru: {
                 select: {
                   id: true,
@@ -73,29 +73,26 @@ export async function GET(request: NextRequest) {
                   enrollments: true,
                 },
               },
+              materi: {
+                take: 5,
+                select: {
+                  id: true,
+                  judul: true,
+                  deskripsi: true,
+                  tgl_unggah: true,
+                  kelasTarget: true,
+                }
+              }
             },
           },
         },
-        orderBy: {
-          enrolledAt: 'desc',
-        },
       })
-      
-      courses = enrollments.map(e => ({
-        ...e.course,
-        progress: e.progress,
-        enrolledAt: e.enrolledAt,
-      }))
+      courses = enrollments.map(e => e.course)
     } else {
-      // Get all courses - optimized with select
+      // Fetch all courses
+      console.log('Fetching all courses')
       courses = await prisma.course.findMany({
-        select: {
-          id: true,
-          judul: true,
-          deskripsi: true,
-          gambar: true,
-          kategori: true,
-          guruId: true,
+        include: {
           guru: {
             select: {
               id: true,
@@ -111,6 +108,16 @@ export async function GET(request: NextRequest) {
               enrollments: true,
             },
           },
+          materi: {
+            take: 5,
+            select: {
+              id: true,
+              judul: true,
+              deskripsi: true,
+              tgl_unggah: true,
+              kelasTarget: true,
+            }
+          }
         },
         orderBy: {
           judul: 'asc',
@@ -118,16 +125,15 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    console.log('Returning courses response with', courses.length, 'courses')
     const response = NextResponse.json({ courses })
-    // Disable caching to ensure fresh data after deletions
     response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
     return response
+
   } catch (error) {
-    console.error('Error fetching courses:', error)
+    console.error('Error in GET /api/courses:', error)
     return NextResponse.json(
-      { error: 'Gagal mengambil data courses' },
+      { error: 'Gagal mengambil data courses', details: String(error) },
       { status: 500 }
     )
   }
@@ -138,79 +144,46 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { judul, deskripsi, gambar, kategori, guruId } = body
 
-    console.log('POST /api/courses - Request body:', { judul, deskripsi, gambar, kategori, guruId })
-
     if (!judul || !kategori || !guruId) {
-      console.log('POST /api/courses - Missing required fields:', { judul: !!judul, kategori: !!kategori, guruId: !!guruId })
       return NextResponse.json(
         { error: 'Data tidak lengkap' },
         { status: 400 }
       )
     }
 
-    // Validate that the guru exists
-    const guru = await prisma.user.findUnique({
-      where: { id: guruId },
-      select: { id: true, role: true }
-    })
-
-    if (!guru) {
-      console.log('POST /api/courses - Guru not found:', guruId)
-      return NextResponse.json(
-        { error: 'Guru tidak ditemukan' },
-        { status: 404 }
-      )
-    }
-
-    if (guru.role !== 'GURU' && guru.role !== 'ADMIN') {
-      console.log('POST /api/courses - Invalid role for course creation:', guru.role)
-      return NextResponse.json(
-        { error: 'Hanya guru atau admin yang dapat membuat course' },
-        { status: 403 }
-      )
-    }
-
-    console.log('POST /api/courses - Creating course with data:', {
-      judul,
-      deskripsi: deskripsi || null,
-      gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
-      kategori,
-      guruId
-    })
-
     const course = await prisma.course.create({
       data: {
         judul,
-        deskripsi: deskripsi || null,
-        gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
+        deskripsi,
+        gambar,
         kategori,
         guruId,
       },
+      include: {
+        guru: {
+          select: {
+            id: true,
+            nama: true,
+            email: true,
+            foto: true,
+          },
+        },
+        _count: {
+          select: {
+            materi: true,
+            asesmen: true,
+            enrollments: true,
+          },
+        },
+      },
     })
+    
+    return NextResponse.json({ course })
 
-    console.log('POST /api/courses - Course created successfully:', course.id)
-    return NextResponse.json({ course }, { status: 201 })
   } catch (error) {
     console.error('Error creating course:', error)
-    
-    // More specific error messages
-    if (error instanceof Error) {
-      if (error.message.includes('foreign key constraint')) {
-        return NextResponse.json(
-          { error: 'Invalid guru ID or database constraint error' },
-          { status: 400 }
-        )
-      }
-      if (error.message.includes('Unique constraint')) {
-        return NextResponse.json(
-          { error: 'Course with this title already exists' },
-          { status: 409 }
-        )
-      }
-    }
-    
     return NextResponse.json(
-      { error: 'Gagal membuat course', details: error instanceof Error ? error.message : String(error) },
+      { error: 'Gagal membuat course', details: String(error) },
       { status: 500 }
     )
   }

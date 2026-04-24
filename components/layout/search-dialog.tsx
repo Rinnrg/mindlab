@@ -13,6 +13,7 @@ import {
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useAuth } from "@/lib/auth-context"
 import { useDebounce } from "@/hooks/use-debounce"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { 
   FileText, 
@@ -57,6 +58,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
   const router = useRouter()
   const { t } = useAutoTranslate()
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const debouncedSearch = useDebounce(searchQuery, 300)
 
@@ -98,7 +100,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Dashboard"),
         description: t("Halaman utama"),
         url: "/dashboard",
-        icon: <LayoutDashboard className="h-4 w-4" />,
+        icon: <LayoutDashboard className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["dashboard", "home", "beranda", "utama", "main"],
       },
@@ -107,7 +109,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Kursus"),
         description: t("Lihat semua kursus"),
         url: "/courses",
-        icon: <BookOpen className="h-4 w-4" />,
+        icon: <BookOpen className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["courses", "kursus", "pelajaran", "class", "kelas"],
       },
@@ -116,7 +118,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Asesmen"),
         description: t("Lihat tugas dan kuis"),
         url: "/asesmen",
-        icon: <CheckSquare className="h-4 w-4" />,
+        icon: <CheckSquare className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["assignments", "tugas", "homework", "asesmen", "kuis", "quiz"],
       },
@@ -125,7 +127,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Masalah"),
         description: t("Kelola project based learning"),
         url: "/projects",
-        icon: <FolderOpen className="h-4 w-4" />,
+        icon: <FolderOpen className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["projects", "proyek", "project", "pbl", "masalah", "project based learning"],
       },
@@ -134,7 +136,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Jadwal"),
         description: t("Lihat jadwal kelas"),
         url: "/schedule",
-        icon: <Calendar className="h-4 w-4" />,
+        icon: <Calendar className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["schedule", "jadwal", "calendar", "kalender", "time", "waktu"],
       },
@@ -143,7 +145,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Pengguna"),
         description: t("Kelola pengguna sistem"),
         url: "/users",
-        icon: <Users className="h-4 w-4" />,
+        icon: <Users className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
         keywords: ["users", "pengguna", "student", "siswa", "teacher", "guru", "admin"],
       },
@@ -152,29 +154,34 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         title: t("Profil"),
         description: t("Lihat dan edit profil"),
         url: "/profile",
-        icon: <User className="h-4 w-4" />,
+        icon: <User className="h-4 w-4 text-muted-foreground" />,
         category: t("Akun"),
         keywords: ["profile", "profil", "account", "akun"],
       },
-      {
+    ]
+
+    // Add settings only on desktop (not mobile)
+    if (!isMobile) {
+      items.push({
         id: "settings",
         title: t("Pengaturan"),
         description: t("Kelola pengaturan akun"),
         url: "/settings",
-        icon: <Settings className="h-4 w-4" />,
+        icon: <Settings className="h-4 w-4 text-muted-foreground" />,
         category: t("Akun"),
         keywords: ["settings", "pengaturan", "config", "konfigurasi"],
-      },
-      {
-        id: "compiler",
-        title: t("Python Compiler"),
-        description: t("Jalankan kode Python"),
-        url: "/compiler",
-        icon: <Code className="h-4 w-4" />,
-        category: t("Alat"),
-        keywords: ["compiler", "python", "code", "kode", "editor", "run"],
-      },
-    ]
+      })
+    }
+
+    items.push({
+      id: "compiler",
+      title: t("Python Compiler"),
+      description: t("Jalankan kode Python"),
+      url: "/compiler",
+      icon: <Code className="h-4 w-4 text-muted-foreground" />,
+      category: t("Alat"),
+      keywords: ["compiler", "python", "code", "kode", "editor", "run"],
+    })
 
     // Add dynamic API results
     if (apiResults) {
@@ -185,7 +192,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
           title: course.judul,
           description: course.kategori,
           url: `/courses/${course.id}`,
-          icon: <BookOpen className="h-4 w-4" />,
+          icon: <BookOpen className="h-4 w-4 text-muted-foreground" />,
           category: courseCategory,
           badge: course.kategori,
         })
@@ -201,8 +208,8 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
           id: `materi-${materi.id}`,
           title: materi.judul,
           description: `${materi.course.judul}${enrollmentInfo}`,
-          url: `/courses/${materi.courseId || materi.course.id}/materi/${materi.id}`,
-          icon: <BookMarked className="h-4 w-4" />,
+          url: `/courses/${materi.courseId || materi.course.id}/${materi.id}`,
+          icon: <BookMarked className="h-4 w-4 text-muted-foreground" />,
           category: materiCategory,
         })
       })
@@ -218,8 +225,8 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
           id: `asesmen-${asesmen.id}`,
           title: asesmen.nama,
           description: `${asesmen.course.judul} • ${tipeLabel}${enrollmentInfo}`,
-          url: `/courses/${asesmen.courseId || asesmen.course.id}/asesmen/${asesmen.id}`,
-          icon: asesmen.tipe === 'KUIS' ? <FileText className="h-4 w-4" /> : <ClipboardList className="h-4 w-4" />,
+          url: `/courses/${asesmen.courseId || asesmen.course.id}/${asesmen.id}`,
+          icon: asesmen.tipe === 'KUIS' ? <FileText className="h-4 w-4 text-muted-foreground" /> : <ClipboardList className="h-4 w-4 text-muted-foreground" />,
           category: asesmenCategory,
           badge: tipeLabel,
         })
@@ -231,7 +238,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
           title: schedule.judul,
           description: `${schedule.guru.nama}`,
           url: `/projects/${schedule.id}`,
-          icon: <Calendar className="h-4 w-4" />,
+          icon: <Calendar className="h-4 w-4 text-muted-foreground" />,
           category: t("Jadwal"),
         })
       })
@@ -243,7 +250,7 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
           title: u.nama,
           description: `${u.email} • ${roleLabel}`,
           url: `/users`,
-          icon: <UserCircle className="h-4 w-4" />,
+          icon: <UserCircle className="h-4 w-4 text-muted-foreground" />,
           category: t("Pengguna"),
           badge: roleLabel,
         })

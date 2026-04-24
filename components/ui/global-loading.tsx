@@ -27,19 +27,7 @@ export function GlobalLoading({
   if (!mounted || !isLoading) return null
 
   const loadingContent = (
-    <div
-      className={cn(
-        // Full screen overlay with enhanced blur and improved mobile support
-        'fixed inset-0 z-[9999] flex items-center justify-center',
-        // iOS-style backdrop with optimized performance
-        'bg-black/40 backdrop-loading',
-        'supports-[backdrop-filter]:bg-black/20',
-        // Smooth animations with hardware acceleration
-        'animate-in fade-in-0 duration-300',
-        'will-change-auto transform-gpu',
-        className
-      )}
-    >
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm">
       {/* Loading content container with variants */}
       {variant === 'minimal' ? (
         <MinimalLoadingContent message={message} />
@@ -49,9 +37,9 @@ export function GlobalLoading({
         <DefaultLoadingContent message={message} />
       )}
     </div>
-  )
+  );
 
-  return createPortal(loadingContent, document.body)
+  return createPortal(loadingContent, document.body);
 }
 
 // Default glass-morphism loading
@@ -158,9 +146,6 @@ function GradientLoadingContent({ message }: { message: string }) {
       )}
     </div>
   )
-}
-
-  return createPortal(loadingContent, document.body)
 }
 
 // Hook untuk global loading state

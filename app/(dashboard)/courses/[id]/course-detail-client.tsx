@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
-import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import type { Course, Asesmen } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -67,25 +67,29 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
 
-  // Set custom breadcrumb with useMemo to prevent re-renders
-  const breadcrumbItems = useMemo(() => {
-    if (!course?.judul) return []
-    
-    return [
-      {
-        label: 'Kursus',
-        href: '/courses',
-        icon: <BookOpen className="h-4 w-4" />
-      },
-      {
-        label: course.judul,
-        icon: <BookOpen className="h-4 w-4" />
-      }
-    ]
-  }, [course?.judul])
+  // Handle tab from query parameter
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab && (tab === 'materials' || tab === 'assessments' || tab === 'students')) {
+      setActiveTab(tab)
+      setTabKey(prev => prev + 1)
+    }
+  }, [searchParams])
 
-  // Only set breadcrumb when course data is available
-  useBreadcrumbPage(course?.judul || 'Loading...', breadcrumbItems.length > 0 ? breadcrumbItems : undefined)
+  // Set custom breadcrumb with useMemo to prevent re-renders
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: course.judul,
+      icon: <BookOpen className="h-4 w-4" />
+    }
+  ], [course.judul])
+
+  useBreadcrumbPage(course.judul, breadcrumbItems)
 
   const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
 
@@ -432,7 +436,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <h2 className="text-base font-semibold sm:text-lg">Materi Pembelajaran</h2>
             {isTeacherOrAdmin && (
               <Button size="sm" className="w-full sm:w-auto rounded-xl" asChild>
-                <Link href={`/courses/${course.id}/materi/new`}>
+                <Link href={`/courses/${course.id}/new?type=materi`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Tambah Materi
                 </Link>
@@ -441,7 +445,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           </div>
           <div className="space-y-2 sm:space-y-3">
             {(filteredMateri && filteredMateri.length > 0) ? filteredMateri.map((material, index) => (
-              <Link key={material.id} href={`/courses/${course.id}/materi/${material.id}`} className="block">
+              <Link key={material.id} href={`/courses/${course.id}/${material.id}`} className="block">
               <Card className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl">
                 <CardContent className="flex items-center gap-2 p-3 sm:gap-4 sm:p-4">
                   <div className="hidden items-center justify-center text-xs font-medium text-muted-foreground sm:flex sm:h-10 sm:w-10 sm:text-sm">
@@ -496,7 +500,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/courses/${course.id}/materi/${material.id}/edit`}>
+                            <Link href={`/courses/${course.id}/${material.id}/edit`}>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit Materi
                             </Link>
@@ -537,7 +541,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <h2 className="text-base font-semibold sm:text-lg">Daftar Asesmen</h2>
             {isTeacherOrAdmin && (
               <Button size="sm" className="w-full sm:w-auto rounded-xl" asChild>
-                <Link href={`/courses/${course.id}/asesmen/new`}>
+                <Link href={`/courses/${course.id}/new?type=asesmen`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Buat Asesmen
                 </Link>
@@ -547,7 +551,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           {assessments.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
-                <Link key={assessment.id} href={`/courses/${course.id}/asesmen/${assessment.id}`} className="block">
+                <Link key={assessment.id} href={`/courses/${course.id}/${assessment.id}`} className="block">
                 <Card className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl">
                   <CardHeader className="pb-2 sm:pb-3">
                     <div className="flex items-start justify-between gap-2">
@@ -589,7 +593,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/courses/${course.id}/asesmen/${assessment.id}/edit`}>
+                              <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit Asesmen
                               </Link>

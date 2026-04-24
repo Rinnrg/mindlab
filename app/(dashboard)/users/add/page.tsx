@@ -220,16 +220,13 @@ export default function AddUserPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="kelas">Kelas</Label>
-                  {availableClasses.length > 0 && (
-                    <AddClassDialog onClassAdded={handleClassAdded} />
-                  )}
                 </div>
                 {loadingClasses ? (
                   <div className="flex items-center justify-center p-4">
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     <span className="text-sm text-muted-foreground">Loading classes...</span>
                   </div>
-                ) : availableClasses.length > 0 ? (
+                ) : availableClasses.length >= 0 ? (
                   <div className="space-y-3">
                     <Select value={kelas} onValueChange={setKelas}>
                       <SelectTrigger>
@@ -249,36 +246,21 @@ export default function AddUserPage() {
                     <div className="text-center text-sm text-muted-foreground">
                       atau
                     </div>
-                    <div className="relative">
-                      <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        placeholder="Masukkan nama kelas baru (e.g., 10 IPA 1)"
-                        value={kelas}
-                        onChange={(e) => setKelas(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                    <div className="flex justify-center">
+                    <div className="flex items-center space-x-2">
+                      <div className="relative flex-1">
+                        <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          id="kelas"
+                          placeholder="Ketik nama kelas (opsional jika sudah pilih dari atas)"
+                          value={kelas}
+                          onChange={(e) => setKelas(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
                       <AddClassDialog onClassAdded={handleClassAdded} />
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="kelas"
-                        placeholder="Enter class (e.g., 10 IPA 1)"
-                        value={kelas}
-                        onChange={(e) => setKelas(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <AddClassDialog onClassAdded={handleClassAdded} />
-                    </div>
-                  </div>
-                )}
+                ) : null}
               </div>
             )}
 

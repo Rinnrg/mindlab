@@ -31,8 +31,6 @@ export function AppShell({ children }: AppShellProps) {
   const { navigationMode, mobileNavigationMode } = useNavigationMode()
   const pathname = usePathname()
 
-  const isSettingsPage = pathname === "/settings"
-
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileSidebarOpen(false)
@@ -117,13 +115,13 @@ export function AppShell({ children }: AppShellProps) {
         <main 
           className={cn(
             "flex-1",
-            !isSettingsPage && "px-4 pt-2 sm:px-6 sm:pt-3 md:px-8 md:pt-4",
+            "px-4 pt-2 sm:px-6 sm:pt-3 md:px-8 md:pt-4",
             isMobile
               ? (showMobileBottomNav ? "pb-24" : "pb-6")
               : navigationMode === "dock" ? "pb-32" : "pb-6"
           )}
         >
-          {!isSettingsPage && <SmartBreadcrumb showMobile={false} />}
+          <SmartBreadcrumb />
           <PageTransition>
             {children}
           </PageTransition>

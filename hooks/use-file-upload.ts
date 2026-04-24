@@ -68,9 +68,6 @@ export function useFileUpload() {
   return { uploadFile, uploading, progress, error }
 }
 
-  return { uploadFile, uploading, progress, error }
-}
-
 export function useFiles() {
   const [files, setFiles] = useState<UploadedFile[]>([])
   const [loading, setLoading] = useState(false)

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { GraduationCap, UserPlus, Users, Loader2 } from "lucide-react"
+import { GraduationCap, UserPlus, Users, Loader2, BookOpen } from "lucide-react"
 import Link from "next/link"
 
 interface ClassInfo {
@@ -39,6 +40,26 @@ export default function AddStudentsClient({
   const { execute, ActionFeedback } = useAsyncAction()
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Set custom breadcrumb
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: course.judul,
+      href: `/courses/${course.id}?tab=students`,
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Tambah Siswa',
+      icon: <UserPlus className="h-4 w-4" />
+    }
+  ], [course.id, course.judul])
+
+  useBreadcrumbPage('Tambah Siswa', breadcrumbItems)
 
   const handleToggleClass = (kelas: string) => {
     setSelectedClasses((prev) =>

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { MoreVertical, Pencil, Trash2 } from "lucide-react"
+import { MoreVertical, Pencil, Trash2, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -33,6 +33,7 @@ export function AsesmenActions({ asesmenId, asesmenNama, userRole, courseId }: A
   const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
 
   // Only show actions for GURU and ADMIN
   if (userRole !== 'GURU' && userRole !== 'ADMIN') {
@@ -72,7 +73,38 @@ export function AsesmenActions({ asesmenId, asesmenNama, userRole, courseId }: A
   }
 
   const handleEdit = () => {
-    router.push(`/courses/${courseId}/asesmen/${asesmenId}/edit`)
+    router.push(`/courses/${courseId}/${asesmenId}/edit`)
+  }
+
+  const handleCopy = async () => {
+    setIsCopying(true)
+    try {
+      const response = await fetch(`/api/asesmen/${asesmenId}/copy`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Gagal menyalin asesmen')
+      }
+
+      toast({
+        title: "Berhasil",
+        description: `Asesmen "${asesmenNama}" berhasil disalin dengan nama "${data.nama}"`,
+      })
+
+      router.refresh()
+    } catch (error) {
+      console.error('Error copying asesmen:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Gagal menyalin asesmen",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCopying(false)
+    }
   }
 
   return (
@@ -88,6 +120,10 @@ export function AsesmenActions({ asesmenId, asesmenNama, userRole, courseId }: A
           <DropdownMenuItem onClick={handleEdit}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleCopy} disabled={isCopying}>
+            <Copy className="mr-2 h-4 w-4" />
+            {isCopying ? "Menyalin..." : "Salin Asesmen"}
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setShowDeleteDialog(true)}

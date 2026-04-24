@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, use, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
@@ -38,6 +39,7 @@ import {
   Crown,
   CheckCircle2,
   X,
+  BookOpen,
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -45,7 +47,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 interface PageProps {
   params: Promise<{
     id: string
-    asesmenId: string
+    itemId: string
   }>
 }
 
@@ -79,10 +81,35 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [selectedKetua, setSelectedKetua] = useState<string | null>(null)
   const [selectedAnggota, setSelectedAnggota] = useState<string[]>([])
 
+  // Set custom breadcrumb
+  const breadcrumbItems = useMemo(() => [
+    {
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: 'Loading...', // Will be replaced by smart-breadcrumb
+      href: `/courses/${courseId}?tab=assessments`,
+      icon: <BookOpen className="h-4 w-4" />
+    },
+    {
+      label: asesmen?.judul || 'Loading...', 
+      href: `/courses/${courseId}/${asesmenId}`,
+      icon: <FileText className="h-4 w-4" />
+    },
+    {
+      label: 'Submit',
+      icon: <Upload className="h-4 w-4" />
+    }
+  ], [courseId, asesmenId, asesmen?.judul])
+
+  useBreadcrumbPage('Submit Asesmen', breadcrumbItems)
+
   useEffect(() => {
     if (authLoading) return
     if (!user) { router.push('/login'); return }
-    if (user.role !== 'SISWA') { router.push(`/courses/${courseId}/asesmen/${asesmenId}`); return }
+    if (user.role !== 'SISWA') { router.push(`/courses/${courseId}/${asesmenId}`); return }
 
     const fetchData = async () => {
       try {
@@ -93,13 +120,13 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
           if (asesmenData.tgl_mulai && new Date(asesmenData.tgl_mulai) > new Date()) {
             showError("Belum Dimulai", "Tugas ini belum bisa dikumpulkan karena belum dimulai")
-            router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+            router.push(`/courses/${courseId}/${asesmenId}`)
             return
           }
 
           if (asesmenData.tgl_selesai && new Date(asesmenData.tgl_selesai) < new Date()) {
             showError("Deadline Terlewat", "Tugas ini sudah melewati deadline")
-            router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+            router.push(`/courses/${courseId}/${asesmenId}`)
             return
           }
 
@@ -268,7 +295,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         autoCloseMs: 1500,
         onSuccess: () => {
           setTimeout(() => {
-            router.push(`/courses/${courseId}/asesmen/${asesmenId}`)
+            router.push(`/courses/${courseId}/${asesmenId}`)
           }, 1500)
         },
       }
@@ -603,7 +630,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                 variant="outline"
                 asChild
               >
-                <Link href={`/courses/${courseId}/asesmen/${asesmenId}`}>
+                <Link href={`/courses/${courseId}/${asesmenId}`}>
                   Batal
                 </Link>
               </Button>

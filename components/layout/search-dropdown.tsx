@@ -272,7 +272,7 @@ export function SearchDropdown() {
         title: materi.judul,
         description: `${materi.course.judul} • ${materi.deskripsi?.substring(0, 50) || ''}`,
         icon: BookMarked,
-        href: `/courses/${materi.courseId || materi.course.id}/materi/${materi.id}`,
+        href: `/courses/${materi.courseId || materi.course.id}/${materi.id}`,
         category: materiCategory,
         badge: enrollmentBadge,
       })
@@ -292,7 +292,7 @@ export function SearchDropdown() {
         title: asesmen.nama,
         description: `${asesmen.course.judul} • ${asesmen.deskripsi?.substring(0, 50) || tipeLabel}${enrollmentInfo}`,
         icon: asesmen.tipe === 'KUIS' ? FileText : ClipboardList,
-        href: `/courses/${asesmen.courseId || asesmen.course.id}/asesmen/${asesmen.id}`,
+        href: `/courses/${asesmen.courseId || asesmen.course.id}/${asesmen.id}`,
         category: asesmenCategory,
         badge: soalBadge,
         badgeVariant: asesmen.tipe === 'KUIS' ? 'default' : 'secondary',

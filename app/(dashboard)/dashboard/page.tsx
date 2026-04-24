@@ -12,6 +12,8 @@ import { DashboardSkeleton } from "@/components/ui/loading-skeletons"
 import { useTransitionRouter } from "@/hooks/use-transition-router"
 import { cn } from "@/lib/utils"
 import { useState, useEffect } from "react"
+import { AnimatePresence } from "framer-motion"
+import dynamic from "next/dynamic"
 import {
   BookOpen,
   FileText,
@@ -29,6 +31,7 @@ import {
 import Link from "next/link"
 import { format } from "date-fns"
 import { id as localeId, enUS } from "date-fns/locale"
+// Globe feature removed
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -44,6 +47,8 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
+
+  // Globe feature removed
 
   // Update jam real-time setiap detik
   useEffect(() => {
@@ -224,7 +229,7 @@ export default function DashboardPage() {
       <AnimateIn stagger={1}>
         <Card className={`${timeColors.cardBg} border-2 ${timeColors.cardBorder} transition-all duration-1000 ease-in-out relative overflow-hidden`}>
           {/* Sky Background */}
-          <div className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+          <div className={`absolute inset-0 transition-all duration-1000 ease-in-out pointer-events-none ${
             isSunTime
               ? currentTime.getHours() < 11
                 ? 'bg-gradient-to-b from-yellow-100 via-orange-50 to-yellow-50 dark:from-yellow-900/30 dark:via-orange-900/20 dark:to-yellow-800/20'
@@ -235,80 +240,16 @@ export default function DashboardPage() {
           }`} />
 
           {/* Fade gradient overlay - konten di kiri terlihat, animasi di kanan */}
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent dark:from-background/90 dark:via-background/70 dark:to-transparent transition-all duration-1000 ease-in-out" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/50 to-transparent dark:from-background/90 dark:via-background/70 dark:to-transparent transition-all duration-1000 ease-in-out pointer-events-none" />
 
           {/* Horizon */}
-          <div className={`absolute bottom-0 left-0 right-0 h-1/3 transition-all duration-1000 ease-in-out ${
+          <div className={`absolute bottom-0 left-0 right-0 h-1/3 transition-all duration-1000 ease-in-out pointer-events-none ${
             isSunTime
               ? 'bg-gradient-to-t from-green-300/50 via-green-200/30 to-transparent dark:from-green-900/40 dark:via-green-800/20 dark:to-transparent'
               : 'bg-gradient-to-t from-slate-800/50 via-slate-700/30 to-transparent dark:from-slate-950/50 dark:via-slate-900/30 dark:to-transparent'
           }`} />
 
-          {/* Celestial Body (Matahari / Bulan) */}
-          <div
-            className="absolute right-4 md:right-8 top-1/2 transition-all duration-1000 ease-in-out z-0"
-            style={{
-              transform: `translate(${celestialPos.x}%, calc(-50% + ${celestialPos.y}%))`,
-            }}
-          >
-            {isSunTime ? (
-              /* 🌞 Matahari */
-              <div className="relative transition-all duration-1000 ease-in-out">
-                <div
-                  className={`w-16 h-16 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full transition-all duration-1000 ease-in-out ${
-                    currentTime.getHours() < 11
-                      ? 'bg-gradient-to-br from-yellow-200 via-yellow-400 to-orange-500'
-                      : currentTime.getHours() < 15
-                      ? 'bg-gradient-to-br from-white via-yellow-100 to-yellow-400'
-                      : 'bg-gradient-to-br from-orange-300 via-orange-500 to-red-500'
-                  }`}
-                  style={{
-                    boxShadow: `0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.6)`,
-                  }}
-                >
-                  {/* Sun surface texture */}
-                  <div className="absolute inset-0 rounded-full overflow-hidden opacity-20">
-                    <div className="absolute top-2 left-3 w-3 h-3 md:w-5 md:h-5 bg-yellow-600/30 rounded-full blur-sm" />
-                    <div className="absolute top-6 right-4 w-2 h-2 md:w-4 md:h-4 bg-orange-600/30 rounded-full blur-sm" />
-                    <div className="absolute bottom-4 left-5 w-4 h-4 md:w-6 md:h-6 bg-orange-700/30 rounded-full blur-sm" />
-                  </div>
-                </div>
-                {/* Sun glow */}
-                <div
-                  className="absolute inset-0 rounded-full bg-yellow-300/20 transition-all duration-1000 ease-in-out"
-                  style={{ filter: 'blur(15px)', transform: 'scale(1.3)' }}
-                />
-              </div>
-            ) : (
-              /* 🌙 Bulan + Bintang ✨ */
-              <div className="relative transition-all duration-1000 ease-in-out">
-                <div
-                  className="w-16 h-16 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300 dark:from-gray-300 dark:via-gray-400 dark:to-gray-500 relative overflow-hidden"
-                  style={{
-                    boxShadow: `0 0 30px rgba(203, 213, 225, 0.6), 0 0 60px rgba(203, 213, 225, 0.4)`,
-                  }}
-                >
-                  {/* Moon craters */}
-                  <div className="absolute top-3 left-3 md:top-5 md:left-5 w-2.5 h-2.5 md:w-4 md:h-4 rounded-full bg-gray-400/50 dark:bg-gray-600/50 shadow-inner" />
-                  <div className="absolute top-7 left-5 md:top-14 md:left-10 w-3 h-3 md:w-5 md:h-5 rounded-full bg-gray-400/40 dark:bg-gray-600/40 shadow-inner" />
-                  <div className="absolute top-4 right-3 md:top-8 md:right-6 w-2 h-2 md:w-3 md:h-3 rounded-full bg-gray-400/45 dark:bg-gray-600/45 shadow-inner" />
-                  <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 w-1.5 h-1.5 md:w-2.5 md:h-2.5 rounded-full bg-gray-400/40 dark:bg-gray-600/40 shadow-inner" />
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-transparent via-gray-300/10 to-gray-500/20" />
-                </div>
-                {/* Moon glow */}
-                <div
-                  className="absolute inset-0 rounded-full bg-slate-300/15 dark:bg-slate-200/20"
-                  style={{ filter: 'blur(20px)', transform: 'scale(1.4)' }}
-                />
-                {/* Stars twinkling ✨ */}
-                <div className="absolute -top-5 -right-3 md:-top-8 md:-right-6 w-1.5 h-1.5 md:w-2.5 md:h-2.5 bg-white rounded-full animate-twinkle shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-                <div className="absolute -top-3 -left-5 md:-top-5 md:-left-8 w-1 h-1 md:w-2 md:h-2 bg-yellow-100 rounded-full animate-twinkle shadow-[0_0_8px_rgba(254,243,199,0.7)]" style={{ animationDelay: '0.3s' }} />
-                <div className="absolute -bottom-4 -right-5 md:-bottom-7 md:-right-8 w-1.5 h-1.5 md:w-2.5 md:h-2.5 bg-white rounded-full animate-twinkle shadow-[0_0_10px_rgba(255,255,255,0.8)]" style={{ animationDelay: '0.6s' }} />
-                <div className="absolute -bottom-5 left-3 md:-bottom-8 md:left-6 w-1 h-1 md:w-2 md:h-2 bg-blue-100 rounded-full animate-twinkle shadow-[0_0_8px_rgba(219,234,254,0.7)]" style={{ animationDelay: '0.9s' }} />
-                <div className="absolute top-8 -left-3 md:top-14 md:-left-6 w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full animate-twinkle shadow-[0_0_9px_rgba(255,255,255,0.75)]" style={{ animationDelay: '1.2s' }} />
-              </div>
-            )}
-          </div>
+          {/* Celestial/Globe removed */}
 
           {/* Clouds (siang hari saja) ☁️ */}
           {isSunTime && (
@@ -576,7 +517,7 @@ export default function DashboardPage() {
                         className="h-6 text-[10px] shrink-0 sm:h-7 sm:text-xs"
                         asChild
                       >
-                        <Link href={`/courses/${asesmen.courseId}/asesmen/${asesmen.id}`}>
+                        <Link href={`/courses/${asesmen.courseId}/${asesmen.id}`}>
                           {user.role === "SISWA" ? t("Mulai") : t("Edit")}
                         </Link>
                       </Button>
@@ -612,6 +553,9 @@ export default function DashboardPage() {
           </Card>
         </AnimateIn>
       )}
+
+      {/* Globe View - Seamless transition dari matahari/bulan */}
+          {/* Globe removed */}
     </div>
   )
 }

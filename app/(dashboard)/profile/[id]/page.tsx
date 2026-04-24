@@ -489,7 +489,7 @@ export default function StudentProfilePage() {
                         <CardFooter className="border-t p-3 sm:p-4">
                           {item.pengumpulanProyek?.asesmen && (
                             <Button asChild className="w-full bg-transparent" variant="outline" size="sm">
-                              <Link href={`/courses/${item.pengumpulanProyek.asesmen.course?.id}/asesmen/${item.pengumpulanProyek.asesmen.id}`}>
+                              <Link href={`/courses/${item.pengumpulanProyek.asesmen.course?.id}/${item.pengumpulanProyek.asesmen.id}`}>
                                 Lihat Detail
                                 <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </Link>

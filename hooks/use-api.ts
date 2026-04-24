@@ -67,7 +67,22 @@ export function useCourses(userId?: string, role?: string) {
       console.log('useCourses - Fetching from URL:', url)
       
       const response = await fetch(url)
-      const data = await response.json()
+      console.log('useCourses - Response received:', {
+        ok: response.ok,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries())
+      })
+      
+      const text = await response.text()
+      console.log('useCourses - Response text:', text.substring(0, 200) + '...')
+      
+      let data
+      try {
+        data = JSON.parse(text)
+      } catch (parseError) {
+        console.error('useCourses - JSON parse error:', parseError)
+        throw new Error('Invalid JSON response')
+      }
       
       console.log('useCourses - API Response:', { 
         ok: response.ok, 

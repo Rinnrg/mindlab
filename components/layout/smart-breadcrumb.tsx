@@ -1,10 +1,9 @@
-"use client"
+'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useTransitionRouter } from '@/hooks/use-transition-router'
-import { ChevronRight, ChevronLeft, Home, BookOpen, Users, Calendar, User, Settings, Code, Activity, BarChart3, Search as SearchIcon, FileText } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { ChevronRight, ChevronLeft, House, BookOpen, Users, Calendar, User, Settings, Code, Activity, BarChart3, Search as SearchIcon, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   Breadcrumb,
@@ -13,237 +12,250 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-  BreadcrumbEllipsis,
 } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
-import { useBreadcrumb, type BreadcrumbItem as BreadcrumbItemType } from '@/hooks/use-breadcrumb'
-
-const LIQUID_SETTLE = 'cubic-bezier(0.23, 1, 0.32, 1)'
-const SPRING = 'cubic-bezier(0.32, 0.72, 0, 1)'
 
 interface SmartBreadcrumbProps {
   className?: string
-  showMobile?: boolean
 }
 
-// Segment label/icon mapping — keyed by segment name
+interface BreadcrumbItem {
+  label: string
+  href?: string
+  icon?: React.ReactNode
+}
+
+// Segment label/icon mapping
 const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } } = {
-  'dashboard':    { label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-  'courses':      { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
-  'asesmen':      { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
-  'projects':     { label: 'Masalah', icon: <BookOpen className="h-4 w-4" /> },
-  'proyek':       { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
-  'users':        { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
-  'schedule':     { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
-  'profile':      { label: 'Profil', icon: <User className="h-4 w-4" /> },
-  'settings':     { label: 'Pengaturan', icon: <Settings className="h-4 w-4" /> },
-  'compiler':     { label: 'Compiler', icon: <Code className="h-4 w-4" /> },
-  'materi':       { label: 'Materi', icon: <FileText className="h-4 w-4" /> },
-  'add':          { label: 'Tambah' },
-  'new':          { label: 'Tambah' },
-  'edit':         { label: 'Edit' },
-  'submit':       { label: 'Kumpulkan' },
-  'kuis':         { label: 'Kuis' },
-  'kelompok':     { label: 'Kelompok', icon: <Users className="h-4 w-4" /> },
-  'nilai':        { label: 'Nilai', icon: <BarChart3 className="h-4 w-4" /> },
-  'pengumpulan':  { label: 'Pengumpulan', icon: <BookOpen className="h-4 w-4" /> },
-  'activity':     { label: 'Aktivitas', icon: <Activity className="h-4 w-4" /> },
-  'stats':        { label: 'Statistik', icon: <BarChart3 className="h-4 w-4" /> },
-  'search':       { label: 'Pencarian', icon: <SearchIcon className="h-4 w-4" /> },
-  'students':     { label: 'Siswa', icon: <Users className="h-4 w-4" /> },
+  'dashboard': { label: 'Dashboard', icon: <House className="h-4 w-4" /> },
+  'courses': { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
+  'asesmen': { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
+  'projects': { label: 'Masalah', icon: <BookOpen className="h-4 w-4" /> },
+  'proyek': { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
+  'users': { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
+  'schedule': { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
+  'profile': { label: 'Profil', icon: <User className="h-4 w-4" /> },
+  'settings': { label: 'Pengaturan', icon: <Settings className="h-4 w-4" /> },
+  'compiler': { label: 'Compiler', icon: <Code className="h-4 w-4" /> },
+  'materi': { label: 'Materi', icon: <FileText className="h-4 w-4" /> },
+  'add': { label: 'Tambah' },
+  'new': { label: 'Tambah' },
+  'edit': { label: 'Edit' },
+  'submit': { label: 'Kumpulkan' },
+  'kuis': { label: 'Kuis' },
+  'kelompok': { label: 'Kelompok', icon: <Users className="h-4 w-4" /> },
+  'nilai': { label: 'Nilai', icon: <BarChart3 className="h-4 w-4" /> },
+  'pengumpulan': { label: 'Pengumpulan', icon: <BookOpen className="h-4 w-4" /> },
+  'activity': { label: 'Aktivitas', icon: <Activity className="h-4 w-4" /> },
+  'stats': { label: 'Statistik', icon: <BarChart3 className="h-4 w-4" /> },
+  'search': { label: 'Pencarian', icon: <SearchIcon className="h-4 w-4" /> },
+  'students': { label: 'Siswa', icon: <Users className="h-4 w-4" /> },
 }
 
-// Helper: detect whether a segment is a dynamic ID (MongoDB ObjectId, UUID, or numeric)
+// Helper: detect whether a segment is a dynamic ID
 function isIdSegment(seg: string): boolean {
-  // More comprehensive ID detection
-  return /^[0-9a-fA-F]{24}$/.test(seg)          // MongoDB ObjectId (24 char hex)
+  return /^[0-9a-fA-F]{24}$/.test(seg)          // MongoDB ObjectId
     || /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}/.test(seg) // UUID prefix
-    || /^[a-zA-Z0-9]{15,}$/.test(seg)              // Generic long alphanumeric ID (like cuid/nanoid)
+    || /^[a-zA-Z0-9]{15,}$/.test(seg)              // Generic long alphanumeric ID
     || /^[0-9]+$/.test(seg)                        // Pure numeric ID
-    || /^c[a-z0-9]{24,}$/i.test(seg)              // cuid style (starts with c)
-    || /^[a-z0-9_-]{20,}$/i.test(seg)             // Generic long ID with common chars
+    || /^c[a-z0-9]{24,}$/i.test(seg)              // cuid style
+    || /^[a-z0-9_-]{20,}$/i.test(seg)             // Generic long ID
 }
 
-// Global breadcrumb name cache — persists across navigations
-const globalNameCache = new Map<string, string>()
+// Global cache for fetched names
+const nameCache = new Map<string, string>()
 
-// Hook untuk fetch nama berdasarkan ID dan context
-function useFetchBreadcrumbNames(pathname: string) {
-  const [nameCache, setNameCache] = useState<Record<string, string>>({})
+// Hook untuk fetch nama berdasarkan ID
+function useFetchNames(pathname: string): { names: Record<string, string>; loading: boolean } {
+  const [names, setNames] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
 
   const fetchNames = useCallback(async () => {
-    const pathSegments = pathname.split('/').filter(Boolean)
-    const namesToFetch: Array<{id: string, type: string, path: string}> = []
+    const segments = pathname.split('/').filter(Boolean)
+    const toFetch: Array<{id: string, type: string}> = []
 
-    // Analyze path untuk menentukan ID apa yang perlu di-fetch
-    for (let i = 0; i < pathSegments.length; i++) {
-      const segment = pathSegments[i]
-      const prevSegment = pathSegments[i - 1]
+    for (let i = 0; i < segments.length; i++) {
+      const segment = segments[i]
+      const prevSegment = segments[i - 1]
+      const prevPrevSegment = segments[i - 2]
       
-      if (isIdSegment(segment)) {
-        // Skip if already in global cache
-        if (globalNameCache.has(segment)) continue
-
-        const path = '/' + pathSegments.slice(0, i + 1).join('/')
-        
-        // Tentukan type berdasarkan context
+      if (isIdSegment(segment) && !nameCache.has(segment)) {
         if (prevSegment === 'courses') {
-          namesToFetch.push({id: segment, type: 'course', path})
+          toFetch.push({id: segment, type: 'course'})
         } else if (prevSegment === 'materi') {
-          namesToFetch.push({id: segment, type: 'materi', path})
+          toFetch.push({id: segment, type: 'materi'})
         } else if (prevSegment === 'asesmen') {
-          namesToFetch.push({id: segment, type: 'asesmen', path})
+          toFetch.push({id: segment, type: 'asesmen'})
+        } else if (prevPrevSegment === 'courses') {
+          // This is an item ID directly under a course (pattern: /courses/[courseId]/[itemId])
+          toFetch.push({id: segment, type: 'course-item'})
+          // Also fetch the course if we don't have it
+          const courseId = segments[i - 1]
+          if (isIdSegment(courseId) && !nameCache.has(courseId)) {
+            toFetch.push({id: courseId, type: 'course'})
+          }
         } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
-          namesToFetch.push({id: segment, type: 'proyek', path})
+          toFetch.push({id: segment, type: 'proyek'})
         } else if (prevSegment === 'users') {
-          namesToFetch.push({id: segment, type: 'user', path})
+          toFetch.push({id: segment, type: 'user'})
         }
       }
     }
 
-    if (namesToFetch.length === 0) {
-      // Load from global cache
+    if (toFetch.length === 0) {
+      // Load from cache
       const cached: Record<string, string> = {}
-      const pathSegs = pathname.split('/').filter(Boolean)
-      for (const seg of pathSegs) {
-        if (isIdSegment(seg) && globalNameCache.has(seg)) {
-          cached[seg] = globalNameCache.get(seg)!
+      for (const seg of segments) {
+        if (isIdSegment(seg) && nameCache.has(seg)) {
+          cached[seg] = nameCache.get(seg)!
         }
       }
-      setNameCache(cached)
-      setLoading(false)
+      setNames(cached)
       return
     }
 
     setLoading(true)
 
-    // Fetch names in PARALLEL instead of sequential
-    const results = await Promise.allSettled(
-      namesToFetch.map(async (item) => {
-        try {
-          let response
-          let name = 'Detail'
+    try {
+      const results = await Promise.allSettled(
+        toFetch.map(async (item) => {
+          try {
+            let name = 'Detail'
+            let response
 
-          switch (item.type) {
-            case 'course':
-              response = await fetch(`/api/courses/${item.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                name = data.course?.judul || 'Kursus'
-              } else name = 'Kursus'
-              break
-            case 'materi':
-              response = await fetch(`/api/materi/${item.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                name = data.materi?.judul || data.judul || 'Materi'
-              } else name = 'Materi'
-              break
-            case 'asesmen':
-              response = await fetch(`/api/asesmen/${item.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                name = data.asesmen?.nama || data.nama || 'Asesmen'
-              } else name = 'Asesmen'
-              break
-            case 'proyek':
-              response = await fetch(`/api/proyek/${item.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                name = data.proyek?.judul || data.judul || 'Proyek'
-              } else name = 'Proyek'
-              break
-            case 'user':
-              response = await fetch(`/api/users/${item.id}`)
-              if (response.ok) {
-                const data = await response.json()
-                name = data.user?.nama || data.nama || 'User'
-              } else name = 'User'
-              break
-            default:
-              name = 'Detail'
+            switch (item.type) {
+              case 'course':
+                response = await fetch(`/api/courses/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.course?.judul || 'Kursus'
+                }
+                break
+              case 'materi':
+                response = await fetch(`/api/materi/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.materi?.judul || data.judul || 'Materi'
+                }
+                break
+              case 'asesmen':
+                response = await fetch(`/api/asesmen/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.asesmen?.nama || data.nama || 'Asesmen'
+                }
+                break
+              case 'course-item':
+                // Try to fetch as materi first, then asesmen
+                response = await fetch(`/api/materi/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.materi?.judul || data.judul || 'Materi'
+                } else {
+                  response = await fetch(`/api/asesmen/${item.id}`)
+                  if (response.ok) {
+                    const data = await response.json()
+                    name = data.asesmen?.nama || data.nama || 'Asesmen'
+                  }
+                }
+                break
+              case 'proyek':
+                response = await fetch(`/api/proyek/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.proyek?.judul || data.judul || 'Proyek'
+                }
+                break
+              case 'user':
+                response = await fetch(`/api/users/${item.id}`)
+                if (response.ok) {
+                  const data = await response.json()
+                  name = data.user?.nama || data.nama || 'User'
+                }
+                break
+            }
+            return { id: item.id, name }
+          } catch {
+            return { id: item.id, name: 'Detail' }
           }
-          return { id: item.id, name }
-        } catch {
-          const fallback = item.type === 'course' ? 'Kursus' :
-                           item.type === 'materi' ? 'Materi' :
-                           item.type === 'asesmen' ? 'Asesmen' :
-                           item.type === 'proyek' ? 'Proyek' :
-                           item.type === 'user' ? 'User' : 'Detail'
-          return { id: item.id, name: fallback }
+        })
+      )
+
+      const newNames: Record<string, string> = {}
+      // Add cached names
+      for (const seg of segments) {
+        if (isIdSegment(seg) && nameCache.has(seg)) {
+          newNames[seg] = nameCache.get(seg)!
         }
-      })
-    )
-
-    const newCache: Record<string, string> = {}
-    // Include existing global cache entries
-    const pathSegs = pathname.split('/').filter(Boolean)
-    for (const seg of pathSegs) {
-      if (isIdSegment(seg) && globalNameCache.has(seg)) {
-        newCache[seg] = globalNameCache.get(seg)!
       }
-    }
-    // Merge new results
-    for (const result of results) {
-      if (result.status === 'fulfilled') {
-        newCache[result.value.id] = result.value.name
-        globalNameCache.set(result.value.id, result.value.name)
+      // Add new results
+      for (const result of results) {
+        if (result.status === 'fulfilled') {
+          newNames[result.value.id] = result.value.name
+          nameCache.set(result.value.id, result.value.name)
+        }
       }
-    }
 
-    setNameCache(newCache)
-    setLoading(false)
+      setNames(newNames)
+    } catch (error) {
+      console.error('Error fetching names:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [pathname])
 
   useEffect(() => {
     fetchNames()
   }, [fetchNames])
 
-  return { nameCache, loading }
+  return { names, loading }
 }
 
-function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, string>): BreadcrumbItemType[] {
-  const pathSegments = pathname.split('/').filter(Boolean)
-  const breadcrumbs: BreadcrumbItemType[] = []
+function generateBreadcrumbs(pathname: string, names: Record<string, string>): BreadcrumbItem[] {
+  const segments = pathname.split('/').filter(Boolean)
+  const breadcrumbs: BreadcrumbItem[] = []
 
-  // Check if we're in a course context
-  const courseIndex = pathSegments.indexOf('courses')
-  const isInCourse = courseIndex !== -1 && courseIndex + 1 < pathSegments.length
+  // Check if in course context - /courses/[courseId]/...
+  const courseIndex = segments.indexOf('courses')
+  const isInCourse = courseIndex !== -1 && courseIndex + 1 < segments.length
 
-  // Walk through every segment and build the trail
-  for (let i = 0; i < pathSegments.length; i++) {
-    const segment = pathSegments[i]
-    const prevSegment = pathSegments[i - 1]
-    const isLast = i === pathSegments.length - 1
-    const builtPath = '/' + pathSegments.slice(0, i + 1).join('/')
+  // Always add "Kursus" as the first breadcrumb when in course context
+  if (isInCourse) {
+    breadcrumbs.push({
+      label: 'Kursus',
+      href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />,
+    })
+  }
 
-    // Skip the "dashboard" segment — tidak perlu ditampilkan
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i]
+    const prevSegment = segments[i - 1]
+    const isLast = i === segments.length - 1
+    const builtPath = '/' + segments.slice(0, i + 1).join('/')
+
+    // Skip dashboard
     if (segment === 'dashboard') continue
 
-    // Skip "courses" segment ketika dalam konteks kursus
-    if (segment === 'courses' && isInCourse) continue
+    // Skip the literal 'courses' segment as we handle it specially above
+    if (segment === 'courses') continue
 
-    // Skip "asesmen" dan "materi" segment ketika dalam konteks kursus
-    if (isInCourse && (segment === 'asesmen' || segment === 'materi')) continue
-
-    // Handle dynamic IDs - sekarang kita tampilkan dengan nama yang sudah di-fetch
+    // Handle dynamic IDs
     if (isIdSegment(segment)) {
-      const name = nameCache[segment]
-      
-      if (name && name !== 'Loading...') {
-        // Tentukan icon berdasarkan context
+      const name = names[segment]
+      if (name) {
         let icon = undefined
         let href = isLast ? undefined : builtPath
-        
+
         if (prevSegment === 'courses') {
+          // This is a course ID - show course name
           icon = <BookOpen className="h-4 w-4" />
-          // Untuk course ID, href ke halaman course
           href = isLast ? undefined : `/courses/${segment}`
-        } else if (prevSegment === 'materi') {
+        } else if (segments[i - 2] === 'courses') {
+          // This is an item ID under a course (materi/asesmen)
           icon = <FileText className="h-4 w-4" />
-        } else if (prevSegment === 'asesmen') {
-          icon = <FileText className="h-4 w-4" />
+          // Don't provide href for last item
+          href = undefined
         } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
           icon = <BookOpen className="h-4 w-4" />
         } else if (prevSegment === 'users') {
@@ -259,10 +271,9 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
       continue
     }
 
-    // Lookup a human-readable label / icon untuk segment biasa
+    // Handle regular segments
     const cfg = segmentConfig[segment]
-    const label = cfg?.label
-      ?? segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ').replace(/_/g, ' ')
+    const label = cfg?.label || segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ')
     const icon = cfg?.icon
 
     breadcrumbs.push({
@@ -275,59 +286,51 @@ function generateAutoBreadcrumbs(pathname: string, nameCache: Record<string, str
   return breadcrumbs
 }
 
-export function SmartBreadcrumb({ className, showMobile = false }: SmartBreadcrumbProps) {
+export function SmartBreadcrumb({ className }: SmartBreadcrumbProps) {
   const pathname = usePathname()
-  const router = useTransitionRouter()
-  const { breadcrumbs: manualBreadcrumbs } = useBreadcrumb()
-  const { nameCache, loading } = useFetchBreadcrumbNames(pathname)
+  const router = useRouter()
+  const { names, loading } = useFetchNames(pathname)
   
-  // Don't show breadcrumb on login page or root dashboard
+  // Don't show on special pages
   if (pathname === '/login' || pathname === '/' || pathname === '/dashboard') {
     return null
   }
 
-  // Use manual breadcrumbs if available (highest priority), 
-  // otherwise generate automatically with names
-  const breadcrumbs = manualBreadcrumbs.length > 0 
-    ? manualBreadcrumbs 
-    : generateAutoBreadcrumbs(pathname, nameCache)
+  const breadcrumbs = generateBreadcrumbs(pathname, names)
 
-  // Don't show breadcrumb if no breadcrumbs, or if auto breadcrumbs are loading
-  if (breadcrumbs.length === 0 || (manualBreadcrumbs.length === 0 && loading)) {
+  // Don't show if no breadcrumbs or loading
+  if (breadcrumbs.length === 0 || loading) {
     return null
   }
 
-  // Check if current page is compiler (has its own back button)
-  const isCompilerPage = pathname.includes('/compiler')
-
   return (
-    <div className={cn('mb-4 mt-1 overflow-visible relative z-10', className)}>
+    <div className={cn('mb-8 pb-4 border-b border-border/30', className)}>
       {/* Desktop & Tablet Breadcrumb */}
-      <Breadcrumb className={cn('hidden md:block', showMobile && 'block')}>
-        <BreadcrumbList className="flex-wrap">
+      <Breadcrumb className="hidden md:block">
+        <BreadcrumbList>
           {breadcrumbs.map((crumb, index) => (
             <React.Fragment key={`${crumb.href || crumb.label}-${index}`}>
-              <BreadcrumbItem className="flex items-center">
+              <BreadcrumbItem>
                 {!crumb.href ? (
-                  <BreadcrumbPage className="flex items-center gap-1.5 text-primary font-medium text-sm">
+                  <BreadcrumbPage className="flex items-center gap-2 text-blue-600 font-semibold">
                     {crumb.icon}
-                    <span>{crumb.label}</span>
+                    {crumb.label}
                   </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
                     <Link 
                       href={crumb.href} 
-                      className="flex items-center gap-1.5 hover:text-primary transition-colors text-muted-foreground text-sm"
+                      className="flex items-center gap-2 hover:text-blue-600 transition-colors text-muted-foreground hover:font-medium"
                     >
                       {crumb.icon}
-                      <span>{crumb.label}</span>
+                      {crumb.label}
                     </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>
               {index < breadcrumbs.length - 1 && (
                 <BreadcrumbSeparator>
-                  <ChevronRight className="h-3.5 w-3.5" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/60" />
                 </BreadcrumbSeparator>
               )}
             </React.Fragment>
@@ -335,134 +338,28 @@ export function SmartBreadcrumb({ className, showMobile = false }: SmartBreadcru
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Mobile — Liquid Glass Sticky Back Button */}
-      {showMobile && !isCompilerPage && (
-        <MobileStickyBackButton
-          breadcrumbs={breadcrumbs}
-          onBack={() => router.navigateBack()}
-        />
-      )}
-    </div>
-  )
-}
-
-/**
- * MobileStickyBackButton — Floating back button that:
- * - At top of page: floats above content (normal flow)
- * - On scroll down: transitions to sticky at top with liquid glass morphing
- * - Uses IntersectionObserver for performance
- */
-function MobileStickyBackButton({
-  breadcrumbs,
-  onBack,
-}: {
-  breadcrumbs: BreadcrumbItemType[]
-  onBack: () => void
-}) {
-  const sentinelRef = React.useRef<HTMLDivElement>(null)
-  const barRef = React.useRef<HTMLDivElement>(null)
-  const [isSticky, setIsSticky] = React.useState(false)
-
-  React.useEffect(() => {
-    const sentinel = sentinelRef.current
-    if (!sentinel) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsSticky(!entry.isIntersecting)
-      },
-      { threshold: 0, rootMargin: '-1px 0px 0px 0px' }
-    )
-
-    observer.observe(sentinel)
-    return () => observer.disconnect()
-  }, [])
-
-  // Animate liquid morph on sticky change
-  React.useEffect(() => {
-    const bar = barRef.current
-    if (!bar) return
-
-    if (isSticky) {
-      // Morphing INTO sticky — liquid glass blob expand
-      bar.animate([
-        { transform: 'scale(1) translateY(0)', borderRadius: '24px', opacity: 1, backdropFilter: 'blur(0px)' },
-        { transform: 'scale(1.06, 0.94) translateY(-2px)', borderRadius: '20px', opacity: 0.95, offset: 0.2 },
-        { transform: 'scale(0.98, 1.02) translateY(0)', borderRadius: '22px', opacity: 1, offset: 0.5 },
-        { transform: 'scale(1) translateY(0)', borderRadius: '22px', opacity: 1, backdropFilter: 'blur(20px)' },
-      ], {
-        duration: 450,
-        easing: LIQUID_SETTLE,
-        fill: 'forwards',
-      })
-    } else {
-      // Morphing OUT of sticky — settle back
-      bar.animate([
-        { transform: 'scale(1) translateY(0)', borderRadius: '22px', backdropFilter: 'blur(20px)' },
-        { transform: 'scale(1.03, 0.97)', borderRadius: '24px', offset: 0.3 },
-        { transform: 'scale(0.99, 1.01)', borderRadius: '24px', offset: 0.6 },
-        { transform: 'scale(1) translateY(0)', borderRadius: '24px', backdropFilter: 'blur(0px)' },
-      ], {
-        duration: 380,
-        easing: LIQUID_SETTLE,
-        fill: 'forwards',
-      })
-    }
-  }, [isSticky])
-
-  const currentPage = breadcrumbs[breadcrumbs.length - 1]
-
-  return (
-    <div className="block md:hidden">
-      {/* Sentinel — when this scrolls out of view, bar becomes sticky */}
-      <div ref={sentinelRef} className="h-0 w-full" />
-
-      <div
-        ref={barRef}
-        className={cn(
-          'flex items-center gap-3 py-2 px-1 transition-none',
-          'transform-gpu backface-hidden will-change-[transform,border-radius,backdrop-filter]',
-          isSticky && [
-            /* Sticky mode — glass pill at top */
-            'sticky top-0 z-50 -mx-4 px-4 py-3',
-            'bg-background/72 dark:bg-background/68',
-            'backdrop-blur-[20px] backdrop-saturate-[360%]',
-            'shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.4),0_1px_3px_0_rgba(0,0,0,0.06),0_4px_12px_-2px_rgba(0,0,0,0.08)]',
-            'dark:shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.06),0_1px_3px_0_rgba(0,0,0,0.2),0_4px_12px_-2px_rgba(0,0,0,0.3)]',
-            'border-b border-border/30 dark:border-white/5',
-          ],
-        )}
-      >
-        {/* Liquid Glass Back Button */}
-        <Button
-          onClick={onBack}
-          size="icon"
-          className={cn(
-            "h-10 w-10 rounded-full flex-shrink-0 relative overflow-hidden",
-            // Liquid glass effect
-            "bg-primary/15 hover:bg-primary/25",
-            "backdrop-blur-md border border-white/20",
-            "text-primary",
-            "shadow-[0_2px_8px_-2px_rgba(var(--ios26-accent-rgb,59,130,246),0.25),inset_0_0.5px_0_0_rgba(255,255,255,0.3)]",
-            "dark:shadow-[0_2px_8px_-2px_rgba(var(--ios26-accent-rgb,59,130,246),0.3),inset_0_0.5px_0_0_rgba(255,255,255,0.06)]",
-            // Liquid transitions
-            "transition-[transform,box-shadow,background,filter] duration-[350ms] ease-[cubic-bezier(0.23,1,0.32,1)]",
-            "hover:scale-110 hover:shadow-[0_4px_16px_-2px_rgba(var(--ios26-accent-rgb,59,130,246),0.35),inset_0_0.5px_0_0_rgba(255,255,255,0.4)]",
-            "active:scale-95 active:brightness-[0.96]",
-            "transform-gpu backface-hidden",
-          )}
-        >
-          <ChevronLeft className="h-5 w-5 relative z-10" />
-          <span className="sr-only">Kembali</span>
-        </Button>
-        
-        {/* Current page title */}
-        <div className={cn(
-          "flex items-center gap-2 text-base font-semibold text-foreground",
-          "transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]",
-        )}>
-          {currentPage?.icon}
-          <span>{currentPage?.label}</span>
+      {/* Mobile - Show back button and current page title */}
+      <div className="block md:hidden">
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => router.back()}
+            size="icon"
+            className={cn(
+              "h-10 w-10 rounded-full bg-blue-600 hover:bg-blue-700",
+              "text-white shadow-lg",
+              "transition-all duration-200 ease-in-out",
+              "hover:scale-105 active:scale-95",
+              "flex-shrink-0"
+            )}
+          >
+            <ChevronLeft className="h-5 w-5" />
+            <span className="sr-only">Kembali</span>
+          </Button>
+          
+          <div className="flex items-center gap-2 text-lg font-semibold text-blue-600">
+            {breadcrumbs[breadcrumbs.length - 1]?.icon}
+            {breadcrumbs[breadcrumbs.length - 1]?.label}
+          </div>
         </div>
       </div>
     </div>

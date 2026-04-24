@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState, use } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { useBreadcrumbPage } from "@/hooks/simple-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -33,23 +34,20 @@ import {
   Loader2,
   Eye,
   ClipboardList,
+  BookOpen,
 } from "lucide-react"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { ForumDiskusiAsesmen } from "@/components/forum-diskusi-asesmen"
 
-interface PageProps {
-  params: Promise<{ 
-    id: string
-    asesmenId: string
-  }>
+interface AsesmenDetailClientProps {
+  courseId: string
+  asesmenId: string
 }
 
-export default function AsesmenDetailPage({ params }: PageProps) {
+export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDetailClientProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
-  const resolvedParams = use(params)
-  const { id: courseId, asesmenId } = resolvedParams
   const [asesmen, setAsesmen] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [studentNilai, setStudentNilai] = useState<any>(null)
@@ -185,6 +183,30 @@ export default function AsesmenDetailPage({ params }: PageProps) {
 
   const isTeacherOrAdmin = user && (user.role === 'GURU' || user.role === 'ADMIN')
   const isStudent = user && user.role === 'SISWA'
+
+  // Set breadcrumb
+  const breadcrumbItems = useMemo(() => {
+    if (!asesmen?.course) return []
+    
+    return [
+      {
+        label: 'Kursus',
+        href: '/courses',
+        icon: <BookOpen className="h-4 w-4" />
+      },
+      {
+        label: asesmen.course.judul,
+        href: `/courses/${courseId}`,
+        icon: <BookOpen className="h-4 w-4" />
+      },
+      {
+        label: asesmen.nama,
+        icon: <FileText className="h-4 w-4" />
+      }
+    ]
+  }, [asesmen, courseId])
+
+  useBreadcrumbPage(asesmen?.nama || 'Asesmen', breadcrumbItems)
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
@@ -586,18 +608,16 @@ export default function AsesmenDetailPage({ params }: PageProps) {
                       </a>
                     </Button>
                   </div>
-                  <div className="border rounded-lg overflow-hidden bg-muted" style={{ height: '800px' }}>
+                  <div className="border rounded-lg overflow-hidden bg-muted h-[800px]">
                     <object
                       data={`/api/asesmen/${asesmen.id}/file`}
                       type="application/pdf"
-                      className="w-full h-full"
-                      style={{ minHeight: '800px' }}
+                      className="w-full h-full min-h-[800px]"
                     >
                       <iframe
                         src={`/api/asesmen/${asesmen.id}/file#toolbar=0&navpanes=0&scrollbar=1`}
                         title={`Lampiran ${asesmen.nama}`}
-                        className="w-full h-full border-0"
-                        style={{ minHeight: '800px' }}
+                        className="w-full h-full border-0 min-h-[800px]"
                       >
                         <p className="p-4">
                           Browser Anda tidak mendukung tampilan PDF. 
@@ -632,18 +652,16 @@ export default function AsesmenDetailPage({ params }: PageProps) {
 
               {/* PDF Preview for base64 PDF */}
               {!asesmen.fileData && asesmen.lampiran && asesmen.lampiran.startsWith('data:application/pdf') && (
-                <div className="border rounded-lg overflow-hidden bg-muted" style={{ height: '800px' }}>
+                <div className="border rounded-lg overflow-hidden bg-muted h-[800px]">
                   <object
                     data={asesmen.lampiran}
                     type="application/pdf"
-                    className="w-full h-full"
-                    style={{ minHeight: '800px' }}
+                    className="w-full h-full min-h-[800px]"
                   >
                     <iframe
                       src={`${asesmen.lampiran}#toolbar=0&navpanes=0&scrollbar=1`}
                       title={`Lampiran ${asesmen.nama}`}
-                      className="w-full h-full border-0"
-                      style={{ minHeight: '800px' }}
+                      className="w-full h-full border-0 min-h-[800px]"
                     >
                       <p className="p-4">
                         Browser Anda tidak mendukung tampilan PDF.
@@ -655,18 +673,16 @@ export default function AsesmenDetailPage({ params }: PageProps) {
 
               {/* PDF Preview for URL PDF */}
               {!asesmen.fileData && asesmen.lampiran && asesmen.lampiran.endsWith('.pdf') && !asesmen.lampiran.startsWith('data:') && (
-                <div className="border rounded-lg overflow-hidden bg-muted" style={{ height: '800px' }}>
+                <div className="border rounded-lg overflow-hidden bg-muted h-[800px]">
                   <object
                     data={asesmen.lampiran}
                     type="application/pdf"
-                    className="w-full h-full"
-                    style={{ minHeight: '800px' }}
+                    className="w-full h-full min-h-[800px]"
                   >
                     <iframe
                       src={`${asesmen.lampiran}#toolbar=0&navpanes=0&scrollbar=1`}
                       title={`Lampiran ${asesmen.nama}`}
-                      className="w-full h-full border-0"
-                      style={{ minHeight: '800px' }}
+                      className="w-full h-full border-0 min-h-[800px]"
                     >
                       <p className="p-4">
                         Browser Anda tidak mendukung tampilan PDF.
@@ -783,7 +799,7 @@ export default function AsesmenDetailPage({ params }: PageProps) {
                 {console.log('Student Pengumpulan State:', studentPengumpulan)}
                 {studentPengumpulan ? (
                   // Sudah mengumpulkan
-                  <div className="space-y-4">`
+                  <div className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="p-4 bg-muted rounded-lg space-y-1">
                         <p className="text-sm text-muted-foreground">Tanggal Pengumpulan</p>
@@ -1302,4 +1318,3 @@ export default function AsesmenDetailPage({ params }: PageProps) {
     </div>
   )
 }
-
