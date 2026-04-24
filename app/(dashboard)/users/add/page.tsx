@@ -237,52 +237,27 @@ export default function AddUserPage() {
                     <span className="text-sm text-muted-foreground">Loading classes...</span>
                   </div>
                 ) : (
-                  <div className="space-y-4 border rounded-md p-4 bg-muted/30">
-                    <div className="space-y-2">
-                       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Pilih Dari Daftar</Label>
-                       <Select value={kelas} onValueChange={setKelas}>
-                         <SelectTrigger>
-                           <SelectValue placeholder="Pilih kelas yang sudah ada" />
-                         </SelectTrigger>
-                         <SelectContent>
-                           {availableClasses.map((className) => (
-                             <SelectItem key={className} value={className}>
-                               <div className="flex items-center">
-                                 <GraduationCap className="h-4 w-4 mr-2" />
-                                 {className}
-                               </div>
-                             </SelectItem>
-                           ))}
-                         </SelectContent>
-                       </Select>
+                  <div className="space-y-2 border rounded-md p-4 bg-muted/30">
+                    <div className="flex items-center justify-between mb-2">
+                       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Pilih Kelas</Label>
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                          Atau
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                       <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Ketik Manual / Tambah Baru</Label>
-                       <div className="flex items-center space-x-2">
-                         <div className="relative flex-1">
-                           <GraduationCap className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                           <Input
-                             id="kelas_manual"
-                             placeholder="Ketik nama kelas..."
-                             value={kelas}
-                             onChange={(e) => setKelas(e.target.value)}
-                             className="pl-9"
-                           />
-                         </div>
-                         <AddClassDialog onClassAdded={handleClassAdded} />
-                       </div>
+                    <div className="flex items-center space-x-2">
+                      <Select value={kelas} onValueChange={setKelas}>
+                        <SelectTrigger className="flex-1">
+                          <SelectValue placeholder="Pilih kelas yang sudah ada" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableClasses.map((className) => (
+                            <SelectItem key={className} value={className}>
+                              <div className="flex items-center">
+                                <GraduationCap className="h-4 w-4 mr-2" />
+                                {className}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <AddClassDialog onClassAdded={handleClassAdded} />
                     </div>
                   </div>
                 )}
