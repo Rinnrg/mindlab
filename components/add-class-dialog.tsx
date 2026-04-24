@@ -59,6 +59,18 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     }
   }
 
+  const handleCustomSubmit = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Simulate form sumbit programmatically 
+    const syntheticEvent = {
+        preventDefault: () => {}
+    } as React.FormEvent
+    
+    handleSubmit(syntheticEvent)
+  }
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
@@ -68,7 +80,7 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
+        <div>
           <DialogHeader>
             <DialogTitle>Tambah Kelas Baru</DialogTitle>
             <DialogDescription>
@@ -84,6 +96,12 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleCustomSubmit(e as any);
+                  }
+                }}
               />
             </div>
           </div>
@@ -96,11 +114,11 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
             >
               Batal
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" disabled={isSubmitting} onClick={handleCustomSubmit}>
               {isSubmitting ? "Menambahkan..." : "Tambah Kelas"}
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   )
