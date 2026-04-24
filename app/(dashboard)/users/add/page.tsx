@@ -301,7 +301,7 @@ export default function AddUserPage() {
                 type="button" 
                 variant="outline" 
                 className="w-full sm:flex-1 bg-transparent" 
-                onClick={() => router.back()}
+                onClick={(e) => { e.preventDefault(); router.back(); }}
                 disabled={isSubmitting}
               >
                 Cancel
