@@ -18,7 +18,7 @@ import { AddClassDialog } from "@/components/add-class-dialog"
 
 export default function AddUserPage() {
   const router = useRouter()
-  const { error: showError, AlertComponent } = useAdaptiveAlert()
+  const { error: showError, success: showSuccess, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   const [nama, setNama] = useState("")
   const [email, setEmail] = useState("")
@@ -62,6 +62,9 @@ export default function AddUserPage() {
       return [...prev, newClass].sort();
     })
     setKelas(newClass)
+    
+    // Tampilkan notifikasi berhasil menambah kelas
+    showSuccess("Berhasil", `Kelas ${newClass} berhasil ditambahkan`)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
