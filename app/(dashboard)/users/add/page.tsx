@@ -56,7 +56,11 @@ export default function AddUserPage() {
   }
 
   const handleClassAdded = (newClass: string) => {
-    setAvailableClasses(prev => [...prev, newClass].sort())
+    setAvailableClasses(prev => {
+      // Pastikan kelas bersifat unik/tidak duplikat (case-insensitive checks opsional jika mau, di sini exact match)
+      if (prev.includes(newClass)) return prev;
+      return [...prev, newClass].sort();
+    })
     setKelas(newClass)
   }
 
@@ -85,6 +89,12 @@ export default function AddUserPage() {
 
     setIsSubmitting(true)
 
+    // Jika kelas diketik manual dan belum ada di list availableClasses, tambahkan secara atomik ke local state
+    const kelasFix = kelas.trim()
+    if (role === "SISWA" && kelasFix && !availableClasses.includes(kelasFix)) {
+      handleClassAdded(kelasFix)
+    }
+
     await execute(
       async () => {
         const response = await fetch("/api/users", {
@@ -98,7 +108,7 @@ export default function AddUserPage() {
             username: username || email.split('@')[0],
             password: password || "password123",
             role,
-            ...(role === "SISWA" && kelas && { kelas }),
+            ...(role === "SISWA" && kelasFix && { kelas: kelasFix }),
           }),
         })
 
