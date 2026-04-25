@@ -154,8 +154,8 @@ export async function POST(request: NextRequest) {
     const course = await prisma.course.create({
       data: {
         judul,
-        deskripsi,
-        gambar,
+        deskripsi: deskripsi || null,
+        gambar: gambar || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
         kategori,
         guruId,
       },
