@@ -146,14 +146,24 @@ export default function AddCoursePage() {
         })
         
         // 1. Create course
+        // NOTE:
+        // `Course.gambar` is @db.VarChar(255). A base64 data URL from the upload
+        // preview will exceed this limit and crash Prisma with:
+        // "The provided value for the column is too long".
+        // So we ONLY store a real URL (e.g. from an upload endpoint) or a fallback URL.
+        const gambarUrl =
+          thumbnail && !thumbnail.startsWith("data:")
+            ? thumbnail
+            : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop"
+
         const coursePayload = {
           judul: title,
           deskripsi: description.trim() || undefined,
-          gambar: thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+          gambar: gambarUrl,
           kategori: category,
           guruId: selectedGuruId,
           userLoginId: user.id,
-          userRole: user.role
+          userRole: user.role,
         }
         
         console.log('Payload API Course:', coursePayload)
