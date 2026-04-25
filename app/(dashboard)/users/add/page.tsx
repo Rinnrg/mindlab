@@ -56,7 +56,6 @@ export default function AddUserPage() {
   }
 
   const handleClassAdded = (newClass: string) => {
-    console.log("[DEBUG] handleClassAdded called with:", newClass);
     setAvailableClasses(prev => {
       // Pastikan kelas bersifat unik/tidak duplikat (case-insensitive checks opsional jika mau, di sini exact match)
       if (prev.includes(newClass)) return prev;
@@ -65,15 +64,12 @@ export default function AddUserPage() {
     setKelas(newClass)
     
     // Tampilkan notifikasi berhasil menambah kelas
-    console.log("[DEBUG] Calling showSuccess alert...");
     showSuccess("Berhasil", `Kelas ${newClass} berhasil ditambahkan`)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log("[DEBUG] Main form handleSubmit triggered. nama:", nama, "role:", role, "kelas:", kelas);
-
     if (!nama.trim()) {
       showError("Error", "Full name is required")
       return
@@ -90,7 +86,6 @@ export default function AddUserPage() {
     }
 
     if (role === "SISWA" && !kelas.trim()) {
-      console.log("[DEBUG] Validation failed: kelas is empty for Siswa");
       showError("Error", "Kelas is required for students")
       return
     }

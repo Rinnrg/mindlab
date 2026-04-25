@@ -64,6 +64,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    
+    // Check if username already exists
+    const existingUsername = await prisma.user.findUnique({
+      where: { username },
+    })
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: 'Username sudah digunakan' },
+        { status: 400 }
+      )
+    }
 
     const user = await prisma.user.create({
       data: {

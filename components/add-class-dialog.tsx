@@ -39,7 +39,6 @@ export function AddClassDialog({ onClassAdded }: AddClassDialogProps) {
     try {
       // Simulate adding class - in real app, you might call an API
       // For now, we'll just call the callback with the new class
-      console.log("[DEBUG] AddClassDialog submitting class:", className);
       if (onClassAdded) {
         onClassAdded(className.trim())
       }
