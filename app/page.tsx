@@ -17,11 +17,8 @@ export default function LandingPage() {
             <span className="text-base font-semibold tracking-tight">Mindlab</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="text-sm" asChild>
-              <Link href="/login">Masuk</Link>
-            </Button>
             <Button size="sm" className="text-sm" asChild>
-              <Link href="/login">Mulai Gratis</Link>
+              <Link href="/login">Masuk / Login</Link>
             </Button>
           </div>
         </div>

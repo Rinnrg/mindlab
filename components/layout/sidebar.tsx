@@ -183,7 +183,7 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
           </span>
         </Link>
         {isMobile && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground ml-auto" onClick={onNavClick}>
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground ml-auto" onClick={onNavClick}>
             <X className="h-4 w-4" />
           </Button>
         )}

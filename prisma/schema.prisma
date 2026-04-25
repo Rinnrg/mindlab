@@ -17,7 +17,7 @@ model User {
   password          String?             @db.VarChar(255)
   role              Role                @default(SISWA)
   foto              String?             @db.VarChar(255)
-  kelas             Int?
+  kelas             String?             @db.VarChar(255)
   createdAt         DateTime            @default(now())
   anggotaKelompok   AnggotaKelompok[]
   asesmenDibuat     Asesmen[]

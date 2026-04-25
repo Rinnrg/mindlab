@@ -78,9 +78,6 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Pastikan kelas dikonversi ke Integer jika ada karena di schema Prisma `kelas` tipenya Int?
-      const finalKelas = kelas ? parseInt(kelas, 10) : null;
-
       const user = await prisma.user.create({
         data: {
           username,
@@ -89,7 +86,7 @@ export async function POST(request: NextRequest) {
           password: password || 'password123',
           role,
           foto: foto || null,
-          kelas: isNaN(finalKelas as number) ? null : finalKelas,
+          kelas: kelas || null,
         },
         select: {
           id: true,
