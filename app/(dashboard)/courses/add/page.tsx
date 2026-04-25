@@ -146,18 +146,24 @@ export default function AddCoursePage() {
         })
         
         // 1. Create course
+        const coursePayload = {
+          judul: title,
+          deskripsi: description.trim() || undefined,
+          gambar: thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
+          kategori: category,
+          guruId: selectedGuruId,
+          userLoginId: user.id,
+          userRole: user.role
+        }
+        
+        console.log('Payload API Course:', coursePayload)
+
         const courseResponse = await fetch("/api/courses", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            judul: title,
-            deskripsi: description.trim() || null,
-            gambar: thumbnail || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop",
-            kategori: category,
-            guruId: selectedGuruId,
-          }),
+          body: JSON.stringify(coursePayload),
         })
 
         const courseData = await courseResponse.json()
