@@ -36,7 +36,9 @@ model Course {
   id          String       @id @default(uuid()) @db.Uuid
   judul       String       @db.VarChar(255)
   deskripsi   String?      @db.VarChar(1000)
-  gambar      String       @db.VarChar(255)
+  // Can be a URL or a base64 data URL from the thumbnail upload preview.
+  // Base64 strings can be very long, so use a larger column.
+  gambar      String       @db.VarChar(10000)
   kategori    String       @db.VarChar(255)
   guruId      String       @db.Uuid
   asesmen     Asesmen[]
