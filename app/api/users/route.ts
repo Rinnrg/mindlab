@@ -77,33 +77,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const user = await prisma.user.create({
-      data: {
-        username,
-        email,
-        nama,
-        password: password || 'password123',
-        role,
-        foto: foto || null,
-        kelas: kelas || null,
-      },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        nama: true,
-        role: true,
-        foto: true,
-        kelas: true,
-        createdAt: true,
-      },
-    })
+    try {
+      // Pastikan kelas dikonversi ke Integer jika ada karena di schema Prisma `kelas` tipenya Int?
+      const finalKelas = kelas ? parseInt(kelas, 10) : null;
 
-    return NextResponse.json({ user }, { status: 201 })
-  } catch (error) {
+      const user = await prisma.user.create({
+        data: {
+          username,
+          email,
+          nama,
+          password: password || 'password123',
+          role,
+          foto: foto || null,
+          kelas: isNaN(finalKelas as number) ? null : finalKelas,
+        },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          nama: true,
+          role: true,
+          foto: true,
+          kelas: true,
+          createdAt: true,
+        },
+      })
+
+      return NextResponse.json({ user }, { status: 201 })
+    } catch (dbError: any) {
+      console.error('Database Error during user creation:', dbError)
+      return NextResponse.json(
+        { error: `Database error: ${dbError.message || 'Gagal menyimpan data'}` },
+        { status: 500 }
+      )
+    }
+  } catch (error: any) {
     console.error('Error creating user:', error)
     return NextResponse.json(
-      { error: 'Gagal membuat user' },
+      { error: `Server error: ${error.message || 'Gagal membuat user'}` },
       { status: 500 }
     )
   }
