@@ -166,10 +166,28 @@ export default function AddCoursePage() {
           body: JSON.stringify(coursePayload),
         })
 
-        const courseData = await courseResponse.json()
+        // Read raw body first, because a 500 might return HTML (not JSON)
+        const courseText = await courseResponse.text()
+        let courseData: any = null
+        try {
+          courseData = courseText ? JSON.parse(courseText) : null
+        } catch {
+          courseData = null
+        }
 
         if (!courseResponse.ok) {
-          throw new Error(courseData.error || "Failed to create course")
+          console.error("Create course failed", {
+            status: courseResponse.status,
+            statusText: courseResponse.statusText,
+            responseText: courseText,
+            responseJson: courseData,
+          })
+          throw new Error(courseData?.error || courseText || "Failed to create course")
+        }
+
+        if (!courseData?.course?.id) {
+          console.error("Create course returned unexpected data", { courseText, courseData })
+          throw new Error("Course created but response invalid")
         }
 
         // 2. Create enrollments for selected kelas
