@@ -503,7 +503,7 @@ export default function KuisPage({ params }: PageProps) {
             autoCloseMs: 2000,
             onSuccess: () => {
               setTimeout(() => {
-                router.push(`/courses/${courseId}/${asesmenId}`)
+                router.push(`/courses/${courseId}/${itemId}`)
               }, 2000)
             },
           }
@@ -540,7 +540,7 @@ export default function KuisPage({ params }: PageProps) {
             sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
             setHasSubmitted(true)
             setTimeout(() => {
-              router.push(`/courses/${courseId}/${asesmenId}`)
+              router.push(`/courses/${courseId}/${itemId}`)
             }, 2000)
           },
         }
