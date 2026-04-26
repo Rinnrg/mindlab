@@ -139,6 +139,30 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
     fetchAsesmen()
   }, [user, authLoading, router, asesmenId, courseId])
 
+  // Keep hooks order stable: breadcrumb hook must be called on every render
+  const breadcrumbItems = useMemo(() => {
+    if (!asesmen?.course) return []
+
+    return [
+      {
+        label: 'Kursus',
+        href: '/courses',
+        icon: <BookOpen className="h-4 w-4" />,
+      },
+      {
+        label: asesmen.course.judul,
+        href: `/courses/${courseId}`,
+        icon: <BookOpen className="h-4 w-4" />,
+      },
+      {
+        label: asesmen.nama,
+        icon: <FileText className="h-4 w-4" />,
+      },
+    ]
+  }, [asesmen, courseId])
+
+  useBreadcrumbPage(asesmen?.nama || 'Asesmen', breadcrumbItems)
+
   if (authLoading || loading) {
     return (
       <div className="w-full py-6 sm:py-8 space-y-6">
@@ -183,30 +207,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
 
   const isTeacherOrAdmin = user && (user.role === 'GURU' || user.role === 'ADMIN')
   const isStudent = user && user.role === 'SISWA'
-
-  // Set breadcrumb
-  const breadcrumbItems = useMemo(() => {
-    if (!asesmen?.course) return []
-    
-    return [
-      {
-        label: 'Kursus',
-        href: '/courses',
-        icon: <BookOpen className="h-4 w-4" />
-      },
-      {
-        label: asesmen.course.judul,
-        href: `/courses/${courseId}`,
-        icon: <BookOpen className="h-4 w-4" />
-      },
-      {
-        label: asesmen.nama,
-        icon: <FileText className="h-4 w-4" />
-      }
-    ]
-  }, [asesmen, courseId])
-
-  useBreadcrumbPage(asesmen?.nama || 'Asesmen', breadcrumbItems)
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
