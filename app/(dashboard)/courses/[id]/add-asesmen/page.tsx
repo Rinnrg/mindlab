@@ -303,7 +303,7 @@ export default function AddAsesmenPage() {
   }
 
   return (
-  <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-6 space-y-6">
       <AlertComponent />
       <ActionFeedback />
 
@@ -337,10 +337,7 @@ export default function AddAsesmenPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <SettingsIcon className="h-4 w-4" />
-                Pengaturan ada di panel kanan
-              </div>
+              {/* Panel settings ada di kanan */}
             </div>
           </CardHeader>
         </Card>
@@ -372,83 +369,8 @@ export default function AddAsesmenPage() {
                               disabled={index === 0}
                               aria-label="Pindah ke atas"
                             >
-                              <div className="min-h-screen">
-                                <div className="mx-auto w-full max-w-7xl px-4 py-8">
-                                  <div className="mb-6 flex items-start justify-between gap-4">
-                                    <div>
-                                      <h1 className="text-2xl font-semibold">Buat Asesmen</h1>
-                                      <p className="text-sm text-muted-foreground">Tambahkan asesmen untuk kursus ini.</p>
-                                    </div>
-
-                                    <Button asChild variant="outline" className="rounded-xl">
-                                      <Link href={`/courses/${courseId}/asesmen`}>Kembali</Link>
-                                    </Button>
-                                  </div>
-
-                                  <form onSubmit={onSubmit} className="space-y-6">
-                                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
-                                      {/* Left: Builder + content utama */}
-                                      <div className="space-y-6">
-                                        {/* Header card ala Google Form */}
-                                        <Card className="ios-glass-card border-border/30 rounded-2xl">
-                                          <CardContent className="pt-6 space-y-4">
-                                            <div className="space-y-2">
-                                              <Label htmlFor="judul">Judul *</Label>
-                                              <Input
-                                                id="judul"
-                                                value={nama}
-                                                onChange={(e) => setNama(e.target.value)}
-                                                placeholder="Judul asesmen (contoh: Kuis 1)"
-                                              />
-                                            </div>
-
-                                            <div className="space-y-2">
-                                              <Label htmlFor="deskripsi">Deskripsi (opsional)</Label>
-                                              <Textarea
-                                                id="deskripsi"
-                                                value={deskripsi}
-                                                onChange={(e) => setDeskripsi(e.target.value)}
-                                                placeholder="Deskripsi (opsional)"
-                                                rows={4}
-                                              />
-                                            </div>
-                                          </CardContent>
-                                        </Card>
-                              onValueChange={(v) =>
-                                setSoalList((prev) => {
-                                  const next = [...prev]
-                                  const tipeJawaban = v as TipeSoal
-                                  const existing = next[index]
-                                  next[index] = {
-                                    ...existing,
-                                    tipeJawaban,
-                                    opsi:
-                                      tipeJawaban === "PILIHAN_GANDA"
-                                        ? (existing.opsi?.length ? existing.opsi : [
-                                            { teks: "", isBenar: false },
-                                            { teks: "", isBenar: false },
-                                            { teks: "", isBenar: false },
-                                            { teks: "", isBenar: false },
-                                          ])
-                                        : [],
-                                  }
-                                  return next
-                                })
-                              }
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Pilih tipe soal" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="PILIHAN_GANDA">Pilihan Ganda</SelectItem>
-                                <SelectItem value="ISIAN">Essay</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-end gap-4">
-                          <div className="space-y-2">
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
                             <Label>Poin *</Label>
                             <Input
                               type="number"
@@ -465,6 +387,9 @@ export default function AddAsesmenPage() {
                             />
                           </div>
                         </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-4">
 
                         {soal.tipeJawaban === "PILIHAN_GANDA" ? (
                           <>
