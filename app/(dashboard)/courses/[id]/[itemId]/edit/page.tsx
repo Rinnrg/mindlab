@@ -10,7 +10,7 @@ import { Loader2, BookOpen, FileText, Pencil } from "lucide-react"
 interface PageProps {
   params: Promise<{ 
     id: string
-    asesmenId: string
+  itemId: string
   }>
 }
 
@@ -18,7 +18,7 @@ export default function EditAsesmenPage({ params }: PageProps) {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const resolvedParams = use(params)
-  const { id: courseId, asesmenId } = resolvedParams
+  const { id: courseId, itemId: asesmenId } = resolvedParams
 
   // Set custom breadcrumb - we'll need to fetch course and asesmen names
   const breadcrumbItems = useMemo(() => [
