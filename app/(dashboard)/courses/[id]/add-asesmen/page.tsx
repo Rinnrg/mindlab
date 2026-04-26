@@ -153,6 +153,21 @@ export default function AddAsesmenPage() {
     })
   }, [])
 
+  const moveSoalToIndex = React.useCallback((from: number, to: number) => {
+    setSoalList((prev) => {
+      if (from === to) return prev
+      if (from < 0 || from >= prev.length) return prev
+      if (to < 0 || to >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }, [])
+
+  const [activeSoalIndex, setActiveSoalIndex] = React.useState(0)
+  const dragFromIndexRef = React.useRef<number | null>(null)
+
   React.useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -317,48 +332,131 @@ export default function AddAsesmenPage() {
         </Button>
       </div>
 
-  <form onSubmit={onSubmit} className="space-y-6">
-        {/* Header card ala Google Form */}
-        <Card className="ios-glass-card border-border/30 rounded-2xl">
-          <CardHeader className="space-y-2">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1 flex-1">
+      <form onSubmit={onSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
+          {/* Left: Panel nomor soal (sticky) */}
+          <div className="lg:sticky lg:top-6 space-y-4">
+            {tipe === "KUIS" && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Panel Soal</CardTitle>
+                  <CardDescription>Drag untuk ubah urutan</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {soalList.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      draggable
+                      onClick={() => {
+                        setActiveSoalIndex(i)
+                        // scroll ke soal
+                        document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }}
+                      onDragStart={() => {
+                        dragFromIndexRef.current = i
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        const from = dragFromIndexRef.current
+                        dragFromIndexRef.current = null
+                        if (from === null) return
+                        moveSoalToIndex(from, i)
+                        setActiveSoalIndex(i)
+                        // setelah reorder, scroll ke posisi baru
+                        setTimeout(() => {
+                          document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        }, 50)
+                      }}
+                      className={
+                        "w-full flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition " +
+                        (i === activeSoalIndex
+                          ? "bg-primary/10 border-primary/30 text-foreground"
+                          : "bg-background/30 hover:bg-background/50 border-border/30 text-muted-foreground")
+                      }
+                      aria-label={`Soal ${i + 1}`}
+                      title="Drag untuk pindah"
+                    >
+                      <span className="font-medium">Soal {i + 1}</span>
+                      <span className="text-xs">↕</span>
+                    </button>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Left: Builder + content utama */}
+          <div className="space-y-6">
+            {/* Header card ala Google Form (compact) */}
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardContent className="p-4 sm:p-5 space-y-3">
                 <Input
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder="Judul asesmen (contoh: Kuis 1)"
-                  className="text-xl font-semibold h-12"
+                  className="text-lg sm:text-xl font-semibold h-11"
                 />
                 <Textarea
                   value={deskripsi}
                   onChange={(e) => setDeskripsi(e.target.value)}
                   placeholder="Deskripsi (opsional)"
-                  rows={3}
+                  rows={2}
+                  className="min-h-[64px]"
                 />
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Panel settings ada di kanan */}
-            </div>
-          </CardHeader>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
-          {/* Left: Builder + content utama */}
-          <div className="space-y-6">
             {/* Catatan: Tipe asesmen tidak dipilih di UI ini (tiap asesmen sudah punya tipe). */}
             {/* Builder soal ala Google Form */}
             {tipe === "KUIS" && (
               <div className="space-y-4">
                 {soalList.map((soal, index) => (
-                  <div key={index} ref={index === soalList.length - 1 ? lastSoalRef : undefined}>
+                  <div
+                    key={index}
+                    id={`soal-${index}`}
+                    ref={index === soalList.length - 1 ? lastSoalRef : undefined}
+                  >
                     <Card className="ios-glass-card border-border/30 rounded-2xl">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <Badge variant="secondary" className="rounded-lg">Soal {index + 1}</Badge>
-                            <Badge variant="outline" className="rounded-lg">
-                              {soal.tipeJawaban === "PILIHAN_GANDA" ? "Pilihan Ganda" : "Essay"}
-                            </Badge>
+                            <Select
+                              value={soal.tipeJawaban}
+                              onValueChange={(v) =>
+                                setSoalList((prev) => {
+                                  const next = [...prev]
+                                  const tipeJawaban = v as TipeSoal
+                                  const existing = next[index]
+                                  next[index] = {
+                                    ...existing,
+                                    tipeJawaban,
+                                    opsi:
+                                      tipeJawaban === "PILIHAN_GANDA"
+                                        ? existing.opsi?.length
+                                          ? existing.opsi
+                                          : [
+                                              { teks: "", isBenar: false },
+                                              { teks: "", isBenar: false },
+                                              { teks: "", isBenar: false },
+                                              { teks: "", isBenar: false },
+                                            ]
+                                        : [],
+                                  }
+                                  return next
+                                })
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-[170px] rounded-lg">
+                                <SelectValue placeholder="Tipe soal" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PILIHAN_GANDA">Pilihan Ganda</SelectItem>
+                                <SelectItem value="ISIAN">Essay</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div className="flex items-center gap-1">
                             <Button
@@ -390,6 +488,21 @@ export default function AddAsesmenPage() {
                       </CardHeader>
 
                       <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Pertanyaan *</Label>
+                          <Textarea
+                            value={soal.pertanyaan}
+                            onChange={(e) =>
+                              setSoalList((prev) => {
+                                const next = [...prev]
+                                next[index] = { ...next[index], pertanyaan: e.target.value }
+                                return next
+                              })
+                            }
+                            placeholder="Tulis pertanyaan/soal di sini..."
+                            rows={3}
+                          />
+                        </div>
 
                         {soal.tipeJawaban === "PILIHAN_GANDA" ? (
                           <>
