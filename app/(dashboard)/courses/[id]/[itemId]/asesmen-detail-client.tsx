@@ -266,8 +266,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                     Deadline Terlewat
                   </Button>
                 ) : (
-                  <Button asChild>
-                    <Link href={`/courses/${courseId}/asesmen/${asesmenId}/submit`}>
+          <Button asChild>
+            <Link href={`/courses/${courseId}/${asesmenId}/submit`}>
                       <Upload className="mr-2 h-4 w-4" />
                       Kumpulkan Tugas
                     </Link>
@@ -317,7 +317,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       }
                     )
                     if (confirmed) {
-                      router.push(`/courses/${courseId}/asesmen/${asesmenId}/kuis`)
+                      router.push(`/courses/${courseId}/${asesmenId}/kuis`)
                     }
                   }}>
                     <FileText className="mr-2 h-4 w-4" />
@@ -328,7 +328,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
             )}
             {isTeacherOrAdmin && (
               <Button variant="outline" asChild>
-                <Link href={`/courses/${courseId}/asesmen/${asesmenId}/edit`}>
+                <Link href={`/courses/${courseId}/${asesmenId}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Link>
@@ -1150,7 +1150,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/courses/${courseId}/asesmen/${asesmen.id}/pengumpulan/${pengumpulan.id}`}>
+                                <Link href={`/courses/${courseId}/${asesmen.id}/pengumpulan/${pengumpulan.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </Link>
