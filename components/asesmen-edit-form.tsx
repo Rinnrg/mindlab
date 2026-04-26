@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -45,6 +46,7 @@ interface Soal {
 
 export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const router = useRouter()
+  const { user, isLoading: isAuthLoading } = useAuth()
   const { error: showError, success: showSuccess, AlertComponent } = useAdaptiveAlert()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -134,17 +136,32 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   }
 
   useEffect(() => {
+    // tunggu auth siap supaya userId/userRole bisa dikirim ke API
+    if (isAuthLoading) return
+    if (!user) return
     fetchData()
-  }, [asesmenId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asesmenId, isAuthLoading, user?.id, user?.role])
 
   const fetchData = async () => {
     try {
       setIsLoading(true)
+
+      if (!user) {
+        throw new Error('Unauthenticated')
+      }
       
       // Fetch asesmen data
-      const asesmenRes = await fetch(`/api/asesmen/${asesmenId}`)
-      if (!asesmenRes.ok) throw new Error('Failed to fetch asesmen')
-      const asesmenData = await asesmenRes.json()
+      const query = new URLSearchParams({
+        userId: user.id,
+        userRole: user.role,
+      })
+      const asesmenRes = await fetch(`/api/asesmen/${asesmenId}?${query.toString()}`)
+      const asesmenText = await asesmenRes.text()
+      const asesmenData = asesmenText ? JSON.parse(asesmenText) : null
+      if (!asesmenRes.ok) {
+        throw new Error(asesmenData?.error || 'Failed to fetch asesmen')
+      }
       
       // Fetch courses
       const coursesRes = await fetch('/api/courses')
@@ -196,7 +213,8 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       
     } catch (error) {
       console.error('Error fetching data:', error)
-      showError("Error", "Gagal mengambil data asesmen")
+  const message = error instanceof Error ? error.message : 'Gagal mengambil data asesmen'
+  showError("Error", message === 'Unauthenticated' ? 'Silakan login ulang.' : message)
     } finally {
       setIsLoading(false)
     }
