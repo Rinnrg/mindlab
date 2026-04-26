@@ -99,7 +99,8 @@ export default function AddAsesmenPage() {
       ],
     },
   ])
-  const [showSettings, setShowSettings] = React.useState(true)
+  // Settings sekarang selalu tampil di kanan (sticky)
+  const [showSettings] = React.useState(true)
 
   const lastSoalRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -319,7 +320,7 @@ export default function AddAsesmenPage() {
         </Button>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-6">
+  <form onSubmit={onSubmit} className="space-y-6">
         {/* Header card ala Google Form */}
         <Card className="ios-glass-card border-border/30 rounded-2xl">
           <CardHeader className="space-y-2">
@@ -339,427 +340,402 @@ export default function AddAsesmenPage() {
                 />
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="shrink-0"
-                onClick={() => setShowSettings((s) => !s)}
-              >
-                <SettingsIcon className="h-4 w-4 mr-2" />
-                {showSettings ? (
-                  <>
-                    <EyeOff className="h-4 w-4 mr-2" />
-                    Sembunyikan Setting
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4 mr-2" />
-                    Tampilkan Setting
-                  </>
-                )}
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <SettingsIcon className="h-4 w-4" />
+                Pengaturan ada di panel kanan
+              </div>
             </div>
           </CardHeader>
         </Card>
 
-        {showSettings && (
-          <Card className="ios-glass-card border-border/30 rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-base">Settings</CardTitle>
-              <CardDescription>Pengaturan asesmen (tanggal, durasi, kelas target, dan opsi kuis).</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Tipe</Label>
-                  <Select value={tipe} onValueChange={(v) => setTipe(v as TipeAsesmen)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih tipe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="KUIS">Kuis</SelectItem>
-                      <SelectItem value="TUGAS">Tugas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+          {/* Left: Builder + content utama */}
+          <div className="space-y-6">
+            {/* Tipe asesmen dipindah ke konten utama (bukan di settings) */}
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Tipe Asesmen</CardTitle>
+                <CardDescription>Pilih apakah ini kuis atau tugas.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Select value={tipe} onValueChange={(v) => setTipe(v as TipeAsesmen)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih tipe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="KUIS">Kuis</SelectItem>
+                    <SelectItem value="TUGAS">Tugas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
-                  <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="tglMulai">Tanggal Mulai (opsional)</Label>
-                  <Input id="tglMulai" type="datetime-local" value={tglMulai} onChange={(e) => setTglMulai(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="tglSelesai">Tanggal Selesai (opsional)</Label>
-                  <Input id="tglSelesai" type="datetime-local" value={tglSelesai} onChange={(e) => setTglSelesai(e.target.value)} />
-                </div>
-              </div>
-
-              {tipe === "KUIS" && (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="flex items-center gap-2 rounded-lg border p-3">
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Checkbox checked={antiCurang} onCheckedChange={(v) => setAntiCurang(Boolean(v))} />
-                        <span className="text-sm">Anti Curang</span>
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-                            aria-label="Info Anti Curang"
-                          >
-                            Info
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-80">
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium">Anti Curang</div>
-                            <p className="text-xs text-muted-foreground">
-                              Jika diaktifkan, siswa akan mendapat peringatan saat meninggalkan tab/jendela kuis.
-                              Kuis bisa otomatis dikumpulkan jika siswa tidak kembali dalam waktu tertentu atau jika pelanggaran berulang.
-                            </p>
+            {/* Builder soal ala Google Form */}
+            {tipe === "KUIS" && (
+              <div className="space-y-4">
+                {soalList.map((soal, index) => (
+                  <div key={index} ref={index === soalList.length - 1 ? lastSoalRef : undefined}>
+                    <Card className="ios-glass-card border-border/30 rounded-2xl">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="rounded-lg">Soal {index + 1}</Badge>
+                            <Badge variant="outline" className="rounded-lg">
+                              {soal.tipeJawaban === "PILIHAN_GANDA" ? "Pilihan Ganda" : "Essay"}
+                            </Badge>
                           </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="flex items-center gap-2 rounded-lg border p-3">
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Checkbox checked={acakSoal} onCheckedChange={(v) => setAcakSoal(Boolean(v))} />
-                        <span className="text-sm">Acak Soal</span>
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-                            aria-label="Info Acak Soal"
-                          >
-                            Info
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-80">
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium">Acak Soal</div>
-                            <p className="text-xs text-muted-foreground">
-                              Jika diaktifkan, urutan soal akan diacak untuk setiap siswa (berdasarkan seed) sehingga
-                              tiap siswa bisa mendapat urutan yang berbeda.
-                            </p>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="flex items-center gap-2 rounded-lg border p-3">
-                      <label className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Checkbox checked={acakJawaban} onCheckedChange={(v) => setAcakJawaban(Boolean(v))} />
-                        <span className="text-sm">Acak Jawaban</span>
-                      </label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-                            aria-label="Info Acak Jawaban"
-                          >
-                            Info
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-80">
-                          <div className="space-y-2">
-                            <div className="text-sm font-medium">Acak Jawaban</div>
-                            <p className="text-xs text-muted-foreground">
-                              Jika diaktifkan, pilihan jawaban untuk soal pilihan ganda akan diacak urutannya untuk setiap siswa.
-                              Kunci jawaban tetap sama karena sistem menilai berdasarkan ID opsi.
-                            </p>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <div className="space-y-2">
-                <Label>Target Kelas (opsional)</Label>
-                <p className="text-xs text-muted-foreground">Jika tidak dipilih, asesmen berlaku untuk semua siswa.</p>
-
-                {loadingKelas ? (
-                  <div className="text-sm text-muted-foreground">Loading kelas...</div>
-                ) : kelasList.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Belum ada data kelas.</div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {kelasList.map((k) => {
-                      const checked = selectedKelas.includes(k.id)
-                      return (
-                        <label key={k.id} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
-                          <Checkbox checked={checked} onCheckedChange={(v) => toggleKelas(k.id, Boolean(v))} />
-                          <span className="text-sm">{k.nama}</span>
-                        </label>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {tipe === "TUGAS" && (
-                <>
-                  <div className="space-y-2">
-                    <Label>Tipe Pengerjaan</Label>
-                    <Select value={tipePengerjaan} onValueChange={(v) => setTipePengerjaan(v as any)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih tipe pengerjaan" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INDIVIDU">Individu</SelectItem>
-                        <SelectItem value="KELOMPOK">Kelompok</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="file">Lampiran (opsional)</Label>
-                    <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
-                    {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Builder soal ala Google Form */}
-        {tipe === "KUIS" && (
-          <div className="space-y-4">
-            {soalList.map((soal, index) => (
-              <div key={index} ref={index === soalList.length - 1 ? lastSoalRef : undefined}>
-              <Card className="ios-glass-card border-border/30 rounded-2xl">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className="rounded-lg">Soal {index + 1}</Badge>
-                      <Badge variant="outline" className="rounded-lg">
-                        {soal.tipeJawaban === "PILIHAN_GANDA" ? "Pilihan Ganda" : "Essay"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSoal(index, -1)}
-                        disabled={index === 0}
-                        aria-label="Pindah ke atas"
-                      >
-                        <ArrowUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => moveSoal(index, 1)}
-                        disabled={index === soalList.length - 1}
-                        aria-label="Pindah ke bawah"
-                      >
-                        <ArrowDown className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => duplicateSoal(index)}
-                        aria-label="Duplikasi soal"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSoalList((prev) => prev.filter((_, i) => i !== index))}
-                        className="text-red-600 hover:text-red-700"
-                        aria-label="Hapus soal"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-[1fr_220px]">
-                    <div className="space-y-2">
-                      <Label>Pertanyaan *</Label>
-                      <Textarea
-                        value={soal.pertanyaan}
-                        onChange={(e) =>
-                          setSoalList((prev) => {
-                            const next = [...prev]
-                            next[index] = { ...next[index], pertanyaan: e.target.value }
-                            return next
-                          })
-                        }
-                        placeholder="Masukkan pertanyaan..."
-                        rows={3}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Tipe Soal</Label>
-                      <Select
-                        value={soal.tipeJawaban}
-                        onValueChange={(v) =>
-                          setSoalList((prev) => {
-                            const next = [...prev]
-                            const tipeJawaban = v as TipeSoal
-                            const existing = next[index]
-                            next[index] = {
-                              ...existing,
-                              tipeJawaban,
-                              opsi:
-                                tipeJawaban === "PILIHAN_GANDA"
-                                  ? (existing.opsi?.length ? existing.opsi : [
-                                      { teks: "", isBenar: false },
-                                      { teks: "", isBenar: false },
-                                      { teks: "", isBenar: false },
-                                      { teks: "", isBenar: false },
-                                    ])
-                                  : [],
-                            }
-                            return next
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih tipe soal" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="PILIHAN_GANDA">Pilihan Ganda</SelectItem>
-                          <SelectItem value="ISIAN">Essay</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-end gap-4">
-                    <div className="space-y-2">
-                      <Label>Poin *</Label>
-                      <Input
-                        type="number"
-                        value={soal.bobot}
-                        onChange={(e) =>
-                          setSoalList((prev) => {
-                            const next = [...prev]
-                            next[index] = { ...next[index], bobot: parseInt(e.target.value) || 10 }
-                            return next
-                          })
-                        }
-                        min={1}
-                        className="max-w-[140px]"
-                      />
-                    </div>
-                  </div>
-
-                  {soal.tipeJawaban === "PILIHAN_GANDA" ? (
-                    <>
-                      <Separator />
-                      <div className="space-y-3">
-                        <Label>Pilihan Jawaban *</Label>
-                        <p className="text-xs text-muted-foreground">
-                          Klik tombol centang untuk menandai jawaban yang benar.
-                        </p>
-                        {(soal.opsi || []).map((opsi, opsiIndex) => (
-                          <div key={opsiIndex} className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <Button
                               type="button"
-                              variant={opsi.isBenar ? "default" : "outline"}
+                              variant="ghost"
                               size="sm"
-                              className="shrink-0"
-                              onClick={() =>
-                                setSoalList((prev) => {
-                                  const next = [...prev]
-                                  const s = next[index]
-                                  const opsiNext = (s.opsi || []).map((o, i) => ({
-                                    ...o,
-                                    isBenar: i === opsiIndex,
-                                  }))
-                                  next[index] = { ...s, opsi: opsiNext }
-                                  return next
-                                })
-                              }
-                              aria-label={`Tandai jawaban benar opsi ${opsiIndex + 1}`}
+                              onClick={() => moveSoal(index, -1)}
+                              disabled={index === 0}
+                              aria-label="Pindah ke atas"
                             >
-                              {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                              <ArrowUp className="h-4 w-4" />
                             </Button>
-                            <Input
-                              value={opsi.teks}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => moveSoal(index, 1)}
+                              disabled={index === soalList.length - 1}
+                              aria-label="Pindah ke bawah"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => duplicateSoal(index)}
+                              aria-label="Duplikasi soal"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSoalList((prev) => prev.filter((_, i) => i !== index))}
+                              className="text-red-600 hover:text-red-700"
+                              aria-label="Hapus soal"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid gap-4 md:grid-cols-[1fr_220px]">
+                          <div className="space-y-2">
+                            <Label>Pertanyaan *</Label>
+                            <Textarea
+                              value={soal.pertanyaan}
                               onChange={(e) =>
                                 setSoalList((prev) => {
                                   const next = [...prev]
-                                  const s = next[index]
-                                  const opsiNext = [...(s.opsi || [])]
-                                  opsiNext[opsiIndex] = { ...opsiNext[opsiIndex], teks: e.target.value }
-                                  next[index] = { ...s, opsi: opsiNext }
+                                  next[index] = { ...next[index], pertanyaan: e.target.value }
                                   return next
                                 })
                               }
-                              placeholder={`Pilihan ${opsiIndex + 1}`}
-                              className={opsi.isBenar ? "border-green-500" : ""}
+                              placeholder="Masukkan pertanyaan..."
+                              rows={3}
                             />
                           </div>
-                        ))}
 
-                        <div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() =>
-                              setSoalList((prev) => {
-                                const next = [...prev]
-                                const s = next[index]
-                                next[index] = {
-                                  ...s,
-                                  opsi: [...(s.opsi || []), { teks: "", isBenar: false }],
-                                }
-                                return next
-                              })
-                            }
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Tambah Opsi
-                          </Button>
+                          <div className="space-y-2">
+                            <Label>Tipe Soal</Label>
+                            <Select
+                              value={soal.tipeJawaban}
+                              onValueChange={(v) =>
+                                setSoalList((prev) => {
+                                  const next = [...prev]
+                                  const tipeJawaban = v as TipeSoal
+                                  const existing = next[index]
+                                  next[index] = {
+                                    ...existing,
+                                    tipeJawaban,
+                                    opsi:
+                                      tipeJawaban === "PILIHAN_GANDA"
+                                        ? (existing.opsi?.length ? existing.opsi : [
+                                            { teks: "", isBenar: false },
+                                            { teks: "", isBenar: false },
+                                            { teks: "", isBenar: false },
+                                            { teks: "", isBenar: false },
+                                          ])
+                                        : [],
+                                  }
+                                  return next
+                                })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Pilih tipe soal" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="PILIHAN_GANDA">Pilihan Ganda</SelectItem>
+                                <SelectItem value="ISIAN">Essay</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-end gap-4">
+                          <div className="space-y-2">
+                            <Label>Poin *</Label>
+                            <Input
+                              type="number"
+                              value={soal.bobot}
+                              onChange={(e) =>
+                                setSoalList((prev) => {
+                                  const next = [...prev]
+                                  next[index] = { ...next[index], bobot: parseInt(e.target.value) || 10 }
+                                  return next
+                                })
+                              }
+                              min={1}
+                              className="max-w-[140px]"
+                            />
+                          </div>
+                        </div>
+
+                        {soal.tipeJawaban === "PILIHAN_GANDA" ? (
+                          <>
+                            <Separator />
+                            <div className="space-y-3">
+                              <Label>Pilihan Jawaban *</Label>
+                              <p className="text-xs text-muted-foreground">
+                                Klik tombol centang untuk menandai jawaban yang benar.
+                              </p>
+                              {(soal.opsi || []).map((opsi, opsiIndex) => (
+                                <div key={opsiIndex} className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant={opsi.isBenar ? "default" : "outline"}
+                                    size="sm"
+                                    className="shrink-0"
+                                    onClick={() =>
+                                      setSoalList((prev) => {
+                                        const next = [...prev]
+                                        const s = next[index]
+                                        const opsiNext = (s.opsi || []).map((o, i) => ({
+                                          ...o,
+                                          isBenar: i === opsiIndex,
+                                        }))
+                                        next[index] = { ...s, opsi: opsiNext }
+                                        return next
+                                      })
+                                    }
+                                    aria-label={`Tandai jawaban benar opsi ${opsiIndex + 1}`}
+                                  >
+                                    {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                                  </Button>
+                                  <Input
+                                    value={opsi.teks}
+                                    onChange={(e) =>
+                                      setSoalList((prev) => {
+                                        const next = [...prev]
+                                        const s = next[index]
+                                        const opsiNext = [...(s.opsi || [])]
+                                        opsiNext[opsiIndex] = { ...opsiNext[opsiIndex], teks: e.target.value }
+                                        next[index] = { ...s, opsi: opsiNext }
+                                        return next
+                                      })
+                                    }
+                                    placeholder={`Pilihan ${opsiIndex + 1}`}
+                                    className={opsi.isBenar ? "border-green-500" : ""}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-muted-foreground"
+                                    onClick={() =>
+                                      setSoalList((prev) => {
+                                        const next = [...prev]
+                                        const s = next[index]
+                                        const opsiNext = (s.opsi || []).filter((_, i) => i !== opsiIndex)
+                                        next[index] = { ...s, opsi: opsiNext }
+                                        return next
+                                      })
+                                    }
+                                    aria-label="Hapus opsi"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+
+                              <div>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() =>
+                                    setSoalList((prev) => {
+                                      const next = [...prev]
+                                      const s = next[index]
+                                      next[index] = {
+                                        ...s,
+                                        opsi: [...(s.opsi || []), { teks: "", isBenar: false }],
+                                      }
+                                      return next
+                                    })
+                                  }
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Tambah Opsi
+                                </Button>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="rounded-xl border p-4 text-sm text-muted-foreground">
+                            Soal essay akan dinilai manual oleh guru. (Tidak perlu pilihan jawaban)
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+
+                <Button
+                  type="button"
+                  onClick={addSoal}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Soal
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Settings sticky */}
+          <div className="lg:sticky lg:top-6 space-y-4">
+            {showSettings && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
+                <CardHeader>
+                  <CardTitle className="text-base">Settings</CardTitle>
+                  <CardDescription>Pengaturan tanggal, durasi, kelas target, dan opsi lainnya.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
+                    <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
+                  </div>
+
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="tglMulai">Tanggal Mulai (opsional)</Label>
+                      <Input id="tglMulai" type="datetime-local" value={tglMulai} onChange={(e) => setTglMulai(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tglSelesai">Tanggal Selesai (opsional)</Label>
+                      <Input id="tglSelesai" type="datetime-local" value={tglSelesai} onChange={(e) => setTglSelesai(e.target.value)} />
+                    </div>
+                  </div>
+
+                  {tipe === "KUIS" && (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 gap-3">
+                        <div className="flex items-center gap-2 rounded-lg border p-3">
+                          <label className="flex items-center gap-2 cursor-pointer flex-1">
+                            <Checkbox checked={antiCurang} onCheckedChange={(v) => setAntiCurang(Boolean(v))} />
+                            <span className="text-sm">Anti Curang</span>
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                                aria-label="Info Anti Curang"
+                              >
+                                Info
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent align="end" className="w-80">
+                              <div className="space-y-2">
+                                <div className="text-sm font-medium">Anti Curang</div>
+                                <p className="text-xs text-muted-foreground">
+                                  Jika diaktifkan, siswa akan mendapat peringatan saat meninggalkan tab/jendela kuis.
+                                  Kuis bisa otomatis dikumpulkan jika siswa tidak kembali dalam waktu tertentu atau jika pelanggaran berulang.
+                                </p>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-lg border p-3">
+                          <label className="flex items-center gap-2 cursor-pointer flex-1">
+                            <Checkbox checked={acakSoal} onCheckedChange={(v) => setAcakSoal(Boolean(v))} />
+                            <span className="text-sm">Acak Soal</span>
+                          </label>
+                        </div>
+
+                        <div className="flex items-center gap-2 rounded-lg border p-3">
+                          <label className="flex items-center gap-2 cursor-pointer flex-1">
+                            <Checkbox checked={acakJawaban} onCheckedChange={(v) => setAcakJawaban(Boolean(v))} />
+                            <span className="text-sm">Acak Jawaban</span>
+                          </label>
                         </div>
                       </div>
-                    </>
-                  ) : (
-                    <div className="rounded-xl border p-4 text-sm text-muted-foreground">
-                      Soal essay akan dinilai manual oleh guru. (Tidak perlu pilihan jawaban)
                     </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label>Target Kelas (opsional)</Label>
+                    <p className="text-xs text-muted-foreground">Jika tidak dipilih, asesmen berlaku untuk semua siswa.</p>
+
+                    {loadingKelas ? (
+                      <div className="text-sm text-muted-foreground">Loading kelas...</div>
+                    ) : kelasList.length === 0 ? (
+                      <div className="text-sm text-muted-foreground">Belum ada data kelas.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 gap-2">
+                        {kelasList.map((k) => {
+                          const checked = selectedKelas.includes(k.id)
+                          return (
+                            <label key={k.id} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
+                              <Checkbox checked={checked} onCheckedChange={(v) => toggleKelas(k.id, Boolean(v))} />
+                              <span className="text-sm">{k.nama}</span>
+                            </label>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {tipe === "TUGAS" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label>Tipe Pengerjaan</Label>
+                        <Select value={tipePengerjaan} onValueChange={(v) => setTipePengerjaan(v as any)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih tipe pengerjaan" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INDIVIDU">Individu</SelectItem>
+                            <SelectItem value="KELOMPOK">Kelompok</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="file">Lampiran (opsional)</Label>
+                        <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+                        {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
+                      </div>
+                    </>
                   )}
                 </CardContent>
               </Card>
-              </div>
-            ))}
-
-            <Button
-              type="button"
-              onClick={addSoal}
-              className="w-full"
-              variant="outline"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Soal
-            </Button>
+            )}
           </div>
-        )}
+        </div>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Menyimpan..." : "Simpan Asesmen"}
