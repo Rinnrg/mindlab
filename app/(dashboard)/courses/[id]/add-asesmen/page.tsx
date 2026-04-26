@@ -23,6 +23,9 @@ import {
   Settings as SettingsIcon,
   Eye,
   EyeOff,
+  Copy,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react"
 
 type TipeSoal = "PILIHAN_GANDA" | "ISIAN"
@@ -97,6 +100,60 @@ export default function AddAsesmenPage() {
     },
   ])
   const [showSettings, setShowSettings] = React.useState(true)
+
+  const lastSoalRef = React.useRef<HTMLDivElement | null>(null)
+
+  const scrollToLastSoal = React.useCallback(() => {
+    // Delay to wait for DOM render
+    setTimeout(() => {
+      lastSoalRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 60)
+  }, [])
+
+  const addSoal = React.useCallback(() => {
+    setSoalList((prev) => [
+      ...prev,
+      {
+        pertanyaan: "",
+        gambar: "",
+        bobot: 10,
+        tipeJawaban: "PILIHAN_GANDA",
+        opsi: [
+          { teks: "", isBenar: false },
+          { teks: "", isBenar: false },
+          { teks: "", isBenar: false },
+          { teks: "", isBenar: false },
+        ],
+      },
+    ])
+    scrollToLastSoal()
+  }, [scrollToLastSoal])
+
+  const duplicateSoal = React.useCallback((index: number) => {
+    setSoalList((prev) => {
+      const source = prev[index]
+      if (!source) return prev
+      const clone: Soal = {
+        ...source,
+        opsi: (source.opsi || []).map((o) => ({ ...o })),
+      }
+      const next = [...prev]
+      next.splice(index + 1, 0, clone)
+      return next
+    })
+    scrollToLastSoal()
+  }, [scrollToLastSoal])
+
+  const moveSoal = React.useCallback((from: number, direction: -1 | 1) => {
+    setSoalList((prev) => {
+      const to = from + direction
+      if (to < 0 || to >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }, [])
 
   React.useEffect(() => {
     let cancelled = false
@@ -483,7 +540,8 @@ export default function AddAsesmenPage() {
         {tipe === "KUIS" && (
           <div className="space-y-4">
             {soalList.map((soal, index) => (
-              <Card key={index} className="ios-glass-card border-border/30 rounded-2xl">
+              <div key={index} ref={index === soalList.length - 1 ? lastSoalRef : undefined}>
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -492,16 +550,47 @@ export default function AddAsesmenPage() {
                         {soal.tipeJawaban === "PILIHAN_GANDA" ? "Pilihan Ganda" : "Essay"}
                       </Badge>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSoalList((prev) => prev.filter((_, i) => i !== index))}
-                      className="text-red-600 hover:text-red-700"
-                      aria-label="Hapus soal"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveSoal(index, -1)}
+                        disabled={index === 0}
+                        aria-label="Pindah ke atas"
+                      >
+                        <ArrowUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => moveSoal(index, 1)}
+                        disabled={index === soalList.length - 1}
+                        aria-label="Pindah ke bawah"
+                      >
+                        <ArrowDown className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => duplicateSoal(index)}
+                        aria-label="Duplikasi soal"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSoalList((prev) => prev.filter((_, i) => i !== index))}
+                        className="text-red-600 hover:text-red-700"
+                        aria-label="Hapus soal"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -657,27 +746,12 @@ export default function AddAsesmenPage() {
                   )}
                 </CardContent>
               </Card>
+              </div>
             ))}
 
             <Button
               type="button"
-              onClick={() =>
-                setSoalList((prev) => [
-                  ...prev,
-                  {
-                    pertanyaan: "",
-                    gambar: "",
-                    bobot: 10,
-                    tipeJawaban: "PILIHAN_GANDA",
-                    opsi: [
-                      { teks: "", isBenar: false },
-                      { teks: "", isBenar: false },
-                      { teks: "", isBenar: false },
-                      { teks: "", isBenar: false },
-                    ],
-                  },
-                ])
-              }
+              onClick={addSoal}
               className="w-full"
               variant="outline"
             >
