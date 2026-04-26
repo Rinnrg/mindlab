@@ -351,25 +351,7 @@ export default function AddAsesmenPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
           {/* Left: Builder + content utama */}
           <div className="space-y-6">
-            {/* Tipe asesmen dipindah ke konten utama (bukan di settings) */}
-            <Card className="ios-glass-card border-border/30 rounded-2xl">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Tipe Asesmen</CardTitle>
-                <CardDescription>Pilih apakah ini kuis atau tugas.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Select value={tipe} onValueChange={(v) => setTipe(v as TipeAsesmen)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih tipe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="KUIS">Kuis</SelectItem>
-                    <SelectItem value="TUGAS">Tugas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </CardContent>
-            </Card>
-
+            {/* Catatan: Tipe asesmen tidak dipilih di UI ini (tiap asesmen sudah punya tipe). */}
             {/* Builder soal ala Google Form */}
             {tipe === "KUIS" && (
               <div className="space-y-4">
