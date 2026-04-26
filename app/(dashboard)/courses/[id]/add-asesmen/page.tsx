@@ -20,9 +20,6 @@ import {
   Plus,
   Trash2,
   Check,
-  Settings as SettingsIcon,
-  Eye,
-  EyeOff,
   Copy,
   ArrowUp,
   ArrowDown,
@@ -375,62 +372,48 @@ export default function AddAsesmenPage() {
                               disabled={index === 0}
                               aria-label="Pindah ke atas"
                             >
-                              <ArrowUp className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => moveSoal(index, 1)}
-                              disabled={index === soalList.length - 1}
-                              aria-label="Pindah ke bawah"
-                            >
-                              <ArrowDown className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => duplicateSoal(index)}
-                              aria-label="Duplikasi soal"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setSoalList((prev) => prev.filter((_, i) => i !== index))}
-                              className="text-red-600 hover:text-red-700"
-                              aria-label="Hapus soal"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid gap-4 md:grid-cols-[1fr_220px]">
-                          <div className="space-y-2">
-                            <Label>Pertanyaan *</Label>
-                            <Textarea
-                              value={soal.pertanyaan}
-                              onChange={(e) =>
-                                setSoalList((prev) => {
-                                  const next = [...prev]
-                                  next[index] = { ...next[index], pertanyaan: e.target.value }
-                                  return next
-                                })
-                              }
-                              placeholder="Masukkan pertanyaan..."
-                              rows={3}
-                            />
-                          </div>
+                              <div className="min-h-screen">
+                                <div className="mx-auto w-full max-w-7xl px-4 py-8">
+                                  <div className="mb-6 flex items-start justify-between gap-4">
+                                    <div>
+                                      <h1 className="text-2xl font-semibold">Buat Asesmen</h1>
+                                      <p className="text-sm text-muted-foreground">Tambahkan asesmen untuk kursus ini.</p>
+                                    </div>
 
-                          <div className="space-y-2">
-                            <Label>Tipe Soal</Label>
-                            <Select
-                              value={soal.tipeJawaban}
+                                    <Button asChild variant="outline" className="rounded-xl">
+                                      <Link href={`/courses/${courseId}/asesmen`}>Kembali</Link>
+                                    </Button>
+                                  </div>
+
+                                  <form onSubmit={onSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+                                      {/* Left: Builder + content utama */}
+                                      <div className="space-y-6">
+                                        {/* Header card ala Google Form */}
+                                        <Card className="ios-glass-card border-border/30 rounded-2xl">
+                                          <CardContent className="pt-6 space-y-4">
+                                            <div className="space-y-2">
+                                              <Label htmlFor="judul">Judul *</Label>
+                                              <Input
+                                                id="judul"
+                                                value={nama}
+                                                onChange={(e) => setNama(e.target.value)}
+                                                placeholder="Judul asesmen (contoh: Kuis 1)"
+                                              />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                              <Label htmlFor="deskripsi">Deskripsi (opsional)</Label>
+                                              <Textarea
+                                                id="deskripsi"
+                                                value={deskripsi}
+                                                onChange={(e) => setDeskripsi(e.target.value)}
+                                                placeholder="Deskripsi (opsional)"
+                                                rows={4}
+                                              />
+                                            </div>
+                                          </CardContent>
+                                        </Card>
                               onValueChange={(v) =>
                                 setSoalList((prev) => {
                                   const next = [...prev]

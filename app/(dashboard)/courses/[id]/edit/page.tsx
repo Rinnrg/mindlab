@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, useMemo } from "react"
+import { useCallback, useRef, useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,6 +51,26 @@ export default function EditCoursePage() {
   const [originalCategory, setOriginalCategory] = useState("")
   const [originalThumbnail, setOriginalThumbnail] = useState<string | null>(null)
 
+  const descriptionRef = useRef<HTMLTextAreaElement | null>(null)
+
+  const wrapSelection = useCallback((wrapper: string) => {
+    const el = descriptionRef.current
+    if (!el) return
+
+    const start = el.selectionStart ?? 0
+    const end = el.selectionEnd ?? 0
+    const selected = description.slice(start, end)
+    const next = description.slice(0, start) + wrapper + selected + wrapper + description.slice(end)
+    setDescription(next)
+
+    // restore caret selection after state update
+    requestAnimationFrame(() => {
+      el.focus()
+      const cursorStart = start + wrapper.length
+      const cursorEnd = end + wrapper.length
+      el.setSelectionRange(cursorStart, cursorEnd)
+    })
+  }, [description])
   const categories = categoriesMap[locale]
   
   // Set custom breadcrumb
@@ -289,11 +308,27 @@ export default function EditCoursePage() {
             {/* Description */}
             <div className="space-y-2">
               <Label htmlFor="description">{t("Deskripsi Kursus")}</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => wrapSelection("**")}
+                  title={t("Tebalkan teks")}
+                >
+                  <span className="font-bold">B</span>
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  {t("Gunakan Enter untuk baris baru. Bold: pilih teks lalu klik B atau pakai **text**")}
+                </p>
+              </div>
               <Textarea
                 id="description"
                 placeholder={t("Jelaskan apa yang akan dipelajari siswa dalam kursus ini...")}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                ref={descriptionRef}
                 rows={4}
               />
             </div>

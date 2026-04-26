@@ -1,3 +1,4 @@
+import * as React from "react"
 "use client"
 
 import { useState, useEffect, useCallback, useMemo } from "react"
@@ -314,16 +315,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
               <h1 className="text-lg font-bold text-background sm:text-2xl md:text-3xl text-balance">{course.judul}</h1>
             </div>
           </div>
-          
-          {/* Course Description */}
-          {course.deskripsi && (
-            <Card className="ios-glass-card border-border/30 rounded-2xl">
-              <CardContent className="p-4 sm:p-6">
-                <h3 className="text-base font-semibold mb-3">Deskripsi Course</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">{course.deskripsi}</p>
-              </CardContent>
-            </Card>
-          )}
         </div>
 
         {/* Course Info Card - iOS Glass */}
@@ -408,6 +399,29 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             )}
           </CardContent>
         </Card>
+
+        {/* Course Description - full width */}
+        {course.deskripsi && (
+          <Card className="ios-glass-card border-border/30 rounded-2xl lg:col-span-3">
+            <CardContent className="p-4 sm:p-6">
+              <h3 className="text-base font-semibold mb-3">Deskripsi Course</h3>
+              <div className="text-sm leading-relaxed text-muted-foreground sm:text-base whitespace-pre-wrap">
+                {course.deskripsi
+                  .split(/(\*\*[^*]+\*\*)/g)
+                  .filter(Boolean)
+                  .map((chunk, i) => {
+                    const isBold = chunk.startsWith("**") && chunk.endsWith("**")
+                    if (!isBold) return <React.Fragment key={i}>{chunk}</React.Fragment>
+                    return (
+                      <strong key={i} className="font-semibold text-foreground">
+                        {chunk.slice(2, -2)}
+                      </strong>
+                    )
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Tabs - iOS Style */}
