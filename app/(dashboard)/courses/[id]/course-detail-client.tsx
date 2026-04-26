@@ -106,7 +106,9 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         return true
       }
       // Cek apakah kelas siswa termasuk dalam kelasTarget
-      return materi.kelasTarget.includes(user.kelas)
+  const kelas = user.kelas
+  if (!kelas) return false
+  return materi.kelasTarget.includes(kelas)
     })
   }, [course.materi, user?.kelas, isTeacherOrAdmin])
 
@@ -122,7 +124,9 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         return true
       }
       // Cek apakah kelas siswa termasuk dalam kelasTarget
-      return asesmen.kelasTarget.includes(user.kelas)
+  const kelas = user.kelas
+  if (!kelas) return false
+  return asesmen.kelasTarget.includes(kelas)
     })
   }, [assessments, user?.kelas, isTeacherOrAdmin])
 
@@ -541,7 +545,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <h2 className="text-base font-semibold sm:text-lg">Daftar Asesmen</h2>
             {isTeacherOrAdmin && (
               <Button size="sm" className="w-full sm:w-auto rounded-xl" asChild>
-                <Link href={`/courses/${course.id}/new?type=asesmen`}>
+                <Link href={`/courses/${course.id}/add-asesmen`}>
                   <Plus className="mr-2 h-4 w-4" />
                   Buat Asesmen
                 </Link>

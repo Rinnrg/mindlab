@@ -12,6 +12,7 @@ export interface User {
   nama: string
   role: UserRole
   foto?: string
+  kelas?: string
   createdAt: Date
 }
 
@@ -139,7 +140,9 @@ export interface AnggotaKelompok {
   siswa?: User
 }
 
-export interface PengumpulanProyek {
+// NOTE: There was a duplicate interface name `PengumpulanProyek` below.
+// Renamed to avoid TypeScript merging conflicts.
+export interface PengumpulanProyekLink {
   id: string
   link?: string
   catatan?: string
