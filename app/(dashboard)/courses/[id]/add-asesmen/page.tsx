@@ -335,7 +335,7 @@ export default function AddAsesmenPage() {
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
           {/* Left: Panel nomor soal (sticky) */}
-          <div className="lg:sticky lg:top-6 space-y-4">
+          <div className="lg:sticky lg:top-20 space-y-4">
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader className="pb-3">
@@ -618,7 +618,7 @@ export default function AddAsesmenPage() {
           </div>
 
           {/* Right: Settings sticky */}
-          <div className="lg:sticky lg:top-6 space-y-4">
+          <div className="lg:sticky lg:top-20 space-y-4">
             {showSettings && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader>

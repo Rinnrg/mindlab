@@ -250,7 +250,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
       <ActionFeedback />
 
       {/* Sidebar - Materi List - iOS Glass */}
-      <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-8 h-[calc(100vh-4rem)] mt-8 relative z-0">
+  <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-20 h-[calc(100vh-5rem)] mt-8 relative z-0">
         <div className="p-4 sm:p-6 border-b border-border/30 shrink-0">
           <h2 className="font-semibold text-lg mb-1">Daftar Materi</h2>
           <p className="text-sm text-muted-foreground">Pilih materi untuk melihat detail</p>
