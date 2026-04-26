@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 
@@ -223,18 +224,86 @@ export default function AddAsesmenPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
-                <Checkbox checked={antiCurang} onCheckedChange={(v) => setAntiCurang(Boolean(v))} />
-                <span className="text-sm">Anti Curang</span>
-              </label>
-              <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
-                <Checkbox checked={acakSoal} onCheckedChange={(v) => setAcakSoal(Boolean(v))} />
-                <span className="text-sm">Acak Soal</span>
-              </label>
-              <label className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
-                <Checkbox checked={acakJawaban} onCheckedChange={(v) => setAcakJawaban(Boolean(v))} />
-                <span className="text-sm">Acak Jawaban</span>
-              </label>
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Checkbox checked={antiCurang} onCheckedChange={(v) => setAntiCurang(Boolean(v))} />
+                  <span className="text-sm">Anti Curang</span>
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                      aria-label="Info Anti Curang"
+                    >
+                      Info
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-80">
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Anti Curang</div>
+                      <p className="text-xs text-muted-foreground">
+                        Jika diaktifkan, siswa akan mendapat peringatan saat meninggalkan tab/jendela kuis.
+                        Kuis bisa otomatis dikumpulkan jika siswa tidak kembali dalam waktu tertentu atau jika pelanggaran berulang.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Checkbox checked={acakSoal} onCheckedChange={(v) => setAcakSoal(Boolean(v))} />
+                  <span className="text-sm">Acak Soal</span>
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                      aria-label="Info Acak Soal"
+                    >
+                      Info
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-80">
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Acak Soal</div>
+                      <p className="text-xs text-muted-foreground">
+                        Jika diaktifkan, urutan soal akan diacak untuk setiap siswa (berdasarkan seed) sehingga
+                        tiap siswa bisa mendapat urutan yang berbeda.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <label className="flex items-center gap-2 cursor-pointer flex-1">
+                  <Checkbox checked={acakJawaban} onCheckedChange={(v) => setAcakJawaban(Boolean(v))} />
+                  <span className="text-sm">Acak Jawaban</span>
+                </label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                      aria-label="Info Acak Jawaban"
+                    >
+                      Info
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-80">
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Acak Jawaban</div>
+                      <p className="text-xs text-muted-foreground">
+                        Jika diaktifkan, pilihan jawaban untuk soal pilihan ganda akan diacak urutannya untuk setiap siswa.
+                        Kunci jawaban tetap sama karena sistem menilai berdasarkan ID opsi.
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
 
             <div className="space-y-2">
