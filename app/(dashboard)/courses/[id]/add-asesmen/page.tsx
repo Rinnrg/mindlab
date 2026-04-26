@@ -24,6 +24,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 type TipeSoal = "PILIHAN_GANDA" | "ISIAN"
 
@@ -57,6 +58,8 @@ export default function AddAsesmenPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const courseId = params.id
+
+  const { user } = useAuth()
 
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
@@ -193,6 +196,12 @@ export default function AddAsesmenPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    const guruId = user?.id
+    if (!guruId) {
+      showError("Error", "Akun guru tidak terdeteksi. Silakan login ulang.")
+      return
+    }
+
     if (!nama.trim()) {
       showError("Error", "Nama asesmen wajib diisi")
       return
@@ -226,7 +235,7 @@ export default function AddAsesmenPage() {
       }
     }
 
-    setIsSubmitting(true)
+  setIsSubmitting(true)
 
   const result = await execute(
       async () => {
@@ -251,6 +260,7 @@ export default function AddAsesmenPage() {
           tgl_mulai: tglMulai || null,
           tgl_selesai: tglSelesai || null,
           courseId,
+          guruId,
           antiCurang,
           acakSoal,
           acakJawaban,
@@ -391,6 +401,10 @@ export default function AddAsesmenPage() {
           <div className="space-y-6">
             {/* Header card ala Google Form (compact) */}
             <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Judul</CardTitle>
+                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
+              </CardHeader>
               <CardContent className="p-4 sm:p-5 space-y-3">
                 <Input
                   value={nama}
@@ -622,7 +636,7 @@ export default function AddAsesmenPage() {
             {showSettings && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-base">Settings</CardTitle>
+                  <CardTitle className="text-base">Informasi</CardTitle>
                   <CardDescription>Pengaturan tanggal, durasi, kelas target, dan opsi lainnya.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
