@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,13 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
-import { Loader2, Plus, Trash2, Check, X, ImagePlus, Users } from "lucide-react"
+import { Loader2, Plus, Trash2, Check, X, ImagePlus, Users, ArrowUp, ArrowDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { FileUploadField } from "@/components/file-upload-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { Switch } from "@/components/ui/switch"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 interface AsesmenEditFormProps {
   asesmenId: string
@@ -51,21 +52,10 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [courses, setCourses] = useState<any[]>([])
-  const [currentStep, setCurrentStep] = useState<'basic' | 'questions'>('basic')
   const [soalList, setSoalList] = useState<Soal[]>([])
-  const [currentSoal, setCurrentSoal] = useState<Soal>({
-    pertanyaan: "",
-    gambar: "",
-    bobot: 10,
-    tipeJawaban: 'PILIHAN_GANDA',
-    opsi: [
-      { teks: "", isBenar: false },
-      { teks: "", isBenar: false },
-      { teks: "", isBenar: false },
-      { teks: "", isBenar: false },
-    ]
-  })
   const lastSoalRef = useRef<HTMLDivElement>(null)
+  const [activeSoalIndex, setActiveSoalIndex] = useState(0)
+  const dragFromIndexRef = useRef<number | null>(null)
   
   const [formData, setFormData] = useState({
     nama: "",
@@ -78,6 +68,8 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     lampiran: "",
     courseId: "",
     antiCurang: false,
+  acakSoal: false,
+  acakJawaban: false,
   })
   const [kelasTarget, setKelasTarget] = useState<string[]>([])
   const [enrollments, setEnrollments] = useState<any[]>([])
@@ -143,6 +135,35 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [asesmenId, isAuthLoading, user?.id, user?.role])
 
+  const scrollToLastSoal = useCallback(() => {
+    setTimeout(() => {
+      lastSoalRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    }, 60)
+  }, [])
+
+  const moveSoal = useCallback((from: number, direction: -1 | 1) => {
+    setSoalList((prev) => {
+      const to = from + direction
+      if (to < 0 || to >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }, [])
+
+  const moveSoalToIndex = useCallback((from: number, to: number) => {
+    setSoalList((prev) => {
+      if (from === to) return prev
+      if (from < 0 || from >= prev.length) return prev
+      if (to < 0 || to >= prev.length) return prev
+      const next = [...prev]
+      const [item] = next.splice(from, 1)
+      next.splice(to, 0, item)
+      return next
+    })
+  }, [])
+
   const fetchData = async () => {
     try {
       setIsLoading(true)
@@ -201,6 +222,8 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
         lampiran: asesmen.lampiran || "",
         courseId: asesmen.courseId || "",
         antiCurang: !!asesmen.antiCurang,
+  acakSoal: !!asesmen.acakSoal,
+  acakJawaban: !!asesmen.acakJawaban,
       })
 
       // Set kelasTarget from asesmen data
@@ -222,7 +245,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
 
   const handleAddSoal = () => {
     // Langsung tambahkan soal kosong baru ke list tanpa validasi
-    setSoalList([...soalList, {
+  setSoalList([...soalList, {
       pertanyaan: "",
       gambar: "",
       bobot: 10,
@@ -235,10 +258,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       ]
     }])
 
-    // Scroll ke soal baru setelah render
-    setTimeout(() => {
-      lastSoalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 100)
+  scrollToLastSoal()
   }
 
   const handleRemoveSoal = (index: number) => {
@@ -299,37 +319,6 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     }))
     newList[soalIndex] = { ...newList[soalIndex], opsi: newOpsi }
     setSoalList(newList)
-  }
-
-  const handleOpsiChange = (index: number, value: string) => {
-    const newOpsi = [...currentSoal.opsi]
-    newOpsi[index].teks = value
-    setCurrentSoal({ ...currentSoal, opsi: newOpsi })
-  }
-
-  const handleCorrectAnswerChange = (index: number) => {
-    const newOpsi = currentSoal.opsi.map((o, i) => ({
-      ...o,
-      isBenar: i === index
-    }))
-    setCurrentSoal({ ...currentSoal, opsi: newOpsi })
-  }
-
-  const handleNext = () => {
-    if (!formData.nama || !formData.tipe || !formData.courseId) {
-      showError("Error", "Nama, tipe, dan course wajib diisi")
-      return
-    }
-
-    if (formData.tipe === 'KUIS') {
-      setCurrentStep('questions')
-    } else {
-      handleSubmit()
-    }
-  }
-
-  const handleBack = () => {
-    setCurrentStep('basic')
   }
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -445,408 +434,347 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     )
   }
 
-  // Render step pertanyaan untuk KUIS
-  if (currentStep === 'questions' && formData.tipe === 'KUIS') {
-    return (
-      <>
-        <AlertComponent />
-        <div className="space-y-6">
-        {/* Daftar Soal - semua bisa diedit inline */}
-        {soalList.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Daftar Soal ({soalList.length})</h3>
-            {soalList.map((soal, index) => (
-              <Card key={index} ref={index === soalList.length - 1 ? lastSoalRef : undefined}>
+  // UI disamakan dengan Add Asesmen (single page, 3 kolom)
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <AlertComponent />
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleSubmit()
+        }}
+        className="space-y-6"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
+          {/* Left: Panel nomor soal (sticky) */}
+          <div className="lg:sticky lg:top-20 space-y-4">
+            {formData.tipe === "KUIS" && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">Soal {index + 1}</Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveSoal(index)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <CardTitle className="text-base">Panel Soal</CardTitle>
+                  <CardDescription>Drag untuk ubah urutan</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Pertanyaan *</Label>
-                    <Textarea
-                      value={soal.pertanyaan}
-                      onChange={(e) => handleSoalChange(index, 'pertanyaan', e.target.value)}
-                      placeholder="Masukkan pertanyaan..."
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Upload gambar opsional */}
-                  <div className="space-y-2">
-                    <Label>Gambar (Opsional)</Label>
-                    {soal.gambar ? (
-                      <div className="relative inline-block">
-                        <img
-                          src={soal.gambar}
-                          alt={`Gambar soal ${index + 1}`}
-                          className="max-h-48 rounded-lg border object-contain"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-1 right-1"
-                          onClick={() => handleRemoveSoalImage(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => handleSoalImageUpload(index, e)}
-                          className="max-w-sm"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Maks 2MB. Format: JPG, PNG, GIF
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Poin *</Label>
-                    <Input
-                      type="number"
-                      value={soal.bobot}
-                      onChange={(e) => handleSoalChange(index, 'bobot', parseInt(e.target.value) || 10)}
-                      placeholder="10"
-                      min="1"
-                      className="max-w-[120px]"
-                    />
-                  </div>
-
-                  <Separator />
-
-                  <div className="space-y-3">
-                    <Label>Pilihan Jawaban *</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Klik tombol centang untuk menandai jawaban yang benar
-                    </p>
-                    {soal.opsi.map((opsi, opsiIndex) => (
-                      <div key={opsiIndex} className="flex items-center gap-2">
-                        <Button
-                          type="button"
-                          variant={opsi.isBenar ? "default" : "outline"}
-                          size="sm"
-                          className="shrink-0"
-                          onClick={() => handleCorrectAnswerInList(index, opsiIndex)}
-                        >
-                          {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
-                        </Button>
-                        <Input
-                          value={opsi.teks}
-                          onChange={(e) => handleOpsiChangeInList(index, opsiIndex, e.target.value)}
-                          placeholder={`Pilihan ${opsiIndex + 1}`}
-                          className={opsi.isBenar ? "border-green-500" : ""}
-                        />
-                      </div>
-                    ))}
-                  </div>
+                <CardContent className="space-y-2">
+                  {soalList.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      draggable
+                      onClick={() => {
+                        setActiveSoalIndex(i)
+                        document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }}
+                      onDragStart={() => {
+                        dragFromIndexRef.current = i
+                      }}
+                      onDragOver={(ev) => ev.preventDefault()}
+                      onDrop={(ev) => {
+                        ev.preventDefault()
+                        const from = dragFromIndexRef.current
+                        dragFromIndexRef.current = null
+                        if (from === null) return
+                        moveSoalToIndex(from, i)
+                        setActiveSoalIndex(i)
+                        setTimeout(() => {
+                          document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                        }, 50)
+                      }}
+                      className={
+                        "w-full flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition " +
+                        (i === activeSoalIndex
+                          ? "bg-primary/10 border-primary/30 text-foreground"
+                          : "bg-background/30 hover:bg-background/50 border-border/30 text-muted-foreground")
+                      }
+                      aria-label={`Soal ${i + 1}`}
+                      title="Drag untuk pindah"
+                    >
+                      <span className="font-medium">Soal {i + 1}</span>
+                      <span className="text-xs">↕</span>
+                    </button>
+                  ))}
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Tombol tambah soal baru */}
-        <Button
-          type="button"
-          onClick={handleAddSoal}
-          className="w-full"
-          variant="outline"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Soal
-        </Button>
-
-        {/* Tombol navigasi */}
-        <div className="flex justify-end">
-          <Button
-            type="button"
-            onClick={() => handleSubmit()}
-            disabled={isSaving || soalList.length === 0}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Menyimpan...
-              </>
-            ) : (
-              'Simpan Kuis'
             )}
-          </Button>
-        </div>
-      </div>
-      </>
-    )
-  }
-
-  // Render form basic info
-  return (
-    <>
-      <AlertComponent />
-      <form onSubmit={(e) => {
-        e.preventDefault()
-        handleNext()
-      }}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Asesmen</CardTitle>
-          <CardDescription>
-            Perbarui informasi asesmen
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nama">Nama Asesmen *</Label>
-            <Input
-              id="nama"
-              value={formData.nama}
-              onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-              placeholder="Masukkan nama asesmen"
-              required
-            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="deskripsi">Deskripsi</Label>
-            <Textarea
-              id="deskripsi"
-              value={formData.deskripsi}
-              onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-              placeholder="Masukkan deskripsi asesmen"
-              rows={4}
-            />
-          </div>
+          {/* Middle: Builder utama */}
+          <div className="space-y-6">
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Judul</CardTitle>
+                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <Input
+                  value={formData.nama}
+                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                  placeholder="Judul asesmen (contoh: Kuis 1)"
+                  className="text-lg sm:text-xl font-semibold h-11"
+                />
+                <Textarea
+                  value={formData.deskripsi}
+                  onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
+                  placeholder="Deskripsi (opsional)"
+                  rows={2}
+                  className="min-h-[64px]"
+                />
+              </CardContent>
+            </Card>
 
-          <div className="space-y-3">
-            <Label>Enrollment Kelas</Label>
-            <p className="text-sm text-muted-foreground">
-              Pilih kelas yang dapat mengakses asesmen ini berdasarkan siswa yang terdaftar di course. Kosongkan untuk semua siswa.
-            </p>
-            
-            {isLoadingEnrollments ? (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                <span className="text-sm text-muted-foreground">Memuat data enrollment...</span>
-              </div>
-            ) : availableKelas.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {availableKelas.map((kelas) => {
-                    const studentCount = getStudentCountForKelas(kelas)
-                    return (
-                      <div key={kelas} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`edit-asesmen-kelas-${kelas}`}
-                            checked={kelasTarget.includes(kelas)}
-                            onCheckedChange={(checked) => handleKelasChange(kelas, checked as boolean)}
+            {formData.tipe === "KUIS" && (
+              <div className="space-y-4">
+                {soalList.map((soal, index) => (
+                  <div
+                    key={index}
+                    id={`soal-${index}`}
+                    ref={index === soalList.length - 1 ? lastSoalRef : undefined}
+                  >
+                    <Card className="ios-glass-card border-border/30 rounded-2xl">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="rounded-lg">Soal {index + 1}</Badge>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => moveSoal(index, -1)}
+                              disabled={index === 0}
+                              aria-label="Pindah ke atas"
+                            >
+                              <ArrowUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => moveSoal(index, 1)}
+                              disabled={index === soalList.length - 1}
+                              aria-label="Pindah ke bawah"
+                            >
+                              <ArrowDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveSoal(index)}
+                              className="text-muted-foreground"
+                              aria-label="Hapus soal"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Pertanyaan *</Label>
+                          <Textarea
+                            value={soal.pertanyaan}
+                            onChange={(e) => handleSoalChange(index, 'pertanyaan', e.target.value)}
+                            placeholder="Tulis pertanyaan/soal di sini..."
+                            rows={3}
                           />
-                          <Label htmlFor={`edit-asesmen-kelas-${kelas}`} className="text-sm font-normal cursor-pointer">
-                            {kelas}
-                          </Label>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {kelasTarget.includes(kelas) && (
-                            <Badge variant="default" className="text-xs px-2 py-0">
-                              Enrolled
-                            </Badge>
-                          )}
-                          <Badge variant="secondary" className="text-xs px-2 py-0">
-                            {studentCount} siswa
-                          </Badge>
+
+                        <div className="space-y-2">
+                          <Label>Poin *</Label>
+                          <Input
+                            type="number"
+                            value={soal.bobot}
+                            onChange={(e) => handleSoalChange(index, 'bobot', parseInt(e.target.value) || 10)}
+                            min={1}
+                            className="max-w-[140px]"
+                          />
                         </div>
+
+                        <Separator />
+
+                        <div className="space-y-3">
+                          <Label>Pilihan Jawaban *</Label>
+                          <p className="text-xs text-muted-foreground">
+                            Klik tombol centang untuk menandai jawaban yang benar.
+                          </p>
+                          {soal.opsi.map((opsi, opsiIndex) => (
+                            <div key={opsiIndex} className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant={opsi.isBenar ? "default" : "outline"}
+                                size="sm"
+                                className="shrink-0"
+                                onClick={() => handleCorrectAnswerInList(index, opsiIndex)}
+                                aria-label={`Tandai jawaban benar opsi ${opsiIndex + 1}`}
+                              >
+                                {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                              </Button>
+                              <Input
+                                value={opsi.teks}
+                                onChange={(e) => handleOpsiChangeInList(index, opsiIndex, e.target.value)}
+                                placeholder={`Pilihan ${opsiIndex + 1}`}
+                                className={opsi.isBenar ? "border-green-500" : ""}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+
+                <Button type="button" onClick={handleAddSoal} className="w-full" variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Soal
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Settings sticky */}
+          <div className="lg:sticky lg:top-20 space-y-4">
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-base">Informasi</CardTitle>
+                <CardDescription>Pengaturan tanggal, durasi, kelas target, dan opsi lainnya.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {formData.tipe === 'KUIS' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="flex items-center gap-2 rounded-lg border p-3">
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Checkbox
+                            checked={formData.antiCurang}
+                            onCheckedChange={(v) => setFormData({ ...formData, antiCurang: Boolean(v) })}
+                          />
+                          <span className="text-sm">Anti Curang</span>
+                        </label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+                              aria-label="Info Anti Curang"
+                            >
+                              Info
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent align="end" className="w-80">
+                            <div className="space-y-2">
+                              <div className="text-sm font-medium">Anti Curang</div>
+                              <p className="text-xs text-muted-foreground">
+                                Jika diaktifkan, siswa akan mendapat peringatan saat meninggalkan tab/jendela kuis.
+                              </p>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
-                    )
-                  })}
-                </div>
-                {kelasTarget.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex flex-wrap gap-1">
-                      {kelasTarget.map((kelas) => (
-                        <Badge key={kelas} variant="secondary" className="text-xs">
-                          {kelas} ({getStudentCountForKelas(kelas)} siswa)
-                        </Badge>
-                      ))}
-                    </div>
-                    <div className="text-xs text-muted-foreground bg-blue-50 p-2 rounded-md">
-                      📊 Total: {kelasTarget.length} kelas dipilih • {getTotalEnrolledStudents()} siswa akan mendapat akses
+
+                      <div className="flex items-center gap-2 rounded-lg border p-3">
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Checkbox
+                            checked={formData.acakSoal}
+                            onCheckedChange={(v) => setFormData({ ...formData, acakSoal: Boolean(v) })}
+                          />
+                          <span className="text-sm">Acak Soal</span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2 rounded-lg border p-3">
+                        <label className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Checkbox
+                            checked={formData.acakJawaban}
+                            onCheckedChange={(v) => setFormData({ ...formData, acakJawaban: Boolean(v) })}
+                          />
+                          <span className="text-sm">Acak Jawaban</span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 )}
-              </>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Belum ada siswa yang terdaftar di course ini</p>
-                <p className="text-xs">Tambahkan siswa terlebih dahulu untuk menggunakan enrollment kelas</p>
-              </div>
-            )}
+
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="tglMulai">Tanggal Mulai (opsional)</Label>
+                    <Input
+                      id="tglMulai"
+                      type="datetime-local"
+                      value={formData.tgl_mulai}
+                      onChange={(e) => setFormData({ ...formData, tgl_mulai: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tglSelesai">Tanggal Selesai (opsional)</Label>
+                    <Input
+                      id="tglSelesai"
+                      type="datetime-local"
+                      value={formData.tgl_selesai}
+                      onChange={(e) => setFormData({ ...formData, tgl_selesai: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
+                  <Input
+                    id="durasi"
+                    type="number"
+                    min={0}
+                    value={formData.durasi}
+                    onChange={(e) => setFormData({ ...formData, durasi: e.target.value })}
+                  />
+                </div>
+
+                {/* Enrollment Kelas (reuse existing UI) */}
+                <div className="space-y-2">
+                  <Label>Enrollment Kelas</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Pilih kelas yang dapat mengakses asesmen ini. Kosongkan untuk semua siswa.
+                  </p>
+                  {isLoadingEnrollments ? (
+                    <div className="text-sm text-muted-foreground">Memuat data enrollment...</div>
+                  ) : availableKelas.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-2">
+                      {availableKelas.map((kelas) => (
+                        <label key={kelas} className="flex items-center justify-between gap-2 rounded-lg border p-3 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={`edit-asesmen-kelas-${kelas}`}
+                              checked={kelasTarget.includes(kelas)}
+                              onCheckedChange={(checked) => handleKelasChange(kelas, checked as boolean)}
+                            />
+                            <span className="text-sm">{kelas}</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs px-2 py-0">
+                            {getStudentCountForKelas(kelas)} siswa
+                          </Badge>
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">Belum ada siswa yang terdaftar di course ini.</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
+        </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="tipe">Tipe *</Label>
-              <Select
-                value={formData.tipe}
-                onValueChange={(value) => setFormData({ ...formData, tipe: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih tipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="KUIS">Kuis</SelectItem>
-                  <SelectItem value="TUGAS">Tugas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {formData.tipe === 'TUGAS' && (
-              <div className="space-y-2">
-                <Label htmlFor="tipePengerjaan">Tipe Pengerjaan</Label>
-                <Select
-                  value={formData.tipePengerjaan}
-                  onValueChange={(value) => setFormData({ ...formData, tipePengerjaan: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih tipe pengerjaan" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INDIVIDU">Individu</SelectItem>
-                    <SelectItem value="KELOMPOK">Kelompok</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {formData.tipe === 'KUIS' && (
-              <div className="space-y-2">
-                <Label htmlFor="durasi">Durasi (menit)</Label>
-                <Input
-                  id="durasi"
-                  type="number"
-                  value={formData.durasi}
-                  onChange={(e) => setFormData({ ...formData, durasi: e.target.value })}
-                  placeholder="Masukkan durasi dalam menit"
-                  min="1"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Anti-Curang Toggle - hanya untuk KUIS */}
-          {formData.tipe === 'KUIS' && (
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="space-y-0.5">
-                <Label htmlFor="antiCurang" className="text-base font-medium">
-                  Mode Anti-Curang
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Jika diaktifkan, siswa akan mendapat peringatan saat meninggalkan jendela kuis. 
-                  Kuis akan otomatis dikumpulkan jika siswa tidak kembali dalam 30 detik.
-                  Jika pelanggaran lebih dari 10 kali, kuis akan langsung dikumpulkan secara otomatis.
-                </p>
-              </div>
-              <Switch
-                id="antiCurang"
-                checked={formData.antiCurang}
-                onCheckedChange={(checked) => setFormData({ ...formData, antiCurang: checked })}
-              />
-            </div>
+        <Button type="submit" className="w-full" disabled={isSaving}>
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Menyimpan...
+            </>
+          ) : (
+            "Simpan Perubahan"
           )}
-
-          <div className="space-y-2">
-            <Label htmlFor="courseId">Course *</Label>
-            <Select
-              value={formData.courseId}
-              onValueChange={(value) => setFormData({ ...formData, courseId: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih course" />
-              </SelectTrigger>
-              <SelectContent>
-                {courses.map((course) => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.judul}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="tgl_mulai">Tanggal Mulai</Label>
-              <DateTimePicker
-                id="tgl_mulai"
-                value={formData.tgl_mulai}
-                onChange={(val) => {
-                  console.log('tgl_mulai onChange:', val)
-                  setFormData({ ...formData, tgl_mulai: val })
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                Current: {formData.tgl_mulai || 'Not set'}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tgl_selesai">Tanggal Selesai</Label>
-              <DateTimePicker
-                id="tgl_selesai"
-                value={formData.tgl_selesai}
-                onChange={(val) => {
-                  console.log('tgl_selesai onChange:', val)
-                  setFormData({ ...formData, tgl_selesai: val })
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                Current: {formData.tgl_selesai || 'Not set'}
-              </p>
-            </div>
-          </div>
-
-          <FileUploadField
-            label="Lampiran"
-            description="Upload file atau masukkan link URL"
-            value={formData.lampiran}
-            onChange={(value) => setFormData({ ...formData, lampiran: value })}
-            accept=".pdf,.doc,.docx,.ppt,.pptx,.zip"
-          />
-
-          <div className="flex justify-end pt-4">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Menyimpan...
-                </>
-              ) : formData.tipe === 'KUIS' ? (
-                'Selanjutnya'
-              ) : (
-                'Simpan Perubahan'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </form>
-    </>
+        </Button>
+      </form>
+    </div>
   )
+
 }
