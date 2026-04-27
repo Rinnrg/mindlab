@@ -184,7 +184,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                   <div className="flex items-center gap-2">
                     {isTeacherOrAdmin && (
                       <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                        <Link href={`/courses/${course.id}/add-materi?sintak=${activeSintak}`}>
+                        <Link href={`/projects/${course.id}/add-materi?sintak=${activeSintak}`}>
                           <Plus className="h-4 w-4" />
                           Tambah BAB
                         </Link>
@@ -210,7 +210,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                           </div>
                           <div className="flex items-center gap-2">
                             <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/courses/${course.id}/${material.id}`}>
+                              <Link href={`/courses/${course.id}/${material.id}?from=pbl`}>
                                 Buka
                               </Link>
                             </Button>
@@ -223,7 +223,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/courses/${course.id}/${material.id}/edit`}>
+                                    <Link href={`/courses/${course.id}/${material.id}/edit?from=pbl`}>
                                       <Pencil className="mr-2 h-4 w-4" />
                                       Edit
                                     </Link>
@@ -257,7 +257,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                   </div>
                   {isTeacherOrAdmin && (
                     <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                      <Link href={`/courses/${course.id}/add-asesmen?sintak=${activeSintak}`}>
+                      <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}`}>
                         <Plus className="h-4 w-4" />
                         Tambah Tugas
                       </Link>
@@ -293,7 +293,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                           </div>
                           <div className="flex items-center gap-2">
                             <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/courses/${course.id}/${assessment.id}`}>
+                              <Link href={`/courses/${course.id}/${assessment.id}?from=pbl`}>
                                 Buka
                               </Link>
                             </Button>
@@ -306,7 +306,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
+                                    <Link href={`/courses/${course.id}/${assessment.id}/edit?from=pbl`}>
                                       <Pencil className="mr-2 h-4 w-4" />
                                       Edit
                                     </Link>

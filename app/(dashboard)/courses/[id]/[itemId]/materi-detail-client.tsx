@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { Card, CardContent } from "@/components/ui/card"
@@ -75,23 +75,29 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
 
   const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
 
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
+  const baseUrl = from === 'pbl' ? `/projects/${courseId}` : `/courses/${courseId}`
+  const breadcrumbBase = from === 'pbl' ? 'PBL' : 'Kursus'
+  const breadcrumbBaseUrl = from === 'pbl' ? '/projects' : '/courses'
+
   // Set custom breadcrumb with useMemo to prevent re-renders
   const breadcrumbItems = useMemo(() => [
     {
-      label: 'Kursus',
-      href: '/courses',
+      label: breadcrumbBase,
+      href: breadcrumbBaseUrl,
       icon: <BookOpen className="h-4 w-4" />
     },
     {
       label: materi.course.judul,
-      href: `/courses/${courseId}`,
+      href: baseUrl,
       icon: <BookOpen className="h-4 w-4" />
     },
     {
       label: materi.judul,
       icon: <FileText className="h-4 w-4" />
     }
-  ], [materi.course.judul, materi.judul, courseId])
+  ], [materi.course.judul, materi.judul, courseId, breadcrumbBase, breadcrumbBaseUrl, baseUrl])
 
   useBreadcrumbPage(materi.judul, breadcrumbItems)
 
@@ -221,7 +227,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
         errorTitle: "Gagal",
         onSuccess: () => {
           setTimeout(() => {
-            router.push(`/courses/${courseId}`)
+            router.push(baseUrl)
           }, 1500)
         },
       }
@@ -237,11 +243,11 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
     setShowPdfViewer(false)
     setPdfLoading(false)
     setSelectedMateriId(materiId)
-    router.push(`/courses/${courseId}/materi/${materiId}`)
+    router.push(`/courses/${courseId}/${materiId}${from === 'pbl' ? '?from=pbl' : ''}`)
   }
 
   const handleEditMateri = () => {
-    router.push(`/courses/${courseId}/materi/${materi.id}/edit`)
+    router.push(`/courses/${courseId}/${materi.id}/edit${from === 'pbl' ? '?from=pbl' : ''}`)
   }
 
   return (

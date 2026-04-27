@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,6 +57,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [tabKey, setTabKey] = useState(0) // For re-render animation
   const { confirm, AlertComponent } = useAdaptiveAlert()
 
+  const searchParams = useSearchParams()
+  const from = searchParams.get('from')
+  const baseUrl = from === 'pbl' ? `/projects/${courseId}` : `/courses/${courseId}`
+  const breadcrumbBase = from === 'pbl' ? 'PBL' : 'Kursus'
+  const breadcrumbBaseUrl = from === 'pbl' ? '/projects' : '/courses'
+
   const [rosterByKelas, setRosterByKelas] = useState<Record<string, any[]> | null>(null)
   const [rosterLoading, setRosterLoading] = useState(false)
   const [rosterError, setRosterError] = useState<string | null>(null)
@@ -93,7 +99,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           // Check permission untuk guru - only for teachers
           if (user.role === 'GURU' && asesmenData.guruId !== user.id) {
             console.log('Teacher not authorized for this asesmen')
-            router.push(`/courses/${courseId}`)
+            router.push(baseUrl)
             return
           }
           
@@ -129,12 +135,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
             alert('Gagal mengambil data asesmen')
           }
           
-          router.push(`/courses/${courseId}`)
+          router.push(baseUrl)
         }
       } catch (error) {
         console.error('Error fetching asesmen:', error)
         alert('Terjadi kesalahan saat mengambil data asesmen')
-        router.push(`/courses/${courseId}`)
+        router.push(baseUrl)
       } finally {
         setLoading(false)
       }
@@ -174,13 +180,13 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
 
     return [
       {
-        label: 'Kursus',
-        href: '/courses',
+        label: breadcrumbBase,
+        href: breadcrumbBaseUrl,
         icon: <BookOpen className="h-4 w-4" />,
       },
       {
         label: asesmen.course.judul,
-        href: `/courses/${courseId}`,
+        href: baseUrl,
         icon: <BookOpen className="h-4 w-4" />,
       },
       {
@@ -188,7 +194,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         icon: <FileText className="h-4 w-4" />,
       },
     ]
-  }, [asesmen, courseId])
+  }, [asesmen, courseId, breadcrumbBase, breadcrumbBaseUrl, baseUrl])
 
   useBreadcrumbPage(asesmen?.nama || 'Asesmen', breadcrumbItems)
 
@@ -292,8 +298,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                     Deadline Terlewat
                   </Button>
                 ) : (
-          <Button asChild>
-            <Link href={`/courses/${courseId}/${asesmenId}/submit`}>
+                  <Button asChild>
+                    <Link href={`/courses/${courseId}/${asesmenId}/submit${from === 'pbl' ? '?from=pbl' : ''}`}>
                       <Upload className="mr-2 h-4 w-4" />
                       Kumpulkan Tugas
                     </Link>
@@ -343,7 +349,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       }
                     )
                     if (confirmed) {
-                      router.push(`/courses/${courseId}/${asesmenId}/kuis`)
+                      router.push(`/courses/${courseId}/${asesmenId}/kuis${from === 'pbl' ? '?from=pbl' : ''}`)
                     }
                   }}>
                     <FileText className="mr-2 h-4 w-4" />
@@ -354,7 +360,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
             )}
             {isTeacherOrAdmin && (
               <Button variant="outline" asChild>
-                <Link href={`/courses/${courseId}/${asesmenId}/edit`}>
+                <Link href={`/courses/${courseId}/${asesmenId}/edit${from === 'pbl' ? '?from=pbl' : ''}`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Link>
