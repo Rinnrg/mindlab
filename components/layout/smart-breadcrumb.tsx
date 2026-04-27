@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { ChevronRight, ChevronLeft, House, BookOpen, Users, Calendar, User, Settings, Code, Activity, BarChart3, Search as SearchIcon, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
