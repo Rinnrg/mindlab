@@ -112,10 +112,6 @@ export default function KuisPage({ params }: PageProps) {
   // Check if already submitted
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
-  // Guard leaving quiz while in progress
-  const [isQuizBlockingNav, setIsQuizBlockingNav] = useState(false)
-  const leaveIntentRef = useRef(false)
-
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
     {
@@ -313,41 +309,8 @@ export default function KuisPage({ params }: PageProps) {
     fetchData()
   }, [user, authLoading, router, asesmenId, courseId])
 
-  // Block back/leave while quiz is still in progress
-  useEffect(() => {
-    const shouldBlock = !!user && !loading && !hasSubmitted
-    setIsQuizBlockingNav(shouldBlock)
-  }, [user, loading, hasSubmitted])
-
-  useEffect(() => {
-    if (!isQuizBlockingNav) return
-
-    const message = 'Kuis sedang berlangsung. Anda tidak bisa kembali sebelum kuis dikumpulkan.'
-
-    const onBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (leaveIntentRef.current) return
-      e.preventDefault()
-      // Chrome requires returnValue to be set.
-      e.returnValue = message
-    }
-
-    const onPopState = async () => {
-      if (leaveIntentRef.current) return
-      showWarning('Tidak bisa kembali', message)
-      // Push state forward so user stays on this page.
-      history.pushState(null, '', window.location.href)
-    }
-
-    // Seed a history entry so back triggers popstate within the SPA.
-    history.pushState(null, '', window.location.href)
-    window.addEventListener('beforeunload', onBeforeUnload)
-    window.addEventListener('popstate', onPopState)
-
-    return () => {
-      window.removeEventListener('beforeunload', onBeforeUnload)
-      window.removeEventListener('popstate', onPopState)
-    }
-  }, [isQuizBlockingNav, showWarning])
+  // NOTE: Navigation blocking while quiz is in progress has been removed.
+  // It can interfere with client-side rendering and user flow in some environments.
 
   // Timer countdown - menggunakan interval yang stabil tanpa dependency pada timeLeft
   useEffect(() => {
