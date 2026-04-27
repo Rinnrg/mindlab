@@ -147,15 +147,15 @@ function useFetchNames(pathname: string): { names: Record<string, string>; loadi
                 break
               case 'course-item':
                 // Try to fetch as materi first, then asesmen
-                response = await fetch(`/api/materi/${item.id}`)
+                response = await fetch(`/api/asesmen/${item.id}`)
                 if (response.ok) {
                   const data = await response.json()
-                  name = data.materi?.judul || data.judul || 'Materi'
+                  name = data.asesmen?.nama || data.nama || 'Asesmen'
                 } else {
-                  response = await fetch(`/api/asesmen/${item.id}`)
+                  response = await fetch(`/api/materi/${item.id}`)
                   if (response.ok) {
                     const data = await response.json()
-                    name = data.asesmen?.nama || data.nama || 'Asesmen'
+                    name = data.materi?.judul || data.judul || 'Materi'
                   }
                 }
                 break
