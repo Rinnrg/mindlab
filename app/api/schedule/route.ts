@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// This route relies on request.url (query params) and user-specific DB reads.
+// Force it to be treated as dynamic to avoid build-time static rendering attempts.
+export const dynamic = 'force-dynamic'
+
 export const revalidate = 180
 
 export async function GET(request: NextRequest) {

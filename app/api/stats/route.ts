@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// This route relies on request.url (query params) and user/role-specific DB reads.
+// Force it to be treated as dynamic to avoid build-time static rendering attempts.
+export const dynamic = 'force-dynamic'
+
 // Revalidate stats every 60 seconds
 export const revalidate = 60
 
