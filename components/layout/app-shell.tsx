@@ -121,7 +121,8 @@ export function AppShell({ children }: AppShellProps) {
               : navigationMode === "dock" ? "pb-32" : "pb-6"
           )}
         >
-          <SmartBreadcrumb />
+          {/* Avoid breadcrumbs on quiz page to prevent client-side crashes during timed sessions */}
+          {!pathname.endsWith('/kuis') && <SmartBreadcrumb />}
           <PageTransition>
             {children}
           </PageTransition>
