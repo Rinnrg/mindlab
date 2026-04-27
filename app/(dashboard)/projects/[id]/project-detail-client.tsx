@@ -51,6 +51,14 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
   
   const [activeSintak, setActiveSintak] = useState("1")
 
+  const filteredMateri = useMemo(() => {
+    return (course.materi || []).filter(m => (m.sintak || "1") === activeSintak)
+  }, [course.materi, activeSintak])
+
+  const filteredAsesmen = useMemo(() => {
+    return (assessments || []).filter(a => (a.sintak || "1") === activeSintak)
+  }, [assessments, activeSintak])
+
   // Set custom breadcrumb with useMemo to prevent re-renders
   const breadcrumbItems = useMemo(() => [
     {
@@ -132,25 +140,27 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
       <ActionFeedback />
 
       <AnimateIn>
-        <div className="flex items-center gap-3 mb-6">
-          <Network className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl text-foreground">
-            {t("Pembelajaran")} {course.judul}
-          </h1>
+        <div className="ios-glass-section rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-6">
+          <div className="flex items-center gap-3">
+            <Network className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+              {t("Pembelajaran")} {course.judul}
+            </h1>
+          </div>
         </div>
       </AnimateIn>
 
       <AnimateIn stagger={1}>
         <Tabs value={activeSintak} onValueChange={setActiveSintak} className="space-y-6">
-          <div className="w-full overflow-x-auto pb-2 scrollbar-none">
-            <TabsList className="inline-flex h-auto p-1 bg-transparent border-0 gap-2">
+          <div className="overflow-visible pb-2 scrollbar-none">
+            <TabsList className="ios-tab-list">
               {SINTAKS_PHASES.map((phase) => (
                 <TabsTrigger
                   key={phase.id}
                   value={phase.id}
-                  className="rounded-full px-6 py-2.5 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:border data-[state=inactive]:border-border data-[state=inactive]:bg-background/50 hover:bg-accent transition-colors"
+                  className="ios-tab-trigger"
                 >
-                  Sintak {phase.id}
+                  <span className="ios-tab-text">Sintak {phase.id}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -163,8 +173,8 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
 
             <div className="space-y-6">
               {/* Materi Section */}
-              <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-4 bg-muted/20 border-b">
+              <Card className="ios-glass-card border-border/30 rounded-2xl sm:rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-4 border-b border-border/30">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
                     <CardTitle className="text-lg sm:text-xl font-semibold">
@@ -172,13 +182,9 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                     </CardTitle>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                      <BarChart className="h-4 w-4" />
-                      Progres
-                    </Button>
                     {isTeacherOrAdmin && (
                       <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                        <Link href={`/courses/${course.id}/add-materi`}>
+                        <Link href={`/courses/${course.id}/add-materi?sintak=${activeSintak}`}>
                           <Plus className="h-4 w-4" />
                           Tambah BAB
                         </Link>
@@ -186,15 +192,15 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 bg-card">
-                  {(!course.materi || course.materi.length === 0) ? (
-                    <div className="w-full border border-border rounded-xl p-8 sm:p-12 text-center flex flex-col items-center justify-center">
+                <CardContent className="p-4 sm:p-6">
+                  {filteredMateri.length === 0 ? (
+                    <div className="w-full ios-glass-inset rounded-xl p-8 sm:p-12 text-center flex flex-col items-center justify-center">
                       <p className="text-muted-foreground">Belum ada BAB. Tambahkan BAB terlebih dahulu.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {course.materi.map((material, index) => (
-                        <div key={material.id} className="group relative w-full border border-border rounded-xl p-4 flex items-start gap-4 hover:border-primary/30 transition-colors bg-background">
+                      {filteredMateri.map((material, index) => (
+                        <div key={material.id} className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
                             {index + 1}
                           </div>
@@ -241,8 +247,8 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
               </Card>
 
               {/* Asesmen Section */}
-              <Card className="rounded-2xl border-border/50 shadow-sm overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-4 bg-muted/20 border-b">
+              <Card className="ios-glass-card border-border/30 rounded-2xl sm:rounded-3xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6 pb-4 border-b border-border/30">
                   <div className="flex items-center gap-3">
                     <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
                     <CardTitle className="text-lg sm:text-xl font-semibold">
@@ -251,22 +257,22 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                   </div>
                   {isTeacherOrAdmin && (
                     <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                      <Link href={`/courses/${course.id}/add-asesmen`}>
+                      <Link href={`/courses/${course.id}/add-asesmen?sintak=${activeSintak}`}>
                         <Plus className="h-4 w-4" />
                         Tambah Tugas
                       </Link>
                     </Button>
                   )}
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6 bg-card">
-                  {(!assessments || assessments.length === 0) ? (
-                    <div className="w-full border border-border rounded-xl p-8 sm:p-12 text-center flex flex-col items-center justify-center">
+                <CardContent className="p-4 sm:p-6">
+                  {filteredAsesmen.length === 0 ? (
+                    <div className="w-full ios-glass-inset rounded-xl p-8 sm:p-12 text-center flex flex-col items-center justify-center">
                       <p className="text-muted-foreground">Belum ada tugas. Tambahkan tugas terlebih dahulu.</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {assessments.map((assessment, index) => (
-                        <div key={assessment.id} className="group relative w-full border border-border rounded-xl p-4 flex items-start gap-4 hover:border-primary/30 transition-colors bg-background">
+                      {filteredAsesmen.map((assessment, index) => (
+                        <div key={assessment.id} className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
                             {index + 1}
                           </div>

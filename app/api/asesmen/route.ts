@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
         fileSize: true,
         guruId: true,
         courseId: true,
+        sintak: true,
         guru: {
           select: {
             id: true,
@@ -120,6 +121,7 @@ export async function POST(request: NextRequest) {
       antiCurang,
       acakSoal,
       acakJawaban,
+      sintak,
       soal // Array of questions for KUIS
     } = body
 
@@ -239,6 +241,7 @@ export async function POST(request: NextRequest) {
       antiCurang: !!antiCurang,
       acakSoal: !!acakSoal,
       acakJawaban: !!acakJawaban,
+      sintak: sintak || null,
     }
     
     // Add tipePengerjaan only for TUGAS

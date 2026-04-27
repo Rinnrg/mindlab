@@ -74,6 +74,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       tgl_unggah: m.tgl_unggah,
       lampiran: m.lampiran || undefined,
       courseId: course.id,
+      sintak: m.sintak || undefined,
     })),
     asesmen: course.asesmen.map((a) => ({
       id: a.id,
@@ -89,6 +90,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       lampiran: a.lampiran,
       guruId: a.guruId,
       courseId: course.id,
+      sintak: a.sintak || undefined,
     })),
   }
 
@@ -106,6 +108,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     lampiran: a.lampiran,
     guruId: a.guruId,
     courseId: course.id,
+    sintak: a.sintak || undefined,
   }))
 
   return <ProjectDetailClient course={transformedCourse} assessments={assessments} />

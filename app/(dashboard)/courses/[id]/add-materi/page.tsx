@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter, useParams, useSearchParams } from "next/navigation"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,7 +27,9 @@ async function fileToDataUrl(file: File): Promise<string> {
 export default function AddMateriPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const courseId = params.id
+  const sintak = searchParams.get('sintak')
 
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
@@ -97,6 +99,7 @@ export default function AddMateriPage() {
           fileName: fileName || null,
           fileType: fileType || null,
           fileSize: fileSize || null,
+          sintak: sintak || null,
         }
 
         const res = await fetch("/api/materi", {
@@ -138,7 +141,7 @@ export default function AddMateriPage() {
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Tambah Materi Baru</h1>
+          <h1 className="text-2xl font-bold">Tambah Materi Baru {sintak ? `(Sintak ${sintak})` : ''}</h1>
           <p className="text-sm text-muted-foreground">Tambahkan materi untuk kursus ini.</p>
         </div>
         <Button variant="outline" asChild>

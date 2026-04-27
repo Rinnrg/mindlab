@@ -36,6 +36,7 @@ export interface Materi {
   tgl_unggah: Date
   lampiran?: string
   courseId: string
+  sintak?: string | null
 }
 
 export interface Asesmen {
@@ -52,6 +53,7 @@ export interface Asesmen {
   lampiran?: string
   guruId: string
   courseId: string
+  sintak?: string | null
   soal?: Soal[]
   nilai?: Nilai[]
   pengumpulanProyek?: PengumpulanProyek[] // Renamed from pengumpulanTugas

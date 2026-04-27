@@ -63,6 +63,7 @@ model Materi {
   fileType    String?  @db.VarChar(255)
   fileSize    Int?
   courseId    String   @db.Uuid
+  sintak      String?  @db.VarChar(50)
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
@@ -89,6 +90,7 @@ model Asesmen {
   fileSize          Int?
   guruId            String              @db.Uuid
   courseId          String              @db.Uuid
+  sintak            String?             @db.VarChar(50)
   acakJawaban       Boolean             @default(false)
   acakSoal          Boolean             @default(false)
   course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)

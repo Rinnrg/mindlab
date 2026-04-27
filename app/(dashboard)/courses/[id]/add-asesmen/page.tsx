@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -57,7 +57,9 @@ async function fileToDataUrl(file: File): Promise<string> {
 export default function AddAsesmenPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
   const courseId = params.id
+  const sintak = searchParams.get('sintak')
 
   const { user } = useAuth()
 
@@ -264,6 +266,7 @@ export default function AddAsesmenPage() {
           antiCurang,
           acakSoal,
           acakJawaban,
+          sintak: sintak || null,
         }
 
         if (tipe === "KUIS") {
@@ -334,7 +337,7 @@ export default function AddAsesmenPage() {
 
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Buat Asesmen</h1>
+          <h1 className="text-2xl font-bold">Buat Asesmen {sintak ? `(Sintak ${sintak})` : ''}</h1>
           <p className="text-sm text-muted-foreground">Tambahkan asesmen untuk kursus ini.</p>
         </div>
         <Button variant="outline" asChild>
