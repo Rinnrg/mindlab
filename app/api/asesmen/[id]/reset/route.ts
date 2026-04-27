@@ -50,7 +50,7 @@ export async function POST(
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      const prevAttempt = await tx.kuisAttempt.findUnique({
+  const prevAttempt = await tx.kuisAttempt.findUnique({
         where: { siswaId_asesmenId_attempt: { siswaId, asesmenId } },
         select: { id: true, attemptNo: true },
       })
@@ -71,7 +71,7 @@ export async function POST(
         await tx.kuisAttempt.delete({ where: { id: prevAttempt.id } })
       }
 
-      const newAttempt = await tx.kuisAttempt.create({
+  const newAttempt = await tx.kuisAttempt.create({
         data: {
           siswaId,
           asesmenId,

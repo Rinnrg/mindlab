@@ -63,7 +63,7 @@ export async function POST(
     }
 
     // Ensure attempt exists (created when quiz starts)
-    const attempt = await prisma.kuisAttempt.upsert({
+  const attempt = await prisma.kuisAttempt.upsert({
       where: { siswaId_asesmenId_attempt: { siswaId, asesmenId } },
       update: {},
       create: { siswaId, asesmenId },
@@ -136,7 +136,7 @@ export async function POST(
       })
 
       // Mark attempt submitted
-      await tx.kuisAttempt.update({
+  await tx.kuisAttempt.update({
         where: { id: attempt.id },
         data: { submittedAt: new Date() },
       })

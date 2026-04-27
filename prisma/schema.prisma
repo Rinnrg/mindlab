@@ -156,7 +156,7 @@ model Nilai {
   tanggal      DateTime       @default(now())
   siswaId      String         @db.Uuid
   asesmenId    String         @db.Uuid
-  attemptId    String?        @unique @db.Uuid
+  attemptId    String?        @db.Uuid
   jawabanSiswa JawabanSiswa[]
   asesmen      Asesmen        @relation(fields: [asesmenId], references: [id])
   siswa        User           @relation(fields: [siswaId], references: [id])
@@ -179,7 +179,7 @@ model KuisAttempt {
   asesmenId   String    @db.Uuid
   siswa       User      @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   asesmen     Asesmen   @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-  nilai       Nilai?
+  nilai       Nilai[]
 
   @@unique([siswaId, asesmenId], name: "siswaId_asesmenId_attempt")
   @@index([asesmenId])

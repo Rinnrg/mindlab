@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'Anda tidak terdaftar di course ini' }, { status: 403 })
     }
 
-    const attempt = await prisma.kuisAttempt.upsert({
+  const attempt = await prisma.kuisAttempt.upsert({
       where: { siswaId_asesmenId_attempt: { siswaId, asesmenId } },
       update: {
         // If already submitted, keep it as-is (retake is done via reset endpoint)
