@@ -210,7 +210,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                           </div>
                           <div className="flex items-center gap-2">
                             <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/courses/${course.id}/${material.id}?from=pbl`}>
+                              <Link href={`/projects/${course.id}/${material.id}`}>
                                 Buka
                               </Link>
                             </Button>
@@ -223,7 +223,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/courses/${course.id}/${material.id}/edit?from=pbl`}>
+                                    <Link href={`/projects/${course.id}/${material.id}/edit`}>
                                       <Pencil className="mr-2 h-4 w-4" />
                                       Edit
                                     </Link>
@@ -293,7 +293,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                           </div>
                           <div className="flex items-center gap-2">
                             <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/courses/${course.id}/${assessment.id}?from=pbl`}>
+                              <Link href={`/projects/${course.id}/${assessment.id}`}>
                                 Buka
                               </Link>
                             </Button>
@@ -306,7 +306,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem asChild>
-                                    <Link href={`/courses/${course.id}/${assessment.id}/edit?from=pbl`}>
+                                    <Link href={`/projects/${course.id}/${assessment.id}/edit`}>
                                       <Pencil className="mr-2 h-4 w-4" />
                                       Edit
                                     </Link>
