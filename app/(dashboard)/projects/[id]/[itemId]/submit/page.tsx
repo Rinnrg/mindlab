@@ -730,5 +730,3 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     </div>
   )
 }
-  )
-}
