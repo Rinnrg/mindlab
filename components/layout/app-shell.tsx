@@ -9,6 +9,7 @@ import { Header } from "./header"
 import { MobileBottomNav } from "./mobile-bottom-nav"
 import { FloatingBackButton } from "@/components/ui/floating-back-button"
 import { PageTransition } from "./page-transition"
+import { SmartBreadcrumb } from "./smart-breadcrumb"
 import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { cn } from "@/lib/utils"
 import {
@@ -120,8 +121,7 @@ export function AppShell({ children }: AppShellProps) {
               : navigationMode === "dock" ? "pb-32" : "pb-6"
           )}
         >
-          {/* Breadcrumb temporarily disabled to prevent client-side crashes in production */}
-          {null}
+          <SmartBreadcrumb />
           <PageTransition>
             {children}
           </PageTransition>
