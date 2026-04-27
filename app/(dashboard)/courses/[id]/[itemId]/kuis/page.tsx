@@ -112,6 +112,10 @@ export default function KuisPage({ params }: PageProps) {
   // Check if already submitted
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
+  // Guard leaving quiz while in progress
+  const [isQuizBlockingNav, setIsQuizBlockingNav] = useState(false)
+  const leaveIntentRef = useRef(false)
+
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
     {
@@ -131,6 +135,7 @@ export default function KuisPage({ params }: PageProps) {
     },
     {
       label: 'Kuis',
+  href: undefined,
       icon: <HelpCircle className="h-4 w-4" />
     }
   ], [courseId, asesmenId, asesmen?.judul])
@@ -291,6 +296,42 @@ export default function KuisPage({ params }: PageProps) {
 
     fetchData()
   }, [user, authLoading, router, asesmenId, courseId])
+
+  // Block back/leave while quiz is still in progress
+  useEffect(() => {
+    const shouldBlock = !!user && !loading && !hasSubmitted
+    setIsQuizBlockingNav(shouldBlock)
+  }, [user, loading, hasSubmitted])
+
+  useEffect(() => {
+    if (!isQuizBlockingNav) return
+
+    const message = 'Kuis sedang berlangsung. Anda tidak bisa kembali sebelum kuis dikumpulkan.'
+
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (leaveIntentRef.current) return
+      e.preventDefault()
+      // Chrome requires returnValue to be set.
+      e.returnValue = message
+    }
+
+    const onPopState = async () => {
+      if (leaveIntentRef.current) return
+      showWarning('Tidak bisa kembali', message)
+      // Push state forward so user stays on this page.
+      history.pushState(null, '', window.location.href)
+    }
+
+    // Seed a history entry so back triggers popstate within the SPA.
+    history.pushState(null, '', window.location.href)
+    window.addEventListener('beforeunload', onBeforeUnload)
+    window.addEventListener('popstate', onPopState)
+
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload)
+      window.removeEventListener('popstate', onPopState)
+    }
+  }, [isQuizBlockingNav, showWarning])
 
   // Timer countdown - menggunakan interval yang stabil tanpa dependency pada timeLeft
   useEffect(() => {
@@ -457,6 +498,7 @@ export default function KuisPage({ params }: PageProps) {
   const handleSubmit = async (autoSubmit = false) => {
     if (isSubmittingRef.current) return
     isSubmittingRef.current = true
+  setSubmitting(true)
 
     // Clear leave timer if active
     if (leaveTimerRef.current) {
@@ -495,25 +537,29 @@ export default function KuisPage({ params }: PageProps) {
 
     if (autoSubmit) {
       try {
-        await doSubmit()
-        sessionStorage.removeItem(`kuis_start_${asesmenId}`)
-        sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
-        setHasSubmitted(true)
         await execute(
-          async () => {},
+          async () => {
+            await doSubmit()
+          },
           {
             loadingMessage: "Mengumpulkan kuis...",
             successTitle: "Berhasil!",
             successDescription: "Waktu habis! Kuis telah dikumpulkan secara otomatis.",
+            errorTitle: "Gagal",
             autoCloseMs: 2000,
             onSuccess: () => {
+              sessionStorage.removeItem(`kuis_start_${asesmenId}`)
+              sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
+              setHasSubmitted(true)
+              leaveIntentRef.current = true
               setTimeout(() => {
-                router.push(`/courses/${courseId}/${itemId}`)
+                router.push(`/courses/${courseId}/${asesmenId}`)
               }, 2000)
             },
           }
         )
-      } catch {
+      } finally {
+        setSubmitting(false)
         isSubmittingRef.current = false
       }
       return
@@ -529,7 +575,13 @@ export default function KuisPage({ params }: PageProps) {
       }
     )
     
-    if (confirmed) {
+    if (!confirmed) {
+      setSubmitting(false)
+      isSubmittingRef.current = false
+      return
+    }
+
+    try {
       await execute(
         async () => {
           await doSubmit()
@@ -544,13 +596,15 @@ export default function KuisPage({ params }: PageProps) {
             sessionStorage.removeItem(`kuis_start_${asesmenId}`)
             sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
             setHasSubmitted(true)
+            leaveIntentRef.current = true
             setTimeout(() => {
-              router.push(`/courses/${courseId}/${itemId}`)
+              router.push(`/courses/${courseId}/${asesmenId}`)
             }, 2000)
           },
         }
       )
-    } else {
+    } finally {
+      setSubmitting(false)
       isSubmittingRef.current = false
     }
   }
@@ -599,6 +653,14 @@ export default function KuisPage({ params }: PageProps) {
   const answeredCount = jawaban.filter(j => j.jawaban !== '').length
   const progress = (answeredCount / shuffledSoal.length) * 100
   const isCurrentRagu = raguRagu.has(currentSoal.id)
+
+  const answeredSet = useMemo(() => {
+    const set = new Set<string>()
+    for (const j of jawaban) {
+      if (j.jawaban !== '') set.add(j.soalId)
+    }
+    return set
+  }, [jawaban])
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
@@ -684,174 +746,178 @@ export default function KuisPage({ params }: PageProps) {
         <Progress value={progress} />
       </div>
 
-      {/* Question Card - iOS Glass */}
-      <Card className="ios-glass-card border-border/30 rounded-2xl">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="rounded-lg">Soal {currentSoalIndex + 1} / {asesmen.soal.length}</Badge>
-              <Badge variant="outline" className="rounded-lg">{currentSoal.bobot} poin</Badge>
-              <Badge variant={currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? 'default' : 'secondary'} className="rounded-lg">
-                {currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? 'Pilihan Ganda' : 'Isian'}
-              </Badge>
-              {isCurrentRagu && (
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-400">
-                  <HelpCircle className="mr-1 h-3 w-3" />
-                  Ragu-ragu
-                </Badge>
-              )}
-            </div>
-          </div>
-          <CardTitle className="mt-4">{currentSoal.pertanyaan}</CardTitle>
-          {currentSoal.gambar && (
-            <div className="mt-3">
-              <img
-                src={currentSoal.gambar}
-                alt="Gambar soal"
-                className="max-h-64 rounded-lg border object-contain"
-              />
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? (
-            <RadioGroup
-              value={currentJawaban?.jawaban || ''}
-              onValueChange={(value) => handleJawabanChange(currentSoal.id, value)}
-            >
-              {currentSoal.opsi.map((opsi: Opsi) => (
-                <div key={opsi.id} className="flex items-center space-x-2 border border-border/30 rounded-xl p-3 hover:bg-accent/50 cursor-pointer transition-colors">
-                  <RadioGroupItem value={opsi.id} id={opsi.id} />
-                  <Label htmlFor={opsi.id} className="flex-1 cursor-pointer">
-                    {opsi.teks}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="jawaban-isian">Jawaban Anda</Label>
-              <Textarea
-                id="jawaban-isian"
-                value={currentJawaban?.jawaban || ''}
-                onChange={(e) => handleJawabanChange(currentSoal.id, e.target.value)}
-                placeholder="Tulis jawaban Anda di sini..."
-                rows={6}
-              />
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Soal isian akan dinilai secara manual oleh guru.
-                </AlertDescription>
-              </Alert>
-            </div>
-          )}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+        {/* Left: Question Navigator */}
+        <div className="space-y-4">
+          <Card className="ios-glass-card border-border/30 rounded-2xl">
+            <CardHeader>
+              <CardTitle className="text-sm">Navigasi Soal</CardTitle>
+              <CardDescription className="text-xs">
+                <span className="inline-flex items-center gap-3 flex-wrap">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-sm inline-block bg-green-500" /> Sudah dijawab
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-sm inline-block bg-yellow-400" /> Ragu-ragu
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-3 h-3 rounded-sm border border-border inline-block" /> Belum dijawab
+                  </span>
+                </span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-5 gap-2 sm:grid-cols-10 lg:grid-cols-5">
+                {shuffledSoal.map((soal: Soal, index: number) => {
+                  const isAnswered = answeredSet.has(soal.id)
+                  const isCurrent = index === currentSoalIndex
+                  const isRagu = raguRagu.has(soal.id)
 
-          {/* Ragu-ragu button + Navigation Buttons */}
-          <div className="flex flex-col gap-3 pt-4">
-            {/* Tombol Ragu-ragu */}
-            <div className="flex justify-center">
+                  let btnClass = "h-10 w-full font-medium transition-all "
+                  if (isCurrent) {
+                    btnClass += "ring-2 ring-primary ring-offset-2 "
+                  }
+
+                  return (
+                    <Button
+                      key={soal.id}
+                      variant={(!isAnswered && !isRagu) ? 'outline' : 'default'}
+                      size="sm"
+                      onClick={() => setCurrentSoalIndex(index)}
+                      className={btnClass}
+                      style={
+                        isRagu
+                          ? { backgroundColor: 'rgb(250, 204, 21)', borderColor: 'rgb(250, 204, 21)', color: 'white' }
+                          : isAnswered
+                            ? { backgroundColor: 'rgb(34, 197, 94)', borderColor: 'rgb(34, 197, 94)', color: 'white' }
+                            : undefined
+                      }
+                    >
+                      {index + 1}
+                    </Button>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <Card className="ios-glass-card border-border/30 rounded-2xl">
+            <CardContent className="pt-6 space-y-3">
               <Button
                 type="button"
                 variant={isCurrentRagu ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleRaguRagu(currentSoal.id)}
-                className={isCurrentRagu 
-                  ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" 
-                  : "border-yellow-400 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
+                className={isCurrentRagu
+                  ? "w-full bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500"
+                  : "w-full border-yellow-400 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-950"
                 }
               >
                 <HelpCircle className="mr-2 h-4 w-4" />
                 {isCurrentRagu ? "Hapus Tanda Ragu" : "Tandai Ragu-ragu"}
               </Button>
-            </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentSoalIndex === 0}
-            >
-              Sebelumnya
-            </Button>
-            
-            {currentSoalIndex === shuffledSoal.length - 1 ? (
-              <Button
-                onClick={() => handleSubmit(false)}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Mengumpulkan...
-                  </>
-                ) : (
-                  'Kumpulkan Kuis'
-                )}
-              </Button>
-            ) : (
-              <Button onClick={handleNext}>
-                Selanjutnya
-              </Button>
-            )}
-          </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Question Navigator - iOS Glass */}
-      <Card className="ios-glass-card border-border/30 rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-sm">Navigasi Soal</CardTitle>
-          <CardDescription className="text-xs">
-            <span className="inline-flex items-center gap-3 flex-wrap">
-              <span className="inline-flex items-center gap-1">
-                <span className="w-3 h-3 rounded-sm inline-block bg-green-500" /> Sudah dijawab
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <span className="w-3 h-3 rounded-sm inline-block bg-yellow-400" /> Ragu-ragu
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <span className="w-3 h-3 rounded-sm border border-border inline-block" /> Belum dijawab
-              </span>
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-            {shuffledSoal.map((soal: Soal, index: number) => {
-              const isAnswered = jawaban.find(j => j.soalId === soal.id)?.jawaban !== ''
-              const isCurrent = index === currentSoalIndex
-              const isRagu = raguRagu.has(soal.id)
-              
-              let btnClass = "h-10 w-full font-medium transition-all "
-              if (isCurrent) {
-                btnClass += "ring-2 ring-primary ring-offset-2 "
-              }
-              
-              return (
+              <div className="flex items-center gap-2">
                 <Button
-                  key={soal.id}
-                  variant={(!isAnswered && !isRagu) ? 'outline' : 'default'}
-                  size="sm"
-                  onClick={() => setCurrentSoalIndex(index)}
-                  className={btnClass}
-                  style={
-                    isRagu 
-                      ? { backgroundColor: 'rgb(250, 204, 21)', borderColor: 'rgb(250, 204, 21)', color: 'white' }
-                      : isAnswered 
-                        ? { backgroundColor: 'rgb(34, 197, 94)', borderColor: 'rgb(34, 197, 94)', color: 'white' }
-                        : undefined
-                  }
+                  className="flex-1"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentSoalIndex === 0}
                 >
-                  {index + 1}
+                  Sebelumnya
                 </Button>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+
+                {currentSoalIndex === shuffledSoal.length - 1 ? (
+                  <Button
+                    className="flex-1"
+                    onClick={() => handleSubmit(false)}
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Mengumpulkan...
+                      </>
+                    ) : (
+                      'Kumpulkan'
+                    )}
+                  </Button>
+                ) : (
+                  <Button className="flex-1" onClick={handleNext}>
+                    Selanjutnya
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Question Card */}
+        <Card className="ios-glass-card border-border/30 rounded-2xl">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-lg">Soal {currentSoalIndex + 1} / {asesmen.soal.length}</Badge>
+                <Badge variant="outline" className="rounded-lg">{currentSoal.bobot} poin</Badge>
+                <Badge variant={currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? 'default' : 'secondary'} className="rounded-lg">
+                  {currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? 'Pilihan Ganda' : 'Isian'}
+                </Badge>
+                {isCurrentRagu && (
+                  <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-400">
+                    <HelpCircle className="mr-1 h-3 w-3" />
+                    Ragu-ragu
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <CardTitle className="mt-4">{currentSoal.pertanyaan}</CardTitle>
+            {currentSoal.gambar && (
+              <div className="mt-3">
+                <img
+                  src={currentSoal.gambar}
+                  alt="Gambar soal"
+                  className="max-h-64 rounded-lg border object-contain"
+                />
+              </div>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {currentSoal.tipeJawaban === 'PILIHAN_GANDA' ? (
+              <RadioGroup
+                value={currentJawaban?.jawaban || ''}
+                onValueChange={(value) => handleJawabanChange(currentSoal.id, value)}
+              >
+                {currentSoal.opsi.map((opsi: Opsi) => (
+                  <div key={opsi.id} className="flex items-center space-x-2 border border-border/30 rounded-xl p-3 hover:bg-accent/50 cursor-pointer transition-colors">
+                    <RadioGroupItem value={opsi.id} id={opsi.id} />
+                    <Label htmlFor={opsi.id} className="flex-1 cursor-pointer">
+                      {opsi.teks}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="jawaban-isian">Jawaban Anda</Label>
+                <Textarea
+                  id="jawaban-isian"
+                  value={currentJawaban?.jawaban || ''}
+                  onChange={(e) => handleJawabanChange(currentSoal.id, e.target.value)}
+                  placeholder="Tulis jawaban Anda di sini..."
+                  rows={6}
+                />
+                <Alert>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Soal isian akan dinilai secara manual oleh guru.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

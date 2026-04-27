@@ -287,7 +287,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                     className="bg-green-600 hover:bg-green-600 cursor-not-allowed opacity-90"
                   >
                     <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Sudah Mengerjakan Kuis
+                    Kuis sudah dikerjakan
                   </Button>
                 ) : !hasStarted ? (
                   <Button 
