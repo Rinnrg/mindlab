@@ -197,7 +197,7 @@ export function ActivityDropdown() {
     saveReadActivities(newReadSet)
   }
 
-  const unreadCount = activities.filter((activity) => 
+  const unreadCount = activities.filter((activity) =>
     !readActivities.has(getActivityId(activity))
   ).length
 
@@ -217,8 +217,8 @@ export function ActivityDropdown() {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="end" 
+      <DropdownMenuContent
+        align="end"
         className="w-[calc(100vw-1rem)] sm:w-96 max-w-[400px] p-0"
         sideOffset={8}
       >
@@ -249,7 +249,7 @@ export function ActivityDropdown() {
           </div>
         </div>
         <DropdownMenuSeparator className="my-0" />
-        
+
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -260,15 +260,14 @@ export function ActivityDropdown() {
               {activities.map((activity) => {
                 const activityId = getActivityId(activity)
                 const isRead = readActivities.has(activityId)
-                
+
                 return (
                   <div
                     key={activityId}
-                    className={`mb-1.5 sm:mb-2 rounded-lg border p-2.5 sm:p-3 transition-all ${
-                      isRead 
-                        ? 'border-border/50 bg-muted/30 hover:bg-muted/50' 
-                        : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
-                    }`}
+                    className={`mb-1.5 sm:mb-2 rounded-lg border p-2.5 sm:p-3 transition-all ${isRead
+                      ? 'border-border/50 bg-muted/30 hover:bg-muted/50'
+                      : 'border-primary/30 bg-primary/5 hover:bg-primary/10'
+                      }`}
                   >
                     <div className="flex items-start gap-2.5 sm:gap-3">
                       <div className={`rounded-full p-1.5 sm:p-2 shrink-0 ${getActivityColor(activity.type)}`}>

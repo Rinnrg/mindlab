@@ -101,16 +101,16 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
       // Guru/Admin melihat semua materi, atau jika user tidak memiliki kelas
       return course.materi || []
     }
-    
+
     return (course.materi || []).filter((materi) => {
       // Jika kelasTarget kosong, berarti untuk semua kelas
       if (!materi.kelasTarget || materi.kelasTarget.length === 0) {
         return true
       }
       // Cek apakah kelas siswa termasuk dalam kelasTarget
-  const kelas = user.kelas
-  if (!kelas) return false
-  return materi.kelasTarget.includes(kelas)
+      const kelas = user.kelas
+      if (!kelas) return false
+      return materi.kelasTarget.includes(kelas)
     })
   }, [course.materi, user?.kelas, isTeacherOrAdmin])
 
@@ -119,23 +119,23 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
       // Guru/Admin melihat semua asesmen, atau jika user tidak memiliki kelas
       return assessments || []
     }
-    
+
     return (assessments || []).filter((asesmen) => {
       // Jika kelasTarget kosong, berarti untuk semua kelas
       if (!asesmen.kelasTarget || asesmen.kelasTarget.length === 0) {
         return true
       }
       // Cek apakah kelas siswa termasuk dalam kelasTarget
-  const kelas = user.kelas
-  if (!kelas) return false
-  return asesmen.kelasTarget.includes(kelas)
+      const kelas = user.kelas
+      if (!kelas) return false
+      return asesmen.kelasTarget.includes(kelas)
     })
   }, [assessments, user?.kelas, isTeacherOrAdmin])
 
   // TODO: Implement completed tracking in the database
   const completedCount = 0
-  const progressPercent = filteredMateri && filteredMateri.length > 0 
-    ? Math.round((completedCount / filteredMateri.length) * 100) 
+  const progressPercent = filteredMateri && filteredMateri.length > 0
+    ? Math.round((completedCount / filteredMateri.length) * 100)
     : 0
 
   // Group enrollments by kelas
@@ -283,7 +283,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
     <div className="w-full space-y-4 sm:space-y-6">
       <AlertComponent />
       <ActionFeedback />
-      
+
       {/* Dialogs */}
       <EditTeacherDialog
         open={editTeacherOpen}
@@ -291,14 +291,14 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         courseId={course.id}
         currentTeacherId={course.guruId}
       />
-      
+
       <AddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}
         courseId={course.id}
         onSuccess={fetchEnrollments}
       />
-      
+
       {/* Course Header - iOS Glass */}
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
@@ -465,78 +465,78 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           <div className="space-y-2 sm:space-y-3">
             {(filteredMateri && filteredMateri.length > 0) ? filteredMateri.map((material, index) => (
               <Link key={material.id} href={`/courses/${course.id}/${material.id}`} className="block">
-              <Card className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl">
-                <CardContent className="flex items-center gap-2 p-3 sm:gap-4 sm:p-4">
-                  <div className="hidden items-center justify-center text-xs font-medium text-muted-foreground sm:flex sm:h-10 sm:w-10 sm:text-sm">
-                    {String(index + 1).padStart(2, "0")}
-                  </div>
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-10 sm:w-10">
-                    <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
-                      <h4 className="text-sm font-medium truncate group-hover:text-primary transition-colors sm:text-base">{material.judul}</h4>
-                      {/* Show enrollment badges */}
-                      {material.kelasTarget && material.kelasTarget.length > 0 ? (
-                        <Badge variant="secondary" className="text-xs">
-                          {material.kelasTarget.length} kelas enrolled
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          Semua siswa
-                        </Badge>
-                      )}
+                <Card className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl">
+                  <CardContent className="flex items-center gap-2 p-3 sm:gap-4 sm:p-4">
+                    <div className="hidden items-center justify-center text-xs font-medium text-muted-foreground sm:flex sm:h-10 sm:w-10 sm:text-sm">
+                      {String(index + 1).padStart(2, "0")}
                     </div>
-                    <p className="text-xs text-muted-foreground line-clamp-1 sm:text-sm">{material.deskripsi}</p>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground sm:mt-1.5 sm:gap-4">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(material.tgl_unggah).toLocaleDateString("id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                      {material.kelasTarget && material.kelasTarget.length > 0 && (
-                        <span className="hidden sm:block text-xs">
-                          Enrolled: {material.kelasTarget.join(", ")}
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:h-10 sm:w-10">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
+                        <h4 className="text-sm font-medium truncate group-hover:text-primary transition-colors sm:text-base">{material.judul}</h4>
+                        {/* Show enrollment badges */}
+                        {material.kelasTarget && material.kelasTarget.length > 0 ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {material.kelasTarget.length} kelas enrolled
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-xs">
+                            Semua siswa
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground line-clamp-1 sm:text-sm">{material.deskripsi}</p>
+                      <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground sm:mt-1.5 sm:gap-4">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(material.tgl_unggah).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </span>
+                        {material.kelasTarget && material.kelasTarget.length > 0 && (
+                          <span className="hidden sm:block text-xs">
+                            Enrolled: {material.kelasTarget.join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1.5 shrink-0 sm:gap-2" onClick={(e) => e.preventDefault()}>
+                      {/* Dropdown Menu for Edit/Delete */}
+                      {isTeacherOrAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 sm:h-9 sm:w-9"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/courses/${course.id}/${material.id}/edit`}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit Materi
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => handleDeleteMateri(material.id, material.judul)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
-                  </div>
-                  <div className="flex gap-1.5 shrink-0 sm:gap-2" onClick={(e) => e.preventDefault()}>
-                    {/* Dropdown Menu for Edit/Delete */}
-                    {isTeacherOrAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 sm:h-9 sm:w-9"
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/courses/${course.id}/${material.id}/edit`}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit Materi
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-destructive"
-                            onClick={() => handleDeleteMateri(material.id, material.judul)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
               </Link>
             )) : (
               <Card className="border-dashed border-border/30 ios-glass-card rounded-2xl">
@@ -571,82 +571,82 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
                 <Link key={assessment.id} href={`/courses/${course.id}/${assessment.id}`} className="block">
-                <Card className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl">
-                  <CardHeader className="pb-2 sm:pb-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap sm:gap-2 mb-1">
-                          <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
-                          {/* Show enrollment badges */}
-                          {assessment.kelasTarget && assessment.kelasTarget.length > 0 ? (
-                            <Badge variant="secondary" className="text-xs">
-                              {assessment.kelasTarget.length} kelas enrolled
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Semua siswa
-                            </Badge>
+                  <Card className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl">
+                    <CardHeader className="pb-2 sm:pb-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap sm:gap-2 mb-1">
+                            <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
+                            {/* Show enrollment badges */}
+                            {assessment.kelasTarget && assessment.kelasTarget.length > 0 ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {assessment.kelasTarget.length} kelas enrolled
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">
+                                Semua siswa
+                              </Badge>
+                            )}
+                          </div>
+                          <CardDescription className="line-clamp-2 text-xs sm:text-sm">
+                            {assessment.deskripsi}
+                          </CardDescription>
+                          {assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              Enrolled: {assessment.kelasTarget.slice(0, 2).join(", ")}
+                              {assessment.kelasTarget.length > 2 && ` +${assessment.kelasTarget.length - 2} kelas lainnya`}
+                            </div>
                           )}
                         </div>
-                        <CardDescription className="line-clamp-2 text-xs sm:text-sm">
-                          {assessment.deskripsi}
-                        </CardDescription>
-                        {assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
-                          <div className="mt-1 text-xs text-muted-foreground">
-                            Enrolled: {assessment.kelasTarget.slice(0, 2).join(", ")}
-                            {assessment.kelasTarget.length > 2 && ` +${assessment.kelasTarget.length - 2} kelas lainnya`}
+                        {isTeacherOrAdmin && (
+                          <div onClick={(e) => e.preventDefault()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 shrink-0"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem asChild>
+                                  <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit Asesmen
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         )}
                       </div>
-                      {isTeacherOrAdmin && (
-                        <div onClick={(e) => e.preventDefault()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 shrink-0"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit Asesmen
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      <Badge variant={assessment.tipe === 'KUIS' ? 'default' : 'secondary'}>
-                        {assessment.tipe === 'KUIS' ? 'Kuis' : 'Tugas'}
-                      </Badge>
-                      {assessment.tgl_selesai && (
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
-                          {new Date(assessment.tgl_selesai).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                          })}
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <Badge variant={assessment.tipe === 'KUIS' ? 'default' : 'secondary'}>
+                          {assessment.tipe === 'KUIS' ? 'Kuis' : 'Tugas'}
+                        </Badge>
+                        {assessment.tgl_selesai && (
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            {new Date(assessment.tgl_selesai).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                            })}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 </Link>
               ))}
             </div>

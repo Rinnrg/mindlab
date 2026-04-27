@@ -54,11 +54,11 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
       cancelText: t("Batal"),
       type: "question"
     })
-    
+
     if (result) {
       logout()
       success(t("Berhasil!"), t("Anda telah logout."))
-      
+
       setTimeout(() => {
         router.push("/login")
       }, 1500)

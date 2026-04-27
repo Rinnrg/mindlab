@@ -9,12 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { 
-  BookOpen, 
-  PlayCircle, 
-  FileText, 
-  ChevronRight, 
-  Download, 
+import {
+  BookOpen,
+  PlayCircle,
+  FileText,
+  ChevronRight,
+  Download,
   Link as LinkIcon,
   Pencil,
   Trash2,
@@ -256,7 +256,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
       <ActionFeedback />
 
       {/* Sidebar - Materi List - iOS Glass */}
-  <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-20 h-[calc(100vh-5rem)] mt-8 relative z-0">
+      <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-20 h-[calc(100vh-5rem)] mt-8 relative z-0">
         <div className="p-4 sm:p-6 border-b border-border/30 shrink-0">
           <h2 className="font-semibold text-lg mb-1">Daftar Materi</h2>
           <p className="text-sm text-muted-foreground">Pilih materi untuk melihat detail</p>
@@ -268,11 +268,10 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
               <button
                 key={m.id}
                 onClick={() => handleMateriChange(m.id)}
-                className={`w-full text-left p-3 sm:p-4 rounded-xl border transition-all hover:border-primary/30 ${
-                  selectedMateriId === m.id
+                className={`w-full text-left p-3 sm:p-4 rounded-xl border transition-all hover:border-primary/30 ${selectedMateriId === m.id
                     ? "bg-primary/8 border-primary/30 shadow-sm"
                     : "bg-background/60 border-transparent hover:bg-accent/50"
-                }`}
+                  }`}
               >
                 <div className="flex justify-between items-start mb-1">
                   <div className="flex items-start gap-2 flex-1">
@@ -378,19 +377,18 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
               <div className="grid gap-4">
                 <Card className="group ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 rounded-2xl">
                   <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row items-start gap-4">
-                    <div className={`p-3 rounded-lg shrink-0 transition-transform group-hover:scale-110 ${
-                      materi.hasFileData 
+                    <div className={`p-3 rounded-lg shrink-0 transition-transform group-hover:scale-110 ${materi.hasFileData
                         ? getBgColor(null, materi.fileType || undefined)
                         : getBgColor(materi.lampiran)
-                    }`}>
-                      {materi.hasFileData 
+                      }`}>
+                      {materi.hasFileData
                         ? getFileIcon(null, materi.fileType || undefined)
                         : getFileIcon(materi.lampiran)
                       }
                     </div>
                     <div className="flex-1 space-y-2 min-w-0">
                       <h4 className="font-semibold text-sm sm:text-base group-hover:text-primary transition-colors">
-                        {materi.hasFileData 
+                        {materi.hasFileData
                           ? getFileType(null, materi.fileType || undefined, materi.fileName || undefined)
                           : getFileType(materi.lampiran)
                         }
@@ -421,24 +419,24 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                       {/* Tombol Lihat untuk PDF dan Video */}
                       {((materi.hasFileData && (materi.fileType === 'application/pdf' || materi.fileType?.startsWith('video/'))) ||
                         (materi.lampiran && (materi.lampiran.includes("youtube.com") || materi.lampiran.includes("youtu.be")))) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-2"
-                          onClick={materi.hasFileData && materi.fileType === 'application/pdf' ? togglePdfViewer : () => setShowPdfViewer(!showPdfViewer)}
-                          disabled={pdfLoading}
-                        >
-                          {pdfLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : showPdfViewer ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                          {pdfLoading ? 'Memuat...' : showPdfViewer ? 'Sembunyikan' : 'Lihat Lampiran'}
-                        </Button>
-                      )}
-                      
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={materi.hasFileData && materi.fileType === 'application/pdf' ? togglePdfViewer : () => setShowPdfViewer(!showPdfViewer)}
+                            disabled={pdfLoading}
+                          >
+                            {pdfLoading ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : showPdfViewer ? (
+                              <EyeOff className="h-4 w-4" />
+                            ) : (
+                              <Eye className="h-4 w-4" />
+                            )}
+                            {pdfLoading ? 'Memuat...' : showPdfViewer ? 'Sembunyikan' : 'Lihat Lampiran'}
+                          </Button>
+                        )}
+
                       {/* Tombol Unduh/Buka */}
                       <Button
                         variant="default"
@@ -446,9 +444,9 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                         className="gap-2"
                         asChild
                       >
-                        <a 
-                          href={materi.hasFileData ? `/api/materi/${materi.id}/file` : materi.lampiran || '#'} 
-                          target="_blank" 
+                        <a
+                          href={materi.hasFileData ? `/api/materi/${materi.id}/file` : materi.lampiran || '#'}
+                          target="_blank"
                           rel="noopener noreferrer"
                           download={materi.hasFileData ? materi.fileName || undefined : undefined}
                         >

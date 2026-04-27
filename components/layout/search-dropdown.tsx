@@ -4,12 +4,12 @@ import * as React from "react"
 import { useRouter } from "next/navigation"
 import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useAuth } from "@/lib/auth-context"
-import { 
-  FileText, 
-  BookOpen, 
-  Users, 
-  Calendar, 
-  Settings, 
+import {
+  FileText,
+  BookOpen,
+  Users,
+  Calendar,
+  Settings,
   LayoutDashboard,
   Code,
   FolderOpen,
@@ -144,7 +144,7 @@ export function SearchDropdown() {
     const fetchSearchResults = async () => {
       setIsLoading(true)
       try {
-        const url = debouncedSearch 
+        const url = debouncedSearch
           ? `/api/search?q=${encodeURIComponent(debouncedSearch)}`
           : `/api/search`
         const response = await fetch(url)
@@ -264,10 +264,10 @@ export function SearchDropdown() {
     const materiCategory = isRecent ? t("Materi Terbaru") : t("Materi")
     searchResults.materi.forEach((materi) => {
       const materiAny = materi as any
-      const enrollmentBadge = materiAny.kelasTarget && materiAny.kelasTarget.length > 0 
-        ? `${materiAny.kelasTarget.length} kelas enrolled` 
+      const enrollmentBadge = materiAny.kelasTarget && materiAny.kelasTarget.length > 0
+        ? `${materiAny.kelasTarget.length} kelas enrolled`
         : "Semua siswa"
-      
+
       items.push({
         id: `materi-${materi.id}`,
         title: materi.judul,
@@ -285,10 +285,10 @@ export function SearchDropdown() {
       const asesmenAny = asesmen as any
       const tipeLabel = asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'
       const soalBadge = asesmen.tipe === 'KUIS' ? `${asesmen._count.soal} soal` : tipeLabel
-      const enrollmentInfo = asesmenAny.kelasTarget && asesmenAny.kelasTarget.length > 0 
-        ? ` • ${asesmenAny.kelasTarget.length} kelas enrolled` 
+      const enrollmentInfo = asesmenAny.kelasTarget && asesmenAny.kelasTarget.length > 0
+        ? ` • ${asesmenAny.kelasTarget.length} kelas enrolled`
         : " • Semua siswa"
-      
+
       items.push({
         id: `asesmen-${asesmen.id}`,
         title: asesmen.nama,
@@ -343,7 +343,7 @@ export function SearchDropdown() {
 
     // Filter items berdasarkan role ADMIN
     const ADMIN_RESTRICTED_PATHS = ['/courses', '/compiler', '/projects']
-    const filteredByRole = user?.role === 'ADMIN' 
+    const filteredByRole = user?.role === 'ADMIN'
       ? items.filter(item => !ADMIN_RESTRICTED_PATHS.some(path => item.href.startsWith(path)))
       : items
 
@@ -364,7 +364,7 @@ export function SearchDropdown() {
         item.category.toLowerCase().includes(searchLower) ||
         item.badge?.toLowerCase().includes(searchLower)
     )
-    
+
     return filtered.slice(0, 30)
   }, [search, searchItems])
 

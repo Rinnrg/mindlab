@@ -36,7 +36,7 @@ export default function ProjectsPage() {
   const [deletingCourseIds, setDeletingCourseIds] = useState<Set<string>>(new Set())
   const { confirm, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
-  
+
   // Redirect admin to admin panel
   useEffect(() => {
     if (user && user.role === 'ADMIN') {
@@ -61,9 +61,9 @@ export default function ProjectsPage() {
       </div>
     )
   }
-  
+
   const { courses, loading, error, refetch } = useCourses(user?.id, user?.role)
-  
+
   // Debounce search query untuk mengurangi re-render
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
 
@@ -108,9 +108,9 @@ export default function ProjectsPage() {
             newSet.delete(courseId)
             return newSet
           })
-          
+
           const data = await response.json()
-          
+
           // Handle specific error types
           if (response.status === 404) {
             throw new Error("PBL tidak ditemukan")
@@ -124,14 +124,14 @@ export default function ProjectsPage() {
         // Keep in deleting set until refetch completes
         // Then refetch from server to ensure consistency
         await refetch()
-        
+
         // Remove from deleting set after successful refetch
         setDeletingCourseIds(prev => {
           const newSet = new Set(prev)
           newSet.delete(courseId)
           return newSet
         })
-        
+
         // Also refresh router for any server-side updates
         router.refresh()
       },
@@ -143,7 +143,7 @@ export default function ProjectsPage() {
         autoCloseMs: 2000,
       }
     )
-    
+
     // Ensure course is removed from deleting set even if there's an error
     setDeletingCourseIds(prev => {
       const newSet = new Set(prev)
@@ -207,7 +207,7 @@ export default function ProjectsPage() {
               className="h-10 rounded-xl bg-background/60 pl-9 backdrop-blur-sm border-border/50 focus:bg-background focus:border-primary/30"
             />
           </div>
-          
+
           {/* Category Filter Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -411,73 +411,73 @@ export default function ProjectsPage() {
                 ) : (
                   // Grid View (Default) - iOS Glass
                   <Link href={`/projects/${course.id}`} className="block">
-                  <Card className="group overflow-hidden ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
-                    <div className="relative aspect-[16/10] overflow-hidden bg-muted">
-                      <img
-                        src={course.gambar || "/placeholder.svg?height=200&width=320&query=course"}
-                        alt={course.judul}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
-                      <Badge className="absolute bottom-2 left-2 bg-background/80 text-foreground backdrop-blur-md text-xs sm:bottom-3 sm:left-3 rounded-lg border-0">
-                        {course.kategori}
-                      </Badge>
-                      {isTeacherOrAdmin && (
-                        <div onClick={(e) => e.preventDefault()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              className="absolute right-2 top-2 h-7 w-7 bg-background/80 opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100 sm:right-3 sm:top-3 sm:h-8 sm:w-8 rounded-lg border-0"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="rounded-xl">
-                            <DropdownMenuItem asChild className="rounded-lg">
-                              <Link href={`/courses/${course.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                {t("Edit")}
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive rounded-lg"
-                              onClick={() => handleDeleteCourse(course.id, course.judul)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {t("Hapus")}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 sm:p-4">
-                      <h3 className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-primary transition-colors sm:text-base">
-                        {course.judul}
-                      </h3>
-                      {course.guru && (
-                        <p className="mt-1 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">{course.guru.nama}</p>
-                      )}
-                      <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3 sm:mt-4 sm:pt-4">
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground sm:gap-4 sm:text-sm">
-                          <span className="flex items-center gap-1 sm:gap-1.5">
-                            <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            {course._count?.materi ?? 0}
-                          </span>
-                          <span className="flex items-center gap-1 sm:gap-1.5">
-                            <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            {course._count?.enrollments ?? 0}
-                          </span>
-                        </div>
-                        <span className="inline-flex items-center gap-1 text-xs text-primary/80 font-medium group-hover:text-primary sm:text-sm">
-                          {user?.role === "SISWA" ? t("Lihat") : t("Kelola")}
-                          <ArrowRight className="h-3 w-3" />
-                        </span>
+                    <Card className="group overflow-hidden ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
+                      <div className="relative aspect-[16/10] overflow-hidden bg-muted">
+                        <img
+                          src={course.gambar || "/placeholder.svg?height=200&width=320&query=course"}
+                          alt={course.judul}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent" />
+                        <Badge className="absolute bottom-2 left-2 bg-background/80 text-foreground backdrop-blur-md text-xs sm:bottom-3 sm:left-3 rounded-lg border-0">
+                          {course.kategori}
+                        </Badge>
+                        {isTeacherOrAdmin && (
+                          <div onClick={(e) => e.preventDefault()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="secondary"
+                                  size="icon"
+                                  className="absolute right-2 top-2 h-7 w-7 bg-background/80 opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100 sm:right-3 sm:top-3 sm:h-8 sm:w-8 rounded-lg border-0"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="rounded-xl">
+                                <DropdownMenuItem asChild className="rounded-lg">
+                                  <Link href={`/courses/${course.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    {t("Edit")}
+                                  </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive rounded-lg"
+                                  onClick={() => handleDeleteCourse(course.id, course.judul)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  {t("Hapus")}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </Card>
+                      <div className="p-3 sm:p-4">
+                        <h3 className="line-clamp-2 text-sm font-semibold leading-snug group-hover:text-primary transition-colors sm:text-base">
+                          {course.judul}
+                        </h3>
+                        {course.guru && (
+                          <p className="mt-1 text-xs text-muted-foreground sm:mt-1.5 sm:text-sm">{course.guru.nama}</p>
+                        )}
+                        <div className="mt-3 flex items-center justify-between border-t border-border/30 pt-3 sm:mt-4 sm:pt-4">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground sm:gap-4 sm:text-sm">
+                            <span className="flex items-center gap-1 sm:gap-1.5">
+                              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              {course._count?.materi ?? 0}
+                            </span>
+                            <span className="flex items-center gap-1 sm:gap-1.5">
+                              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              {course._count?.enrollments ?? 0}
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs text-primary/80 font-medium group-hover:text-primary sm:text-sm">
+                            {user?.role === "SISWA" ? t("Lihat") : t("Kelola")}
+                            <ArrowRight className="h-3 w-3" />
+                          </span>
+                        </div>
+                      </div>
+                    </Card>
                   </Link>
                 )}
               </AnimateIn>

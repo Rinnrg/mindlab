@@ -48,7 +48,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
   const router = useRouter()
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
-  
+
   const [activeSintak, setActiveSintak] = useState("1")
 
   const filteredMateri = useMemo(() => {
@@ -228,7 +228,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                       Edit
                                     </Link>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => handleDeleteMateri(material.id, material.judul)}
                                   >
@@ -311,7 +311,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                                       Edit
                                     </Link>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     className="text-destructive"
                                     onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
                                   >
