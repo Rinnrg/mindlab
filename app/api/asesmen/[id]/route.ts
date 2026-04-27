@@ -69,6 +69,21 @@ export async function GET(
           kategori: true,
         },
       },
+      kelompok: {
+        include: {
+          anggota: {
+            include: {
+              siswa: {
+                select: {
+                  id: true,
+                  nama: true,
+                  foto: true,
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
     // For students, only include their own submissions and scores
