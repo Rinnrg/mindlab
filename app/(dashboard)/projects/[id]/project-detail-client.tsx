@@ -35,7 +35,7 @@ interface ProjectDetailClientProps {
 }
 
 const SINTAKS_PHASES = [
-  { id: "1", title: "Orientasi pada Masalah" },
+  { id: "1", title: "Orientasi pada PBL" },
   { id: "2", title: "Mengorganisasikan Siswa" },
   { id: "3", title: "Membimbing Penyelidikan" },
   { id: "4", title: "Mengembangkan dan Menyajikan Hasil" },

@@ -30,7 +30,7 @@ const segmentConfig: { [key: string]: { label: string; icon?: React.ReactNode } 
   'dashboard': { label: 'Dashboard', icon: <House className="h-4 w-4" /> },
   'courses': { label: 'Kursus', icon: <BookOpen className="h-4 w-4" /> },
   'asesmen': { label: 'Asesmen', icon: <FileText className="h-4 w-4" /> },
-  'projects': { label: 'Masalah', icon: <BookOpen className="h-4 w-4" /> },
+  'projects': { label: 'PBL', icon: <BookOpen className="h-4 w-4" /> },
   'proyek': { label: 'Proyek Saya', icon: <BookOpen className="h-4 w-4" /> },
   'users': { label: 'Pengguna', icon: <Users className="h-4 w-4" /> },
   'schedule': { label: 'Jadwal', icon: <Calendar className="h-4 w-4" /> },
@@ -86,13 +86,14 @@ function useFetchNames(pathname: string): { names: Record<string, string>; loadi
           toFetch.push({id: segment, type: 'materi'})
         } else if (prevSegment === 'asesmen') {
           toFetch.push({id: segment, type: 'asesmen'})
-        } else if (prevPrevSegment === 'courses') {
-          // This is an item ID directly under a course (pattern: /courses/[courseId]/[itemId])
+        } else if (prevPrevSegment === 'courses' || prevPrevSegment === 'projects') {
+          // This is an item ID directly under a course/project (pattern: /courses/[courseId]/[itemId])
           toFetch.push({id: segment, type: 'course-item'})
-          // Also fetch the course if we don't have it
-          const courseId = segments[i - 1]
-          if (isIdSegment(courseId) && !nameCache.has(courseId)) {
-            toFetch.push({id: courseId, type: 'course'})
+          // Also fetch the parent if we don't have it
+          const parentId = segments[i - 1]
+          if (isIdSegment(parentId) && !nameCache.has(parentId)) {
+            const parentType = prevPrevSegment === 'courses' ? 'course' : 'proyek'
+            toFetch.push({id: parentId, type: parentType})
           }
         } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
           toFetch.push({id: segment, type: 'proyek'})
@@ -135,7 +136,7 @@ function useFetchNames(pathname: string): { names: Record<string, string>; loadi
                 response = await fetch(`/api/materi/${item.id}`)
                 if (response.ok) {
                   const data = await response.json()
-                  name = data.materi?.judul || data.judul || 'Materi'
+                  name = data.materi?.judul || data.judul || data.pbl?.judul || 'Materi'
                 }
                 break
               case 'asesmen':
@@ -155,7 +156,7 @@ function useFetchNames(pathname: string): { names: Record<string, string>; loadi
                   response = await fetch(`/api/materi/${item.id}`)
                   if (response.ok) {
                     const data = await response.json()
-                    name = data.materi?.judul || data.judul || 'Materi'
+                    name = data.materi?.judul || data.judul || data.pbl?.judul || 'Materi'
                   }
                 }
                 break
@@ -163,7 +164,8 @@ function useFetchNames(pathname: string): { names: Record<string, string>; loadi
                 response = await fetch(`/api/proyek/${item.id}`)
                 if (response.ok) {
                   const data = await response.json()
-                  name = data.proyek?.judul || data.judul || 'Proyek'
+                  // Handle both { proyek } and { pbl } responses
+                  name = data.proyek?.judul || data.pbl?.judul || data.judul || 'PBL'
                 }
                 break
               case 'user':
@@ -215,15 +217,24 @@ function generateBreadcrumbs(pathname: string, names: Record<string, string>): B
   const segments = pathname.split('/').filter(Boolean)
   const breadcrumbs: BreadcrumbItem[] = []
 
-  // Check if in course context - /courses/[courseId]/...
+  // Check context
   const courseIndex = segments.indexOf('courses')
   const isInCourse = courseIndex !== -1 && courseIndex + 1 < segments.length
 
-  // Always add "Kursus" as the first breadcrumb when in course context
+  const projectIndex = segments.indexOf('projects')
+  const isInProject = projectIndex !== -1 && projectIndex + 1 < segments.length
+
+  // Always add base breadcrumb when in dynamic context
   if (isInCourse) {
     breadcrumbs.push({
       label: 'Kursus',
       href: '/courses',
+      icon: <BookOpen className="h-4 w-4" />,
+    })
+  } else if (isInProject) {
+    breadcrumbs.push({
+      label: 'PBL',
+      href: '/projects',
       icon: <BookOpen className="h-4 w-4" />,
     })
   }
@@ -237,8 +248,8 @@ function generateBreadcrumbs(pathname: string, names: Record<string, string>): B
     // Skip dashboard
     if (segment === 'dashboard') continue
 
-    // Skip the literal 'courses' segment as we handle it specially above
-    if (segment === 'courses') continue
+    // Skip literal 'courses' and 'projects' segments as we handle them specially
+    if (segment === 'courses' || segment === 'projects') continue;
 
     // Handle dynamic IDs
     if (isIdSegment(segment)) {
@@ -251,13 +262,14 @@ function generateBreadcrumbs(pathname: string, names: Record<string, string>): B
           // This is a course ID - show course name
           icon = <BookOpen className="h-4 w-4" />
           href = isLast ? undefined : `/courses/${segment}`
-        } else if (segments[i - 2] === 'courses') {
-          // This is an item ID under a course (materi/asesmen)
+        } else if (segments[i - 2] === 'courses' || segments[i - 2] === 'projects') {
+          // This is an item ID under a course or project
           icon = <FileText className="h-4 w-4" />
           // Don't provide href for last item
           href = isLast ? undefined : builtPath
         } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
           icon = <BookOpen className="h-4 w-4" />
+          href = isLast ? undefined : builtPath
         } else if (prevSegment === 'users') {
           icon = <Users className="h-4 w-4" />
         }
@@ -356,9 +368,19 @@ export function SmartBreadcrumb({ className }: SmartBreadcrumbProps) {
             <span className="sr-only">Kembali</span>
           </Button>
           
-          <div className="flex items-center gap-2 text-lg font-semibold text-blue-600">
-            {breadcrumbs[breadcrumbs.length - 1]?.icon}
-            {breadcrumbs[breadcrumbs.length - 1]?.label}
+          <div className="flex flex-col min-w-0 overflow-hidden">
+            <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/60 mb-0.5">
+              {breadcrumbs.slice(0, -1).map((crumb, idx) => (
+                <React.Fragment key={idx}>
+                  <span className="truncate">{crumb.label}</span>
+                  {idx < breadcrumbs.length - 2 && <span>/</span>}
+                </React.Fragment>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 text-lg font-bold text-blue-600 truncate">
+              {breadcrumbs[breadcrumbs.length - 1]?.icon}
+              <span className="truncate">{breadcrumbs[breadcrumbs.length - 1]?.label}</span>
+            </div>
           </div>
         </div>
       </div>

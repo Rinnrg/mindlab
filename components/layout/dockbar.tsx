@@ -32,7 +32,7 @@ export function Dockbar({ className }: DockbarProps) {
     { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
     { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("Masalah"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
     { title: t("Kelola"), href: "/users", icon: Users, roles: ["ADMIN"] },
   ], [t])

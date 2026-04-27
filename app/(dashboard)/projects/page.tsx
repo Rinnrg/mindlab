@@ -311,7 +311,7 @@ export default function ProjectsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl">
-                                <DropdownMenuItem asChild className="rounded-lg">
+                                <DropdownMenuItem asChild className="rounded-lg text-primary focus:text-primary focus:bg-primary/10">
                                   <Link href={`/courses/${course.id}/edit`}>
                                     <Pencil className="mr-2 h-4 w-4" />
                                     {t("Edit")}
@@ -374,7 +374,7 @@ export default function ProjectsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="rounded-xl">
-                            <DropdownMenuItem asChild className="rounded-lg">
+                            <DropdownMenuItem asChild className="rounded-lg text-primary focus:text-primary focus:bg-primary/10">
                               <Link href={`/courses/${course.id}/edit`}>
                                 <Pencil className="mr-2 h-4 w-4" />
                                 {t("Edit")}
@@ -435,7 +435,7 @@ export default function ProjectsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end" className="rounded-xl">
-                                <DropdownMenuItem asChild className="rounded-lg">
+                                <DropdownMenuItem asChild className="rounded-lg text-primary focus:text-primary focus:bg-primary/10">
                                   <Link href={`/courses/${course.id}/edit`}>
                                     <Pencil className="mr-2 h-4 w-4" />
                                     {t("Edit")}

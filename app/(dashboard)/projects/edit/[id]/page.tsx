@@ -19,7 +19,7 @@ import { AnimateIn } from "@/components/ui/animate-in"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { SINTAKS_MAP, SINTAKS_KEYS, SintaksKey } from "@/lib/constants/project"
 
-interface Masalah {
+interface PBL {
   id: string
   judul: string
   deskripsi: string
@@ -42,7 +42,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
 
-  const [proyek, setProyek] = useState<Masalah | null>(null)
+  const [proyek, setProyek] = useState<PBL | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   

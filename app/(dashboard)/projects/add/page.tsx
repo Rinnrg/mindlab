@@ -237,13 +237,13 @@ export default function AddProjectPage() {
               {/* Judul Masalah */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul Masalah")} <span className="text-red-500">*</span>
+                  {t("Judul PBL")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul masalah...")}
+                  placeholder={t("Masukkan judul PBL...")}
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -259,7 +259,7 @@ export default function AddProjectPage() {
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail masalah...")}
+                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -307,7 +307,7 @@ export default function AddProjectPage() {
                   {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan masalah yang akan dijalankan")}
+                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -348,7 +348,7 @@ export default function AddProjectPage() {
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung masalah")}
+                  placeholder={t("Upload file pendukung PBL")}
                 />
               </div>
 
@@ -450,7 +450,7 @@ export default function AddProjectPage() {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Buat Masalah")}
+                  {isSubmitting ? t("Menyimpan...") : t("Buat PBL")}
                 </Button>
               </div>
             </form>

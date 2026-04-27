@@ -120,10 +120,10 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
         {/* Mobile Search - Button to open dialog */}
         {isMobile && (
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setShowSearchDialog(true)}
-            className="flex-1 justify-start gap-2 text-muted-foreground"
+            className="flex-1 justify-start gap-2 text-muted-foreground bg-background/40 hover:bg-background/60 border-0 rounded-xl"
           >
             <Search className="h-4 w-4" />
             <span className="text-sm">{t("Cari")}...</span>

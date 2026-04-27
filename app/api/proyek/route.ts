@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
       return newProyek
     })
 
-    return NextResponse.json({ masalah: proyek }, { status: 201 })
+    return NextResponse.json({ pbl: proyek }, { status: 201 })
   } catch (error) {
     console.error('Error creating proyek:', error)
     const message = error instanceof Error ? error.message : 'Gagal membuat PBL'

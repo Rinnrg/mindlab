@@ -25,6 +25,7 @@ async function MateriDetailPage({ courseId, itemId }: { courseId: string, itemId
         fileType: true,
         fileSize: true,
         courseId: true,
+        sintak: true,
         fileData: false,
         course: {
           select: {
@@ -50,14 +51,18 @@ async function MateriDetailPage({ courseId, itemId }: { courseId: string, itemId
     // Check if file data exists
     const hasFileData = materi.fileSize != null && materi.fileSize > 0
 
-    // Fetch all materi from the same course for sidebar
+    // Fetch all materi from the same course and same sintak for sidebar
     const allMateri = await prisma.materi.findMany({
-      where: { courseId },
+      where: { 
+        courseId,
+        sintak: materi.sintak 
+      },
       orderBy: { tgl_unggah: 'asc' },
       select: {
         id: true,
         judul: true,
         tgl_unggah: true,
+        sintak: true,
       },
     })
 
@@ -72,6 +77,7 @@ async function MateriDetailPage({ courseId, itemId }: { courseId: string, itemId
       fileType: materi.fileType,
       fileSize: materi.fileSize,
       courseId: materi.courseId,
+      sintak: materi.sintak,
       hasFileData,
       course: {
         id: materi.course.id,
@@ -89,6 +95,7 @@ async function MateriDetailPage({ courseId, itemId }: { courseId: string, itemId
       id: item.id,
       judul: item.judul,
       tgl_unggah: item.tgl_unggah,
+      sintak: item.sintak,
     }))
 
     return (

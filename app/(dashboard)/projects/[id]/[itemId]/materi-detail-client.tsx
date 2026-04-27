@@ -26,11 +26,16 @@ import {
   Loader2,
   EyeOff,
   Maximize2,
+  Menu,
 } from "lucide-react"
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
+
+import { useAutoTranslate } from "@/lib/auto-translate-context"
 
 interface MateriDetailClientProps {
   materi: {
@@ -44,6 +49,7 @@ interface MateriDetailClientProps {
     fileType: string | null
     fileSize: number | null
     courseId: string
+    sintak: string | null
     course: {
       id: string
       judul: string
@@ -59,6 +65,7 @@ interface MateriDetailClientProps {
     id: string
     judul: string
     tgl_unggah: Date
+    sintak: string | null
   }[]
   courseId: string
 }
@@ -68,6 +75,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
   const { user } = useAuth()
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
+  const { t } = useAutoTranslate()
   const [selectedMateriId, setSelectedMateriId] = useState(materi.id)
   const [showPdfViewer, setShowPdfViewer] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -245,12 +253,12 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-0 lg:-m-6 xl:-m-8 relative">
+    <div className="flex flex-col lg:flex-row min-h-0 relative">
       <AlertComponent />
       <ActionFeedback />
 
       {/* Sidebar - Materi List - iOS Glass */}
-      <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-20 h-[calc(100vh-5rem)] mt-8 relative z-0">
+      <div className="w-80 border-r border-border/30 bg-background/50 backdrop-blur-md flex flex-col hidden lg:flex sticky top-20 h-[calc(100vh-5rem)] relative z-0">
         <div className="p-4 sm:p-6 border-b border-border/30 shrink-0">
           <h2 className="font-semibold text-lg mb-1">Daftar Materi</h2>
           <p className="text-sm text-muted-foreground">Pilih materi untuk melihat detail</p>
@@ -292,30 +300,22 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
       </div>
 
       {/* Main Content - Materi Detail */}
-      <div className="flex-1 bg-background mt-8 relative z-0">
-        <div className="p-4 sm:p-6 lg:p-8 w-full space-y-6 sm:space-y-8">
+      <div className="flex-1 bg-background relative z-0">
+        <div className="p-4 sm:p-6 lg:p-8 w-full space-y-6 sm:space-y-8 max-w-5xl mx-auto">
 
           {/* Header Section - iOS Glass */}
           <div className="space-y-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 rounded-lg">
-                    Materi Pembelajaran
-                  </Badge>
-                  <Badge variant="secondary" className="gap-1 rounded-lg">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(materi.tgl_unggah).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                    Sintak {materi.sintak || "1"}
                   </Badge>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+                <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
                   {materi.judul}
                 </h1>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                   <User className="h-4 w-4" />
                   <span>Oleh: {materi.course.guru.nama}</span>
                 </div>
@@ -329,7 +329,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleEditMateri}>
+                    <DropdownMenuItem onClick={handleEditMateri} className="text-primary focus:text-primary focus:bg-primary/10">
                       <Pencil className="mr-2 h-4 w-4" />
                       Edit Materi
                     </DropdownMenuItem>

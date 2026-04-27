@@ -22,7 +22,7 @@ interface SmartBreadcrumbProps {
 const segmentConfig: { [key: string]: string } = {
   'dashboard': 'Dashboard',
   'courses': 'Kursus',
-  'projects': 'Masalah',
+  'projects': 'PBL',
   'proyek': 'Proyek Saya',
   'users': 'Pengguna',
   'schedule': 'Jadwal',

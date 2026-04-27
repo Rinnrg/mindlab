@@ -115,8 +115,8 @@ export default function Sintaks2Page() {
             <div className="space-y-2 pt-4">
               <h3 className="font-semibold text-lg">Tujuan Pembelajaran</h3>
               <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-                <li>Memahami konsep masalah dalam pemrograman berorientasi objek</li>
-                <li>Mengidentifikasi komponen-komponen utama masalah</li>
+                <li>Memahami konsep PBL dalam pemrograman berorientasi objek</li>
+                <li>Mengidentifikasi komponen-komponen utama PBL</li>
                 <li>Menganalisis kebutuhan sistem</li>
                 <li>Merumuskan solusi berbasis objek</li>
               </ul>

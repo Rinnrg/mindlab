@@ -18,7 +18,7 @@ export interface SintaksInfo {
 export const SINTAKS_MAP: Record<SintaksKey, SintaksInfo> = {
   sintaks_1: {
     key: "sintaks_1",
-    title: "Orientasi Masalah",
+    title: "Orientasi PBL",
     titleEn: "Problem Orientation",
     description: "Mengorientasikan siswa pada masalah nyata yang akan menjadi dasar proyek",
     descriptionEn: "Orienting students to real-world problems as the basis of the project",
@@ -54,7 +54,7 @@ export const SINTAKS_MAP: Record<SintaksKey, SintaksInfo> = {
   },
   sintaks_5: {
     key: "sintaks_5",
-    title: "Menganalisis dan Mengevaluasi Proses Pemecahan Masalah",
+    title: "Menganalisis dan Mengevaluasi Proses Pemecahan PBL",
     titleEn: "Analyzing and Evaluating Problem Solving Process",
     description: "Menganalisis dan mengevaluasi proses pemecahan masalah yang telah dilakukan",
     descriptionEn: "Analyzing and evaluating the problem-solving process that has been carried out",

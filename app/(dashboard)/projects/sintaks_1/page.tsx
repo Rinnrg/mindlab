@@ -22,7 +22,7 @@ export default function Sintaks1Page() {
 
     async function fetchProyek() {
       try {
-        const response = await fetch("/api/proyek?judul=Orientasi Masalah")
+        const response = await fetch("/api/proyek?judul=Orientasi PBL")
         if (response.ok) {
           const data = await response.json()
           setProyek(data)
@@ -84,7 +84,7 @@ export default function Sintaks1Page() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">PBL - Project Based Learning</h1>
-          <p className="text-muted-foreground">Orientasi Masalah</p>
+          <p className="text-muted-foreground">Orientasi PBL</p>
         </div>
         {isGuruOrAdmin && proyek && (
           <Link href="/projects/edit/sintaks_1">
@@ -115,8 +115,8 @@ export default function Sintaks1Page() {
             <div className="space-y-2 pt-4">
               <h3 className="font-semibold text-lg">Tujuan Pembelajaran</h3>
               <ul className="list-disc pl-5 text-muted-foreground space-y-1">
-                <li>Memahami konsep masalah dalam pemrograman berorientasi objek</li>
-                <li>Mengidentifikasi komponen-komponen utama masalah</li>
+                <li>Memahami konsep PBL dalam pemrograman berorientasi objek</li>
+                <li>Mengidentifikasi komponen-komponen utama PBL</li>
                 <li>Menganalisis kebutuhan sistem</li>
                 <li>Merumuskan solusi berbasis objek</li>
               </ul>

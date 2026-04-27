@@ -190,7 +190,7 @@ export function SearchDropdown() {
       },
       {
         id: "projects",
-        title: t("Masalah"),
+        title: t("PBL"),
         description: t("Kelola project based learning"),
         icon: FolderOpen,
         href: "/projects",

@@ -124,12 +124,12 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
       },
       {
         id: "projects",
-        title: t("Masalah"),
+        title: t("PBL"),
         description: t("Kelola project based learning"),
         url: "/projects",
         icon: <FolderOpen className="h-4 w-4 text-muted-foreground" />,
         category: t("Navigasi"),
-        keywords: ["projects", "proyek", "project", "pbl", "masalah", "project based learning"],
+        keywords: ["projects", "proyek", "project", "pbl", "project based learning"],
       },
       {
         id: "schedule",
