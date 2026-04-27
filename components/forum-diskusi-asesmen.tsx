@@ -66,6 +66,8 @@ export function ForumDiskusiAsesmen({
 }: ForumDiskusiAsesmenProps) {
   const [discussions, setDiscussions] = useState<ForumDiskusi[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [isForbidden, setIsForbidden] = useState(false)
   const [newMessage, setNewMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
@@ -94,22 +96,50 @@ export function ForumDiskusiAsesmen({
   const fetchDiscussions = async () => {
     try {
       setLoading(true)
+      setLoadError(null)
+      setIsForbidden(false)
       const res = await fetch(
         `/api/asesmen/${asesmenId}/forum?userId=${userId}&userRole=${userRole}`
       )
       if (res.ok) {
         const data = await res.json()
-        setDiscussions(data.discussions)
+        setDiscussions(Array.isArray(data.discussions) ? data.discussions : [])
+        return
       }
+
+      // Handle forbidden / not found explicitly so UI can render safely
+      if (res.status === 403) {
+        setIsForbidden(true)
+        const data = await res.json().catch(() => null)
+        setLoadError(data?.error || 'Anda tidak memiliki akses ke forum asesmen ini')
+        setDiscussions([])
+        return
+      }
+
+      if (res.status === 404) {
+        const data = await res.json().catch(() => null)
+        setLoadError(data?.error || 'Forum tidak ditemukan')
+        setDiscussions([])
+        return
+      }
+
+      const data = await res.json().catch(() => null)
+      setLoadError(data?.error || 'Gagal mengambil data forum')
+      setDiscussions([])
     } catch (error) {
       console.error("Error fetching forum:", error)
+      setLoadError('Terjadi kesalahan saat mengambil data forum')
+      setDiscussions([])
     } finally {
       setLoading(false)
     }
   }
 
+  const inputsDisabled = isForbidden
+
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || sending) return
+  if (inputsDisabled) return
+  if (!newMessage.trim() || sending) return
 
     try {
       setSending(true)
@@ -136,7 +166,8 @@ export function ForumDiskusiAsesmen({
   }
 
   const handleSendReply = async (forumId: string) => {
-    if (!replyMessage.trim() || sendingReply) return
+  if (inputsDisabled) return
+  if (!replyMessage.trim() || sendingReply) return
 
     try {
       setSendingReply(true)
@@ -309,6 +340,28 @@ export function ForumDiskusiAsesmen({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {loadError ? (
+          <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5">
+                {isForbidden ? (
+                  <Lock className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <MessageCircle className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-sm">
+                  {isForbidden ? 'Forum tidak dapat diakses' : 'Gagal memuat forum'}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 break-words">
+                  {loadError}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* New Discussion Input */}
         <div className="space-y-3">
           <div className="flex items-start gap-3">
@@ -326,6 +379,7 @@ export function ForumDiskusiAsesmen({
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 className="min-h-[80px] resize-none"
+                disabled={inputsDisabled}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                     handleSendMessage()
@@ -339,7 +393,7 @@ export function ForumDiskusiAsesmen({
                 <Button
                   size="sm"
                   onClick={handleSendMessage}
-                  disabled={!newMessage.trim() || sending}
+                  disabled={inputsDisabled || !newMessage.trim() || sending}
                 >
                   {sending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -363,14 +417,16 @@ export function ForumDiskusiAsesmen({
               Memuat diskusi...
             </span>
           </div>
-        ) : discussions.length === 0 ? (
+  ) : discussions.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-center">
             <div className="p-4 rounded-full bg-muted mb-4">
               <MessageSquarePlus className="h-8 w-8 text-muted-foreground" />
             </div>
             <h3 className="font-semibold text-base mb-1">Belum Ada Diskusi</h3>
             <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-              Jadilah yang pertama memulai diskusi tentang asesmen ini!
+              {loadError
+                ? 'Diskusi tidak tersedia untuk saat ini.'
+                : 'Jadilah yang pertama memulai diskusi tentang asesmen ini!'}
             </p>
           </div>
         ) : (
@@ -450,6 +506,7 @@ export function ForumDiskusiAsesmen({
                       variant="ghost"
                       size="sm"
                       className="h-7 text-xs text-muted-foreground hover:text-primary"
+                      disabled={inputsDisabled}
                       onClick={() => {
                         setReplyingTo(
                           replyingTo === discussion.id ? null : discussion.id
@@ -570,6 +627,7 @@ export function ForumDiskusiAsesmen({
                           value={replyMessage}
                           onChange={(e) => setReplyMessage(e.target.value)}
                           className="min-h-[60px] resize-none text-sm"
+                          disabled={inputsDisabled}
                           onKeyDown={(e) => {
                             if (
                               e.key === "Enter" &&
@@ -595,7 +653,7 @@ export function ForumDiskusiAsesmen({
                             size="sm"
                             className="h-7 text-xs"
                             onClick={() => handleSendReply(discussion.id)}
-                            disabled={!replyMessage.trim() || sendingReply}
+                            disabled={inputsDisabled || !replyMessage.trim() || sendingReply}
                           >
                             {sendingReply ? (
                               <Loader2 className="mr-1 h-3 w-3 animate-spin" />

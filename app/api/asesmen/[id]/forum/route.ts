@@ -32,24 +32,17 @@ export async function GET(
       )
     }
 
-    // Validate access - guru always has access, siswa must have completed
+    // Validate access:
+    // - GURU/ADMIN: allowed (additional ownership checks happen elsewhere)
+    // - SISWA: must be enrolled. Forum is allowed even before completion to avoid blocking help/discussion.
     if (userRole === 'SISWA') {
-      // Check enrollment
       const enrollment = await prisma.enrollment.findFirst({
-        where: { siswaId: userId, courseId: asesmen.courseId }
+        where: { siswaId: userId, courseId: asesmen.courseId },
+        select: { id: true },
       })
       if (!enrollment) {
         return NextResponse.json(
-          { error: 'Anda tidak terdaftar di course ini' },
-          { status: 403 }
-        )
-      }
-
-      // Check if student has completed the asesmen
-      const hasCompleted = await checkStudentCompleted(userId, asesmenId, asesmen.tipe)
-      if (!hasCompleted) {
-        return NextResponse.json(
-          { error: 'Anda harus menyelesaikan asesmen terlebih dahulu' },
+          { error: 'Anda tidak terdaftar di course ini', code: 'NOT_ENROLLED' },
           { status: 403 }
         )
       }
@@ -127,22 +120,15 @@ export async function POST(
       )
     }
 
-    // Validate access
+    // Validate access (same rules as GET)
     if (userRole === 'SISWA') {
       const enrollment = await prisma.enrollment.findFirst({
-        where: { siswaId: userId, courseId: asesmen.courseId }
+        where: { siswaId: userId, courseId: asesmen.courseId },
+        select: { id: true },
       })
       if (!enrollment) {
         return NextResponse.json(
-          { error: 'Anda tidak terdaftar di course ini' },
-          { status: 403 }
-        )
-      }
-
-      const hasCompleted = await checkStudentCompleted(userId, asesmenId, asesmen.tipe)
-      if (!hasCompleted) {
-        return NextResponse.json(
-          { error: 'Anda harus menyelesaikan asesmen terlebih dahulu' },
+          { error: 'Anda tidak terdaftar di course ini', code: 'NOT_ENROLLED' },
           { status: 403 }
         )
       }
@@ -191,22 +177,9 @@ export async function POST(
   }
 }
 
-// Helper function to check if student has completed the asesmen
-async function checkStudentCompleted(userId: string, asesmenId: string, tipe: string): Promise<boolean> {
-  if (tipe === 'KUIS') {
-    // Check if student has nilai (score) for this quiz
-    const nilai = await prisma.nilai.findFirst({
-      where: { siswaId: userId, asesmenId }
-    })
-    return !!nilai
-  } else {
-    // TUGAS - Check if student has submitted
-    const pengumpulan = await prisma.pengumpulanProyek.findFirst({
-      where: { siswaId: userId, asesmenId }
-    })
-    return !!pengumpulan
-  }
-}
+// NOTE: Previously we blocked forum for SISWA until completion.
+// That caused 403 during quiz and could crash the client when it didn't handle it.
+// If you want to restore that rule, implement it in the UI (disable inputs) rather than hard-blocking GET.
 
 // DELETE a discussion
 export async function DELETE(
