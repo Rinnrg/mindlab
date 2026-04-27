@@ -809,7 +809,7 @@ export default function KuisPage({ params }: PageProps) {
                   <Button
                     className="flex-1"
                     onClick={() => handleSubmit(false)}
-                    disabled={submitting}
+                    disabled={submitting || answeredCount < shuffledSoal.length}
                   >
                     {submitting ? (
                       <>

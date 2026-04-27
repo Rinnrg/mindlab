@@ -290,25 +290,34 @@ export function useSweetAlert() {
     [showAlert],
   )
 
+  const hideAlertRef = React.useRef(hideAlert)
+  hideAlertRef.current = hideAlert
+  
+  const stateRef = React.useRef({ state, isLoading })
+  stateRef.current = { state, isLoading }
+
   const AlertComponent = React.useCallback(
-    () => (
-      <SweetAlert
-        open={state.open}
-        onOpenChange={(open) => {
-          if (!open) hideAlert()
-        }}
-        type={state.type}
-        title={state.title}
-        description={state.description}
-        confirmText={state.confirmText}
-        cancelText={state.cancelText}
-        showCancelButton={state.showCancelButton}
-        onConfirm={state.onConfirm}
-        onCancel={state.onCancel}
-        isLoading={isLoading}
-      />
-    ),
-    [state, hideAlert, isLoading],
+    () => {
+      const { state, isLoading } = stateRef.current
+      return (
+        <SweetAlert
+          open={state.open}
+          onOpenChange={(open) => {
+            if (!open) hideAlertRef.current()
+          }}
+          type={state.type}
+          title={state.title}
+          description={state.description}
+          confirmText={state.confirmText}
+          cancelText={state.cancelText}
+          showCancelButton={state.showCancelButton}
+          onConfirm={state.onConfirm}
+          onCancel={state.onCancel}
+          isLoading={isLoading}
+        />
+      )
+    },
+    []
   )
 
   return {

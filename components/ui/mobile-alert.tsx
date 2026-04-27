@@ -345,26 +345,35 @@ export function useMobileAlert() {
     [showAlert]
   )
 
+  const hideAlertRef = React.useRef(hideAlert)
+  hideAlertRef.current = hideAlert
+  
+  const stateRef = React.useRef({ state, isLoading })
+  stateRef.current = { state, isLoading }
+
   const AlertComponent = React.useCallback(
-    () => (
-      <MobileAlert
-        open={state.open}
-        onOpenChange={(open) => {
-          if (!open) hideAlert()
-        }}
-        type={state.type}
-        title={state.title}
-        subtitle={state.subtitle}
-        message={state.message}
-        confirmText={state.confirmText}
-        cancelText={state.cancelText}
-        showCancelButton={state.showCancelButton}
-        onConfirm={state.onConfirm}
-        onCancel={state.onCancel}
-        isLoading={isLoading}
-      />
-    ),
-    [state, hideAlert, isLoading]
+    () => {
+      const { state, isLoading } = stateRef.current
+      return (
+        <MobileAlert
+          open={state.open}
+          onOpenChange={(open) => {
+            if (!open) hideAlertRef.current()
+          }}
+          type={state.type}
+          title={state.title}
+          subtitle={state.subtitle}
+          message={state.message}
+          confirmText={state.confirmText}
+          cancelText={state.cancelText}
+          showCancelButton={state.showCancelButton}
+          onConfirm={state.onConfirm}
+          onCancel={state.onCancel}
+          isLoading={isLoading}
+        />
+      )
+    },
+    []
   )
 
   return {

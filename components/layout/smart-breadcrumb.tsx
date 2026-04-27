@@ -255,7 +255,7 @@ function generateBreadcrumbs(pathname: string, names: Record<string, string>): B
           // This is an item ID under a course (materi/asesmen)
           icon = <FileText className="h-4 w-4" />
           // Don't provide href for last item
-          href = undefined
+          href = isLast ? undefined : builtPath
         } else if (prevSegment === 'proyek' || prevSegment === 'projects') {
           icon = <BookOpen className="h-4 w-4" />
         } else if (prevSegment === 'users') {

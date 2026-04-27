@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { useSweetAlert } from "./sweet-alert"
 import { useMobileAlert } from "./mobile-alert"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -20,12 +21,14 @@ export function useAdaptiveAlert() {
     ...activeAlert,
     isMobile,
     // Komponen yang hanya render alert yang sesuai
-    AlertComponent: () => {
+    AlertComponent: React.useCallback(() => {
       if (isMobile) {
-        return mobileAlert.AlertComponent()
+        const MobileComponent = mobileAlert.AlertComponent
+        return <MobileComponent />
       } else {
-        return sweetAlert.AlertComponent()
+        const SweetComponent = sweetAlert.AlertComponent
+        return <SweetComponent />
       }
-    },
+    }, [isMobile, mobileAlert.AlertComponent, sweetAlert.AlertComponent]),
   }
 }
