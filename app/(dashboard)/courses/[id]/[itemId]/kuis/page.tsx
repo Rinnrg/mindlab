@@ -530,7 +530,6 @@ export default function KuisPage({ params }: PageProps) {
               sessionStorage.removeItem(`kuis_start_${asesmenId}`)
               sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
               setHasSubmitted(true)
-              leaveIntentRef.current = true
               setTimeout(() => {
                 router.push(`/courses/${courseId}/${asesmenId}`)
               }, 2000)
@@ -575,7 +574,6 @@ export default function KuisPage({ params }: PageProps) {
             sessionStorage.removeItem(`kuis_start_${asesmenId}`)
             sessionStorage.removeItem(`kuis_leave_${asesmenId}`)
             setHasSubmitted(true)
-            leaveIntentRef.current = true
             setTimeout(() => {
               router.push(`/courses/${courseId}/${asesmenId}`)
             }, 2000)
@@ -587,6 +585,14 @@ export default function KuisPage({ params }: PageProps) {
       isSubmittingRef.current = false
     }
   }
+
+  const answeredSet = useMemo(() => {
+    const set = new Set<string>()
+    for (const j of jawaban) {
+      if (j.jawaban !== '') set.add(j.soalId)
+    }
+    return set
+  }, [jawaban])
 
   if (authLoading || loading) {
     return (
@@ -632,14 +638,6 @@ export default function KuisPage({ params }: PageProps) {
   const answeredCount = jawaban.filter(j => j.jawaban !== '').length
   const progress = (answeredCount / shuffledSoal.length) * 100
   const isCurrentRagu = raguRagu.has(currentSoal.id)
-
-  const answeredSet = useMemo(() => {
-    const set = new Set<string>()
-    for (const j of jawaban) {
-      if (j.jawaban !== '') set.add(j.soalId)
-    }
-    return set
-  }, [jawaban])
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
