@@ -24,6 +24,7 @@ import { useAsyncAction } from "@/hooks/use-async-action"
 import { AvatarCropDialog } from "@/components/ui/avatar-crop-dialog"
 import { uploadProfilePhoto } from "../settings/actions"
 import { useRouter } from "next/navigation"
+import { ShowcaseDetailDialog } from "@/components/profile/showcase-detail-dialog"
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
@@ -52,6 +53,8 @@ export default function ProfilePage() {
   const [coursesLoading, setCoursesLoading] = useState(true)
   const [showcases, setShowcases] = useState<any[]>([])
   const [showcasesLoading, setShowcasesLoading] = useState(true)
+  const [selectedShowcase, setSelectedShowcase] = useState<any>(null)
+  const [showcaseDialogOpen, setShowcaseDialogOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const dateLocale = locale === 'id' ? idLocale : enUS
@@ -636,11 +639,17 @@ export default function ProfilePage() {
                       </CardContent>
                       <CardFooter className="border-t p-3 sm:p-4">
                         {item.pengumpulanProyek?.asesmen && (
-                          <Button asChild className="w-full bg-transparent" variant="outline" size="sm">
-                            <Link href={`/courses/${item.pengumpulanProyek.asesmen.course?.id}/${item.pengumpulanProyek.asesmen.id}`}>
-                              {t("Lihat Detail")}
-                              <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            </Link>
+                          <Button 
+                            className="w-full bg-transparent" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedShowcase(item)
+                              setShowcaseDialogOpen(true)
+                            }}
+                          >
+                            {t("Lihat Detail")}
+                            <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         )}
                       </CardFooter>
@@ -723,6 +732,12 @@ export default function ProfilePage() {
         onOpenChange={setCropDialogOpen}
         imageSrc={selectedImage}
         onCropComplete={handleCropComplete}
+      />
+
+      <ShowcaseDetailDialog 
+        showcase={selectedShowcase} 
+        open={showcaseDialogOpen} 
+        onOpenChange={setShowcaseDialogOpen} 
       />
     </div>
   )

@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
             ketua: true,
             anggota: true,
             tgl_unggah: true,
+            feedback: true,
             asesmen: {
               select: {
                 id: true,
@@ -49,6 +50,12 @@ export async function GET(request: NextRequest) {
                     id: true,
                     judul: true,
                     gambar: true,
+                  },
+                },
+                guru: {
+                  select: {
+                    id: true,
+                    nama: true,
                   },
                 },
               },

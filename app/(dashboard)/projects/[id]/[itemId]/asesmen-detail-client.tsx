@@ -937,7 +937,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                         <div className="flex items-center gap-2">
                           <Clock className="h-5 w-5 text-blue-500" />
                           <div>
-                            <p className="font-medium text-blue-700">Belum Dinilai</p>
+                            <p className="font-medium text-blue-700">Sedang di review</p>
                             <p className="text-sm text-muted-foreground">
                               Tugas Anda sedang dalam proses penilaian oleh guru
                             </p>
@@ -1232,12 +1232,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   {pengumpulan.nilai}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline">Belum dinilai</Badge>
+                                <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Sedang di review</Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/courses/${courseId}/${asesmen.id}/pengumpulan/${pengumpulan.id}`}>
+                                <Link href={`/projects/${courseId}/${asesmen.id}/pengumpulan/${pengumpulan.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </Link>

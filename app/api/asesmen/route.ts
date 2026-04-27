@@ -271,6 +271,23 @@ export async function POST(request: NextRequest) {
         data: asesmenData,
       })
       console.log(`✓ Asesmen created with ID: ${newAsesmen.id}`)
+
+      // Create Kelompok if it's a group task and members are selected
+      if (tipe === 'TUGAS' && tipePengerjaan === 'KELOMPOK' && body.selectedGroupMembers && Array.isArray(body.selectedGroupMembers)) {
+        console.log(`Creating Kelompok for asesmen ${newAsesmen.id} with ${body.selectedGroupMembers.length} members`)
+        await prisma.kelompok.create({
+          data: {
+            nama: `Kelompok ${nama}`,
+            asesmenId: newAsesmen.id,
+            anggota: {
+              create: body.selectedGroupMembers.map((siswaId: string) => ({
+                siswaId: siswaId
+              }))
+            }
+          }
+        })
+        console.log(`✓ Kelompok created successfully`)
+      }
     } catch (createError: any) {
       console.error('Failed to create asesmen:', createError)
       throw createError

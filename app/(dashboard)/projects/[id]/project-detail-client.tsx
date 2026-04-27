@@ -256,12 +256,34 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                     </CardTitle>
                   </div>
                   {isTeacherOrAdmin && (
-                    <Button asChild variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
-                      <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}`}>
-                        <Plus className="h-4 w-4" />
-                        Tambah Tugas
-                      </Link>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
+                          <Plus className="h-4 w-4" />
+                          Tambah Tugas
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 ios-glass-card border-border/30 rounded-xl">
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=KUIS`}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Kuis
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=INDIVIDU`}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Pengumpulan (Individu)
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild className="cursor-pointer">
+                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=KELOMPOK`}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Pengumpulan (Kelompok)
+                          </Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   )}
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6">

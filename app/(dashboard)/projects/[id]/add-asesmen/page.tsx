@@ -68,7 +68,8 @@ export default function AddAsesmenPage() {
 
   const [nama, setNama] = React.useState("")
   const [deskripsi, setDeskripsi] = React.useState("")
-  const [tipe, setTipe] = React.useState<TipeAsesmen>("KUIS")
+  const [tipe, setTipe] = React.useState<TipeAsesmen>((searchParams.get('type') as TipeAsesmen) || "KUIS")
+  const [tipePengerjaan, setTipePengerjaan] = React.useState<"INDIVIDU" | "KELOMPOK">((searchParams.get('mode') as "INDIVIDU" | "KELOMPOK") || "INDIVIDU")
 
   const [antiCurang, setAntiCurang] = React.useState(false)
   const [acakSoal, setAcakSoal] = React.useState(false)
@@ -78,12 +79,16 @@ export default function AddAsesmenPage() {
   const [tglMulai, setTglMulai] = React.useState<string>("")
   const [tglSelesai, setTglSelesai] = React.useState<string>("")
 
-  const [tipePengerjaan, setTipePengerjaan] = React.useState<"INDIVIDU" | "KELOMPOK">("INDIVIDU")
   const [file, setFile] = React.useState<File | null>(null)
 
   const [kelasList, setKelasList] = React.useState<Kelas[]>([])
   const [selectedKelas, setSelectedKelas] = React.useState<string[]>([])
   const [loadingKelas, setLoadingKelas] = React.useState(true)
+
+  const [students, setStudents] = React.useState<any[]>([])
+  const [loadingStudents, setLoadingStudents] = React.useState(false)
+  const [selectedGroupMembers, setSelectedGroupMembers] = React.useState<string[]>([])
+
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Google-Form-like builder state (hanya untuk KUIS)
@@ -191,6 +196,19 @@ export default function AddAsesmenPage() {
     }
   }, [])
 
+  React.useEffect(() => {
+    if (tipe === "TUGAS" && tipePengerjaan === "KELOMPOK") {
+      setLoadingStudents(true)
+      fetch(`/api/courses/${courseId}/students`)
+        .then(res => res.json())
+        .then(data => {
+          setStudents(Array.isArray(data) ? data : [])
+        })
+        .catch(err => console.error("Error fetching students:", err))
+        .finally(() => setLoadingStudents(false))
+    }
+  }, [tipe, tipePengerjaan, courseId])
+
   const toggleKelas = (kelasId: string, checked: boolean) => {
     setSelectedKelas((prev) => (checked ? [...prev, kelasId] : prev.filter((id) => id !== kelasId)))
   }
@@ -286,6 +304,9 @@ export default function AddAsesmenPage() {
 
         if (tipe === "TUGAS") {
           payload.tipePengerjaan = tipePengerjaan
+          if (tipePengerjaan === "KELOMPOK") {
+            payload.selectedGroupMembers = selectedGroupMembers
+          }
           payload.lampiran = fileName
           payload.fileData = fileData
           payload.fileName = fileName
@@ -749,6 +770,43 @@ export default function AddAsesmenPage() {
                         <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                         {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
                       </div>
+
+                      {tipePengerjaan === "KELOMPOK" && (
+                        <div className="space-y-3 pt-2">
+                          <Label>Pilih Anggota Kelompok</Label>
+                          <p className="text-xs text-muted-foreground">Pilih siswa yang akan masuk ke dalam kelompok untuk tugas ini.</p>
+                          
+                          {loadingStudents ? (
+                            <div className="text-sm text-muted-foreground">Memuat daftar siswa...</div>
+                          ) : students.length === 0 ? (
+                            <div className="text-sm text-muted-foreground">Tidak ada siswa terdaftar di kursus ini.</div>
+                          ) : (
+                            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                              {students.map((student) => (
+                                <label 
+                                  key={student.id} 
+                                  className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                                >
+                                  <Checkbox 
+                                    checked={selectedGroupMembers.includes(student.id)} 
+                                    onCheckedChange={(checked) => {
+                                      setSelectedGroupMembers(prev => 
+                                        checked 
+                                          ? [...prev, student.id] 
+                                          : prev.filter(id => id !== student.id)
+                                      )
+                                    }}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{student.nama}</span>
+                                    <span className="text-xs text-muted-foreground">{student.email}</span>
+                                  </div>
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </>
                   )}
                 </CardContent>

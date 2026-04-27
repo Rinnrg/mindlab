@@ -30,6 +30,7 @@ import Link from "next/link"
 import { format } from "date-fns"
 import { id as idLocale, enUS } from "date-fns/locale"
 import { AnimateIn } from "@/components/ui/animate-in"
+import { ShowcaseDetailDialog } from "@/components/profile/showcase-detail-dialog"
 
 interface UserProfile {
   id: string
@@ -67,6 +68,8 @@ export default function StudentProfilePage() {
   const [coursesLoading, setCoursesLoading] = useState(true)
   const [showcases, setShowcases] = useState<any[]>([])
   const [showcasesLoading, setShowcasesLoading] = useState(true)
+  const [selectedShowcase, setSelectedShowcase] = useState<any>(null)
+  const [showcaseDialogOpen, setShowcaseDialogOpen] = useState(false)
 
   const dateLocale = idLocale
 
@@ -488,11 +491,17 @@ export default function StudentProfilePage() {
                         </CardContent>
                         <CardFooter className="border-t p-3 sm:p-4">
                           {item.pengumpulanProyek?.asesmen && (
-                            <Button asChild className="w-full bg-transparent" variant="outline" size="sm">
-                              <Link href={`/courses/${item.pengumpulanProyek.asesmen.course?.id}/${item.pengumpulanProyek.asesmen.id}`}>
-                                Lihat Detail
-                                <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                              </Link>
+                            <Button 
+                              className="w-full bg-transparent" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setSelectedShowcase(item)
+                                setShowcaseDialogOpen(true)
+                              }}
+                            >
+                              Lihat Detail
+                              <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           )}
                         </CardFooter>
@@ -569,6 +578,12 @@ export default function StudentProfilePage() {
           </TabsContent>
         </Tabs>
       </AnimateIn>
+
+      <ShowcaseDetailDialog 
+        showcase={selectedShowcase} 
+        open={showcaseDialogOpen} 
+        onOpenChange={setShowcaseDialogOpen} 
+      />
     </div>
   )
 }
