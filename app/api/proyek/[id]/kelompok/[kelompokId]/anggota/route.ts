@@ -33,7 +33,7 @@ export async function GET(
     const assignedMembers = await prisma.anggotaKelompok.findMany({
       where: {
         kelompok: {
-          proyekId
+          pblId: proyekId,
         }
       },
       select: {

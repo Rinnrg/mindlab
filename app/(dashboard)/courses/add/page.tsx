@@ -61,7 +61,7 @@ export default function AddCoursePage() {
           setGurus(data.users)
           // Auto-select current user if they are a guru
           if (user?.role === 'GURU') {
-            const currentUserAsGuru = data.users.find(guru => guru.id === user.id)
+            const currentUserAsGuru = data.users.find((guru: Guru) => guru.id === user.id)
             if (currentUserAsGuru) {
               setSelectedGuruId(user.id)
               console.log('Auto-selected current user as guru:', user.id)
@@ -359,7 +359,7 @@ export default function AddCoursePage() {
                 <Select 
                   value={selectedGuruId} 
                   onValueChange={setSelectedGuruId}
-                  disabled={user?.role === 'GURU' && gurus.find(guru => guru.id === user.id)} // Only disable if user found as guru
+                  disabled={user?.role === 'GURU' && !!gurus.find((guru) => guru.id === user.id)} // Only disable if user found as guru
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih guru pengampu" />

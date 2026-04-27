@@ -11,7 +11,7 @@ export async function DELETE(
 
     // Verify group exists and belongs to project
     const kelompok = await prisma.kelompok.findFirst({
-      where: { id: kelompokId, proyekId },
+      where: { id: kelompokId, pblId: proyekId },
     })
 
     if (!kelompok) {

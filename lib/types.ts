@@ -44,11 +44,11 @@ export interface Asesmen {
   deskripsi?: string
   kelasTarget?: string[]
   tipe: TipeAsesmen
-  tipePengerjaan?: TipePengerjaan
+  tipePengerjaan?: TipePengerjaan | null
   jml_soal?: number | null  // Optional - akan dihitung dari jumlah soal
   durasi?: number | null    // Optional
-  tgl_mulai?: Date
-  tgl_selesai?: Date
+  tgl_mulai?: Date | null
+  tgl_selesai?: Date | null
   lampiran?: string
   guruId: string
   courseId: string

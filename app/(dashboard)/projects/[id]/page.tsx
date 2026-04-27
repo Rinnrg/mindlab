@@ -159,7 +159,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   // Get active sintaks phases for this project
   const activeSintaksPhases = proyek.sintaks
     .map(sintaksKey => getSintaksInfo(sintaksKey))
-    .filter(Boolean)
+  .filter((p): p is NonNullable<ReturnType<typeof getSintaksInfo>> => Boolean(p))
     .sort((a, b) => a.order - b.order)
 
   return (

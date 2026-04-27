@@ -24,7 +24,7 @@ export async function GET(
     // Get already assigned members to this project (all groups)
     const assignedMembers = await prisma.anggotaKelompok.findMany({
       where: {
-        kelompok: { proyekId },
+        kelompok: { pblId: proyekId },
       },
       select: { siswaId: true },
     })

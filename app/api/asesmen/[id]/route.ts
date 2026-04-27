@@ -172,11 +172,14 @@ export async function GET(
 
     console.log(`✓ Successfully fetched asesmen: ${asesmen.nama}`)
     console.log(`  - Type: ${asesmen.tipe}`)
-    console.log(`  - Course: ${asesmen.course?.judul}`)
+    // Avoid accessing optional (conditionally included) relations in a way that
+    // breaks strict TS when includeOptions changes.
+    const asesmenAny = asesmen as any
+    console.log(`  - Course: ${asesmenAny.course?.judul}`)
     if (userRole === 'SISWA') {
-      console.log(`  - Student nilai: ${asesmen.nilai?.length || 0}`)
-      console.log(`  - Student submissions: ${asesmen.pengumpulanProyek?.length || 0}`)
-      console.log(`  - Soal count: ${asesmen.soal?.length || asesmen._count?.soal || 0}`)
+      console.log(`  - Student nilai: ${asesmenAny.nilai?.length || 0}`)
+      console.log(`  - Student submissions: ${asesmenAny.pengumpulanProyek?.length || 0}`)
+      console.log(`  - Soal count: ${asesmenAny.soal?.length || asesmenAny._count?.soal || 0}`)
     }
 
     // Add cache headers for better performance

@@ -55,7 +55,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const resolvedParams = use(params)
-  const { id: courseId, asesmenId } = resolvedParams
+  const { id: courseId, itemId: asesmenId } = resolvedParams
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
 

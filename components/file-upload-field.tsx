@@ -9,21 +9,42 @@ import { Upload, Link2, X, File, Loader2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/hooks/use-toast"
 
-interface FileUploadFieldProps {
-  label: string
-  value: string
-  onChange: (value: string) => void
+export interface FileUploadFieldProps {
+  // Newer call sites (projects)
+  onFileUpload?: (url: string | null) => void
+  currentFile?: string
+  maxSizeMB?: number
+  placeholder?: string
+
+  // Older call sites (other forms)
+  label?: string
+  value?: string
+  onChange?: (value: string) => void
+
   accept?: string
   description?: string
 }
 
 export function FileUploadField({
-  label,
+  // new
+  onFileUpload,
+  currentFile,
+  maxSizeMB = 5,
+  placeholder,
+
+  // old
+  label = 'Lampiran',
   value,
   onChange,
+
   accept,
-  description
+  description,
 }: FileUploadFieldProps) {
+  const resolvedValue = value ?? currentFile ?? ''
+  const updateValue = (next: string) => {
+    onChange?.(next)
+    onFileUpload?.(next || null)
+  }
   const [uploadType, setUploadType] = useState<'link' | 'file'>('link')
   const [isUploading, setIsUploading] = useState(false)
   const [fileName, setFileName] = useState<string>('')
@@ -33,7 +54,7 @@ export function FileUploadField({
     if (!file) return
 
     
-    const maxSize = 5 * 1024 * 1024 
+  const maxSize = maxSizeMB * 1024 * 1024 
     if (file.size > maxSize) {
       toast({
         title: "Error",
@@ -54,7 +75,7 @@ export function FileUploadField({
       reader.onloadend = () => {
         const base64String = reader.result as string
         // Save as data URL (includes file type info)
-        onChange(base64String)
+  updateValue(base64String)
         setIsUploading(false)
         toast({
           title: "Berhasil",
@@ -89,12 +110,12 @@ export function FileUploadField({
   }
 
   const handleClearFile = () => {
-    onChange('')
+  updateValue('')
     setFileName('')
   }
 
   // Check if value is a data URL (base64)
-  const isDataURL = value && value.startsWith('data:')
+  const isDataURL = resolvedValue && resolvedValue.startsWith('data:')
 
   return (
     <div className="space-y-2">
@@ -116,9 +137,9 @@ export function FileUploadField({
         <TabsContent value="link" className="space-y-2">
           <Input
             type="url"
-            placeholder="https://..."
-            value={isDataURL ? '' : value}
-            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder || "https://..."}
+            value={isDataURL ? '' : resolvedValue}
+            onChange={(e) => updateValue(e.target.value)}
           />
           {isDataURL && (
             <p className="text-xs text-amber-600">
@@ -128,7 +149,7 @@ export function FileUploadField({
         </TabsContent>
 
         <TabsContent value="file" className="space-y-2">
-          {value ? (
+          {resolvedValue ? (
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -143,7 +164,7 @@ export function FileUploadField({
                       </p>
                     ) : (
                       <a 
-                        href={value} 
+                        href={resolvedValue} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline"
@@ -175,7 +196,7 @@ export function FileUploadField({
                 {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
               </div>
               <p className="text-xs text-muted-foreground">
-                Maksimal 5MB. File akan disimpan di database.
+                Maksimal {maxSizeMB}MB. File akan disimpan di database.
               </p>
             </div>
           )}

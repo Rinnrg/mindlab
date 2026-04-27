@@ -15,7 +15,7 @@ export async function DELETE(
         id: anggotaId,
         kelompokId,
         kelompok: {
-          proyekId,
+          pblId: proyekId,
         },
       },
     })

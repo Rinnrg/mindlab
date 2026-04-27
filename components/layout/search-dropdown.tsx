@@ -263,8 +263,9 @@ export function SearchDropdown() {
     // Add materi from search results
     const materiCategory = isRecent ? t("Materi Terbaru") : t("Materi")
     searchResults.materi.forEach((materi) => {
-      const enrollmentBadge = materi.kelasTarget && materi.kelasTarget.length > 0 
-        ? `${materi.kelasTarget.length} kelas enrolled` 
+      const materiAny = materi as any
+      const enrollmentBadge = materiAny.kelasTarget && materiAny.kelasTarget.length > 0 
+        ? `${materiAny.kelasTarget.length} kelas enrolled` 
         : "Semua siswa"
       
       items.push({
@@ -281,10 +282,11 @@ export function SearchDropdown() {
     // Add asesmen from search results
     const asesmenCategory = isRecent ? t("Asesmen Terbaru") : t("Asesmen")
     searchResults.asesmen.forEach((asesmen) => {
+      const asesmenAny = asesmen as any
       const tipeLabel = asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'
       const soalBadge = asesmen.tipe === 'KUIS' ? `${asesmen._count.soal} soal` : tipeLabel
-      const enrollmentInfo = asesmen.kelasTarget && asesmen.kelasTarget.length > 0 
-        ? ` • ${asesmen.kelasTarget.length} kelas enrolled` 
+      const enrollmentInfo = asesmenAny.kelasTarget && asesmenAny.kelasTarget.length > 0 
+        ? ` • ${asesmenAny.kelasTarget.length} kelas enrolled` 
         : " • Semua siswa"
       
       items.push({

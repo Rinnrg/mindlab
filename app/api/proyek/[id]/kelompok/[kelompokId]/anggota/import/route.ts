@@ -12,7 +12,7 @@ export async function POST(
 
     // Verify group exists and belongs to this project
     const kelompok = await prisma.kelompok.findFirst({
-      where: { id: kelompokId, proyekId },
+      where: { id: kelompokId, pblId: proyekId },
     })
 
     if (!kelompok) {
@@ -51,7 +51,7 @@ export async function POST(
     // Get already assigned members to this project (all groups)
     const assignedMembers = await prisma.anggotaKelompok.findMany({
       where: {
-        kelompok: { proyekId },
+        kelompok: { pblId: proyekId },
       },
       select: { siswaId: true },
     })

@@ -143,6 +143,9 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
     fetchAsesmen()
   }, [user, authLoading, router, asesmenId, courseId])
 
+  const isTeacherOrAdmin = user && (user.role === 'GURU' || user.role === 'ADMIN')
+  const isStudent = user && user.role === 'SISWA'
+
   useEffect(() => {
     if (!user || !asesmen || !isTeacherOrAdmin) return
     if (asesmen.tipe !== 'KUIS') return
@@ -230,9 +233,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const hasStarted = asesmen.tgl_mulai
     ? new Date(asesmen.tgl_mulai) <= new Date()
     : true // If no start time, assume it has started
-
-  const isTeacherOrAdmin = user && (user.role === 'GURU' || user.role === 'ADMIN')
-  const isStudent = user && user.role === 'SISWA'
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
