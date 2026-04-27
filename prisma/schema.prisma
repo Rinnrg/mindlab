@@ -156,7 +156,7 @@ model Nilai {
   tanggal      DateTime       @default(now())
   siswaId      String         @db.Uuid
   asesmenId    String         @db.Uuid
-  attemptId    String?        @db.Uuid
+  attemptId    String?        @unique @db.Uuid
   jawabanSiswa JawabanSiswa[]
   asesmen      Asesmen        @relation(fields: [asesmenId], references: [id])
   siswa        User           @relation(fields: [siswaId], references: [id])
@@ -179,7 +179,7 @@ model KuisAttempt {
   asesmenId   String    @db.Uuid
   siswa       User      @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   asesmen     Asesmen   @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-  nilai       Nilai[]
+  nilai       Nilai?
 
   @@unique([siswaId, asesmenId], name: "siswaId_asesmenId_attempt")
   @@index([asesmenId])
@@ -233,26 +233,26 @@ model AnggotaKelompok {
 }
 
 model PengumpulanProyek {
-  id              String           @id @default(uuid()) @db.Uuid
-  catatan         String?          @db.VarChar(1000)
-  sourceCode      String?          @db.VarChar(5000)
-  output          String?          @db.VarChar(5000)
-  tgl_unggah      DateTime         @default(now())
+  id              String            @id @default(uuid()) @db.Uuid
+  catatan         String?           @db.VarChar(1000)
+  sourceCode      String?           @db.VarChar(5000)
+  output          String?           @db.VarChar(5000)
+  tgl_unggah      DateTime          @default(now())
   nilai           Float?
-  namaKelompok    String?          @db.VarChar(255)
-  ketua           String?          @db.VarChar(255)
-  anggota         String[]         @db.VarChar(255)
-  fileUrl         String?          @db.VarChar(255)
+  namaKelompok    String?           @db.VarChar(255)
+  ketua           String?           @db.VarChar(255)
+  anggota         String[]          @db.VarChar(255)
+  fileUrl         String?           @db.VarChar(255)
   status          StatusPengumpulan @default(PENDING)
-  feedback        String?          @db.VarChar(1000)
+  feedback        String?           @db.VarChar(1000)
   validatedAt     DateTime?
-  validatedBy     String?          @db.VarChar(255)
-  kelompokId      String?          @db.Uuid
-  siswaId         String?          @db.Uuid
-  asesmenId       String?          @db.Uuid
-  asesmen         Asesmen?         @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-  kelompok        Kelompok?        @relation(fields: [kelompokId], references: [id])
-  siswa           User?            @relation(fields: [siswaId], references: [id])
+  validatedBy     String?           @db.VarChar(255)
+  kelompokId      String?           @db.Uuid
+  siswaId         String?           @db.Uuid
+  asesmenId       String?           @db.Uuid
+  asesmen         Asesmen?          @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+  kelompok        Kelompok?         @relation(fields: [kelompokId], references: [id])
+  siswa           User?             @relation(fields: [siswaId], references: [id])
   profileShowcase ProfileShowcase?
 
   @@index([kelompokId])

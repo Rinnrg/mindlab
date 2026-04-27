@@ -57,6 +57,10 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [tabKey, setTabKey] = useState(0) // For re-render animation
   const { confirm, AlertComponent } = useAdaptiveAlert()
 
+  const [rosterByKelas, setRosterByKelas] = useState<Record<string, any[]> | null>(null)
+  const [rosterLoading, setRosterLoading] = useState(false)
+  const [rosterError, setRosterError] = useState<string | null>(null)
+
   useEffect(() => {
     if (authLoading) return
 
@@ -138,6 +142,28 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
 
     fetchAsesmen()
   }, [user, authLoading, router, asesmenId, courseId])
+
+  useEffect(() => {
+    if (!user || !asesmen || !isTeacherOrAdmin) return
+    if (asesmen.tipe !== 'KUIS') return
+
+    const fetchRoster = async () => {
+      try {
+        setRosterLoading(true)
+        setRosterError(null)
+        const res = await fetch(`/api/asesmen/${asesmenId}/roster?userId=${user.id}&userRole=${user.role}`)
+        const data = await res.json()
+        if (!res.ok) throw new Error(data?.error || 'Gagal mengambil roster')
+        setRosterByKelas(data.grouped || {})
+      } catch (e: any) {
+        setRosterError(e?.message || 'Gagal mengambil roster')
+      } finally {
+        setRosterLoading(false)
+      }
+    }
+
+    fetchRoster()
+  }, [user, asesmen, isTeacherOrAdmin, asesmenId])
 
   // Keep hooks order stable: breadcrumb hook must be called on every render
   const breadcrumbItems = useMemo(() => {
@@ -972,67 +998,128 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           </TabsList>
 
           <TabsContent value="info" key={`info-${tabKey}`} className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
-            {/* Nilai Table (For KUIS) */}
+            {/* Informasi (For KUIS) — Roster per kelas + status */}
             {asesmen.tipe === 'KUIS' && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Daftar Nilai Siswa</CardTitle>
+                  <CardTitle className="text-lg">Daftar Siswa (berdasarkan enrollment)</CardTitle>
+                  <CardDescription>
+                    Status: Belum mengerjakan (biru), Sedang mengerjakan (kuning), Selesai (hijau)
+                  </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  {(!asesmen.nilai || asesmen.nilai.length === 0) ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      Belum ada siswa yang mengerjakan kuis
-                    </p>
-                  ) : (
-                    <div className="overflow-x-auto -mx-6">
-                    <div className="min-w-[600px] px-6">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nama Siswa</TableHead>
-                          <TableHead>Email</TableHead>
-                          <TableHead>Nilai</TableHead>
-                          <TableHead>Tanggal</TableHead>
-                          <TableHead>Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {asesmen.nilai.map((nilai: any) => (
-                          <TableRow key={nilai.id}>
-                            <TableCell className="font-medium">{nilai.siswa.nama}</TableCell>
-                            <TableCell className="text-muted-foreground">{nilai.siswa.email}</TableCell>
-                            <TableCell>
-                              <Badge variant={nilai.skor >= 75 ? 'default' : 'secondary'}>
-                                {nilai.skor}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              {new Date(nilai.tanggal).toLocaleDateString('id-ID', {
-                                day: 'numeric',
-                                month: 'short',
-                                year: 'numeric',
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              {nilai.skor >= 75 ? (
-                                <Badge variant="default" className="bg-green-500">
-                                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                                  Lulus
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary">
-                                  <XCircle className="mr-1 h-3 w-3" />
-                                  Belum Lulus
-                                </Badge>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                    </div>
-                    </div>
+                <CardContent className="space-y-6">
+                  {rosterLoading && (
+                    <p className="text-center text-muted-foreground py-8">Memuat daftar siswa...</p>
                   )}
+                  {rosterError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{rosterError}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {!rosterLoading && !rosterError && rosterByKelas && Object.keys(rosterByKelas).length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">
+                      Belum ada siswa ter-enroll di kelas ini
+                    </p>
+                  )}
+
+                  {!rosterLoading && !rosterError && rosterByKelas && Object.entries(rosterByKelas).map(([kelas, items]) => (
+                    <div key={kelas} className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">Kelas: {kelas}</h3>
+                        <Badge variant="secondary" className="rounded-lg">{items.length} siswa</Badge>
+                      </div>
+
+                      <div className="overflow-x-auto -mx-6">
+                        <div className="min-w-[760px] px-6">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Nama</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Tanggal mengerjakan</TableHead>
+                                <TableHead>Tanggal pengumpulan</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {items.map((it: any) => {
+                                const status = it.status as 'BELUM' | 'SEDANG' | 'SELESAI'
+                                const statusBadge =
+                                  status === 'SELESAI'
+                                    ? <Badge className="bg-green-600">Selesai</Badge>
+                                    : status === 'SEDANG'
+                                      ? <Badge className="bg-yellow-500 text-black">Sedang mengerjakan</Badge>
+                                      : <Badge className="bg-blue-600">Belum mengerjakan</Badge>
+
+                                return (
+                                  <TableRow key={it.siswa.id}>
+                                    <TableCell className="font-medium">{it.siswa.nama}</TableCell>
+                                    <TableCell className="text-muted-foreground">{it.siswa.email}</TableCell>
+                                    <TableCell>{statusBadge}</TableCell>
+                                    <TableCell>
+                                      {it.startedAt
+                                        ? new Date(it.startedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                        : '-'
+                                      }
+                                    </TableCell>
+                                    <TableCell>
+                                      {it.submittedAt
+                                        ? new Date(it.submittedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                                        : '-'
+                                      }
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={async () => {
+                                          const ok = await confirm('Reset & izinkan mengulang?', {
+                                            description: `Ini akan menghapus nilai dan jawaban siswa "${it.siswa.nama}" sehingga bisa mengerjakan ulang.`,
+                                            confirmText: 'Reset',
+                                            cancelText: 'Batal',
+                                            type: 'warning',
+                                          })
+                                          if (!ok) return
+
+                                          const res = await fetch(`/api/asesmen/${asesmenId}/reset`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({ siswaId: it.siswa.id, userId: user.id, userRole: user.role }),
+                                          })
+                                          const data = await res.json()
+                                          if (!res.ok) {
+                                            alert(data?.error || 'Gagal reset')
+                                            return
+                                          }
+                                          // refresh roster
+                                          setRosterByKelas(null)
+                                          setTimeout(async () => {
+                                            try {
+                                              setRosterLoading(true)
+                                              const r = await fetch(`/api/asesmen/${asesmenId}/roster?userId=${user.id}&userRole=${user.role}`)
+                                              const d = await r.json()
+                                              if (r.ok) setRosterByKelas(d.grouped || {})
+                                            } finally {
+                                              setRosterLoading(false)
+                                            }
+                                          }, 200)
+                                        }}
+                                      >
+                                        Mengulang
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              })}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
