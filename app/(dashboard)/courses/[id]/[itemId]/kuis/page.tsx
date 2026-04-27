@@ -28,7 +28,7 @@ import { Progress } from "@/components/ui/progress"
 interface PageProps {
   params: Promise<{ 
     id: string
-    asesmenId: string
+  itemId: string
   }>
 }
 
@@ -84,7 +84,7 @@ export default function KuisPage({ params }: PageProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const resolvedParams = use(params)
-  const { id: courseId, asesmenId } = resolvedParams
+  const { id: courseId, itemId: asesmenId } = resolvedParams
   const { confirm, error: showError, warning: showWarning, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   
@@ -163,6 +163,11 @@ export default function KuisPage({ params }: PageProps) {
 
   useEffect(() => {
     if (authLoading) return
+
+    if (!asesmenId) {
+      router.push(`/courses/${courseId}`)
+      return
+    }
 
     if (!user) {
       router.push('/login')
