@@ -46,15 +46,6 @@ export async function POST(
           { status: 403 }
         )
       }
-
-      // Check if student completed the asesmen
-      const hasCompleted = await checkStudentCompleted(userId, asesmenId, forumDiskusi.asesmen.tipe)
-      if (!hasCompleted) {
-        return NextResponse.json(
-          { error: 'Anda harus menyelesaikan asesmen terlebih dahulu' },
-          { status: 403 }
-        )
-      }
     }
 
     const reply = await prisma.balasanForum.create({
@@ -137,17 +128,3 @@ export async function DELETE(
   }
 }
 
-// Helper
-async function checkStudentCompleted(userId: string, asesmenId: string, tipe: string): Promise<boolean> {
-  if (tipe === 'KUIS') {
-    const nilai = await prisma.nilai.findFirst({
-      where: { siswaId: userId, asesmenId }
-    })
-    return !!nilai
-  } else {
-    const pengumpulan = await prisma.pengumpulanProyek.findFirst({
-      where: { siswaId: userId, asesmenId }
-    })
-    return !!pengumpulan
-  }
-}

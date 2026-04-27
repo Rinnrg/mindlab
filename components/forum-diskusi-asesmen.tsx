@@ -75,7 +75,9 @@ export function ForumDiskusiAsesmen({
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const replyInputRef = useRef<HTMLTextAreaElement>(null)
 
-  const canParticipate = isTeacherOrAdmin || hasCompleted
+  // Allow students to participate (including multiple replies) as long as they're enrolled.
+  // Enrollment validation is enforced in the API.
+  const canParticipate = true
 
   useEffect(() => {
     if (canParticipate) {

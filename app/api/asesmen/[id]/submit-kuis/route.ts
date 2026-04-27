@@ -49,9 +49,10 @@ export async function POST(
       where: {
         siswaId_asesmenId: {
           siswaId,
-          asesmenId
-        }
-      }
+          asesmenId,
+        },
+      },
+      select: { id: true },
     })
 
     if (existingNilai) {
@@ -60,6 +61,14 @@ export async function POST(
         { status: 400 }
       )
     }
+
+    // Ensure attempt exists (created when quiz starts)
+    const attempt = await prisma.kuisAttempt.upsert({
+      where: { siswaId_asesmenId_attempt: { siswaId, asesmenId } },
+      update: {},
+      create: { siswaId, asesmenId },
+      select: { id: true },
+    })
 
     // Calculate score and save answers
     let totalSkor = 0
@@ -73,6 +82,7 @@ export async function POST(
           asesmenId,
           skor: 0, // Will update later
           tanggal: new Date(),
+          attemptId: attempt.id,
         }
       })
 
@@ -123,6 +133,12 @@ export async function POST(
       await tx.nilai.update({
         where: { id: nilaiRecord.id },
         data: { skor: finalSkor }
+      })
+
+      // Mark attempt submitted
+      await tx.kuisAttempt.update({
+        where: { id: attempt.id },
+        data: { submittedAt: new Date() },
       })
 
       return {

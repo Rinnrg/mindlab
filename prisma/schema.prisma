@@ -26,6 +26,7 @@ model User {
   enrollments       Enrollment[]
   forumDiskusi      ForumDiskusi[]
   jawabanSiswa      JawabanSiswa[]
+  kuisAttempts      KuisAttempt[]
   nilai             Nilai[]
   pengumpulanProyek PengumpulanProyek[]
   profileShowcase   ProfileShowcase[]
@@ -94,6 +95,7 @@ model Asesmen {
   guru              User                @relation(fields: [guruId], references: [id])
   forumDiskusi      ForumDiskusi[]
   nilai             Nilai[]
+  kuisAttempts      KuisAttempt[]
   pengumpulanProyek PengumpulanProyek[]
   soal              Soal[]
 
@@ -154,14 +156,36 @@ model Nilai {
   tanggal      DateTime       @default(now())
   siswaId      String         @db.Uuid
   asesmenId    String         @db.Uuid
+  attemptId    String?        @db.Uuid
   jawabanSiswa JawabanSiswa[]
   asesmen      Asesmen        @relation(fields: [asesmenId], references: [id])
   siswa        User           @relation(fields: [siswaId], references: [id])
+  attempt      KuisAttempt?   @relation(fields: [attemptId], references: [id], onDelete: SetNull)
 
   @@unique([siswaId, asesmenId], name: "siswaId_asesmenId")
   @@index([siswaId])
   @@index([asesmenId])
   @@index([tanggal])
+  @@index([attemptId])
+}
+
+model KuisAttempt {
+  id          String    @id @default(uuid()) @db.Uuid
+  attemptNo   Int       @default(1)
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+  resetAt     DateTime?
+  siswaId     String    @db.Uuid
+  asesmenId   String    @db.Uuid
+  siswa       User      @relation(fields: [siswaId], references: [id], onDelete: Cascade)
+  asesmen     Asesmen   @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+  nilai       Nilai[]
+
+  @@unique([siswaId, asesmenId], name: "siswaId_asesmenId_attempt")
+  @@index([asesmenId])
+  @@index([siswaId])
+  @@index([startedAt])
+  @@index([submittedAt])
 }
 
 model PBL {

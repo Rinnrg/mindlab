@@ -184,6 +184,22 @@ export default function KuisPage({ params }: PageProps) {
       return
     }
 
+    // Ensure an attempt record exists (Opsi 2: DB-backed attempt tracking)
+    // This enables teacher dashboard to show "sedang mengerjakan" accurately.
+    const ensureAttempt = async () => {
+      try {
+        await fetch(`/api/asesmen/${asesmenId}/attempt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siswaId: user.id }),
+        })
+      } catch (e) {
+        // Non-blocking
+        console.warn('Failed to create attempt:', e)
+      }
+    }
+    ensureAttempt()
+
     // Fetch asesmen data
     const fetchData = async () => {
       try {
