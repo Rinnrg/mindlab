@@ -7,7 +7,6 @@ import { Sidebar } from "./sidebar"
 import { Dockbar } from "./dockbar"
 import { Header } from "./header"
 import { MobileBottomNav } from "./mobile-bottom-nav"
-import { SmartBreadcrumb } from "./smart-breadcrumb"
 import { FloatingBackButton } from "@/components/ui/floating-back-button"
 import { PageTransition } from "./page-transition"
 import { useNavigationMode } from "@/lib/navigation-mode-context"
@@ -121,8 +120,8 @@ export function AppShell({ children }: AppShellProps) {
               : navigationMode === "dock" ? "pb-32" : "pb-6"
           )}
         >
-          {/* Avoid breadcrumbs on quiz page to prevent client-side crashes during timed sessions */}
-          {!pathname.endsWith('/kuis') && <SmartBreadcrumb />}
+          {/* Breadcrumb temporarily disabled to prevent client-side crashes in production */}
+          {null}
           <PageTransition>
             {children}
           </PageTransition>
