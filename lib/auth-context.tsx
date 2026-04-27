@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react"
 import type { User, UserRole } from "./types"
 
 interface AuthContextType {
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     document.cookie = 'user=;path=/;max-age=0'
   }, [])
 
-  const value = useMemo(() => ({
+  const value = {
     user,
     setUser,
     setUserRole,
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: !!user,
     logout,
     isLoading,
-  }), [user, setUserRole, refreshUser, logout, isLoading])
+  }
 
   return (
     <AuthContext.Provider value={value}>
