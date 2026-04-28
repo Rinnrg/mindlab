@@ -1243,7 +1243,13 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/courses/${courseId}/${asesmen.id}/${pengumpulan.id}`}>
+                                <Link
+                                  href={
+                                    courseId && asesmenId && pengumpulan?.id
+                                      ? `/courses/${courseId}/${asesmenId}/${pengumpulan.id}`
+                                      : `/courses/${courseId || ""}/${asesmenId || ""}`
+                                  }
+                                >
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </Link>
