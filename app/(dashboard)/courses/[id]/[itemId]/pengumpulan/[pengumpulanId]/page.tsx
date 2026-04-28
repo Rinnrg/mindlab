@@ -46,6 +46,7 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
 
   const [loading, setLoading] = React.useState(true)
   const [pengumpulan, setPengumpulan] = React.useState<any>(null)
+  const [loadError, setLoadError] = React.useState<string | null>(null)
   const [showPdf, setShowPdf] = React.useState(true)
 
   const [nilai, setNilai] = React.useState<string>("")
@@ -74,7 +75,9 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
         setCatatan(data?.pengumpulan?.catatan || "")
         setFeedback(data?.pengumpulan?.feedback || "")
       } catch (e) {
-        showError("Gagal", e instanceof Error ? e.message : "Gagal mengambil data")
+  const msg = e instanceof Error ? e.message : "Gagal mengambil data"
+  setLoadError(msg)
+  showError("Gagal", msg)
       } finally {
         setLoading(false)
       }
@@ -150,7 +153,52 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
     )
   }
 
-  if (!pengumpulan) return null
+  if (loadError) {
+    return (
+      <div className="w-full py-8 max-w-3xl mx-auto space-y-4">
+        <AlertComponent />
+        <Card>
+          <CardHeader>
+            <CardTitle>Gagal memuat detail pengumpulan</CardTitle>
+            <CardDescription>{loadError}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex gap-2 flex-wrap">
+            <Button asChild variant="outline">
+              <Link href={`/courses/${courseId}/${asesmenId}`}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+              </Link>
+            </Button>
+            <Button onClick={() => location.reload()}>
+              Coba lagi
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!pengumpulan) {
+    return (
+      <div className="w-full py-8 max-w-3xl mx-auto space-y-4">
+        <AlertComponent />
+        <Card>
+          <CardHeader>
+            <CardTitle>Data pengumpulan tidak ditemukan</CardTitle>
+            <CardDescription>
+              Pengumpulan dengan ID <span className="font-mono">{pengumpulanId}</span> tidak ada atau Anda tidak punya akses.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link href={`/courses/${courseId}/${asesmenId}`}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const status = pengumpulan.status as string | undefined
   const isValidated = status === "VALIDATED"
