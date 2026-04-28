@@ -8,7 +8,7 @@ export async function POST(
   try {
     const { id } = await params
     const body = await request.json()
-    const { namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output } = body
+  const { namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output } = body
 
     if (!siswaId) {
       return NextResponse.json(
@@ -45,17 +45,51 @@ export async function POST(
       )
     }
 
+    // If kelompok task, find the kelompok that contains this siswa for this asesmen.
+    let kelompokId: string | null = null
+    if (asesmen.tipePengerjaan === 'KELOMPOK') {
+      const kelompok = await prisma.kelompok.findFirst({
+        where: {
+          asesmenId: id,
+          anggota: {
+            some: { siswaId },
+          },
+        } as any,
+        select: { id: true },
+      })
+      kelompokId = kelompok?.id || null
+      if (!kelompokId) {
+        return NextResponse.json(
+          { error: 'Anda belum masuk kelompok untuk tugas ini. Hubungi guru untuk mengatur kelompok.' },
+          { status: 400 }
+        )
+      }
+    }
+
     // Check if already submitted
     const existingSubmission = await prisma.pengumpulanProyek.findFirst({
       where: {
         asesmenId: id,
-        siswaId,
+        ...(asesmen.tipePengerjaan === 'KELOMPOK'
+          ? { kelompokId: kelompokId as string }
+          : { siswaId }),
+      },
+      include: {
+        siswa: { select: { id: true, nama: true } },
       },
     })
 
     let pengumpulan
 
     if (existingSubmission) {
+      // For kelompok: only allow the same submitter to edit/update
+      if (asesmen.tipePengerjaan === 'KELOMPOK' && existingSubmission.siswaId !== siswaId) {
+        return NextResponse.json(
+          { error: `Tugas kelompok sudah dikumpulkan oleh ${existingSubmission.siswa?.nama || 'anggota lain'}` },
+          { status: 409 }
+        )
+      }
+
       // Update existing submission
       pengumpulan = await prisma.pengumpulanProyek.update({
         where: { id: existingSubmission.id },
@@ -67,6 +101,7 @@ export async function POST(
           catatan,
           sourceCode: sourceCode || existingSubmission.sourceCode,
           output: output || existingSubmission.output,
+          kelompokId: existingSubmission.kelompokId || kelompokId,
           status: 'PENDING', // Reset status when re-submitted
         },
       })
@@ -83,6 +118,7 @@ export async function POST(
           output,
           siswaId,
           asesmenId: id,
+          kelompokId,
           status: 'PENDING',
         },
       })

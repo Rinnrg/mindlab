@@ -16,6 +16,7 @@ import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import {
   Plus,
   Trash2,
@@ -23,6 +24,8 @@ import {
   Copy,
   ArrowUp,
   ArrowDown,
+  Upload,
+  Code as CodeIcon,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
@@ -44,6 +47,15 @@ type Soal = {
 type Kelas = { id: string; nama: string }
 
 type TipeAsesmen = "KUIS" | "TUGAS"
+
+type SubmissionComponentType = "UPLOAD_FILE" | "COMPILER"
+
+type EnrolledStudent = {
+  id: string
+  nama: string
+  foto?: string | null
+  email?: string | null
+}
 
 async function fileToDataUrl(file: File): Promise<string> {
   const buf = await file.arrayBuffer()
@@ -80,6 +92,18 @@ export default function AddAsesmenPage() {
 
   const [tipePengerjaan, setTipePengerjaan] = React.useState<"INDIVIDU" | "KELOMPOK">("INDIVIDU")
   const [file, setFile] = React.useState<File | null>(null)
+
+  // TUGAS builder state (drag-drop toolbox)
+  const [submissionComponents, setSubmissionComponents] = React.useState<SubmissionComponentType[]>(["UPLOAD_FILE"])
+  const [isCanvasDragOver, setIsCanvasDragOver] = React.useState(false)
+
+  // Kelompok configuration (for tipePengerjaan=KELOMPOK) - create groups per asesmen
+  const [kelompokDialogOpen, setKelompokDialogOpen] = React.useState(false)
+  const [groupCount, setGroupCount] = React.useState<number>(1)
+  const [selectedGroupMembersByGroup, setSelectedGroupMembersByGroup] = React.useState<Record<number, string[]>>({})
+
+  const [enrolledStudents, setEnrolledStudents] = React.useState<EnrolledStudent[]>([])
+  const [loadingStudents, setLoadingStudents] = React.useState(false)
 
   const [kelasList, setKelasList] = React.useState<Kelas[]>([])
   const [selectedKelas, setSelectedKelas] = React.useState<string[]>([])
@@ -191,6 +215,65 @@ export default function AddAsesmenPage() {
     }
   }, [])
 
+  React.useEffect(() => {
+    if (!kelompokDialogOpen) return
+    if (tipe !== "TUGAS" || tipePengerjaan !== "KELOMPOK") return
+
+    let cancelled = false
+    setLoadingStudents(true)
+    ;(async () => {
+      try {
+        const res = await fetch(`/api/courses/${courseId}/students`)
+        if (!res.ok) return
+        const data = await res.json()
+
+        // The API sometimes returns array directly; keep it flexible.
+        const list = Array.isArray(data) ? data : data?.students || data?.data || []
+        if (!cancelled) setEnrolledStudents(list)
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setLoadingStudents(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [kelompokDialogOpen, tipe, tipePengerjaan, courseId])
+
+  const memberGroupIndex = React.useMemo(() => {
+    const index = new Map<string, number>()
+    for (const [groupNoRaw, members] of Object.entries(selectedGroupMembersByGroup)) {
+      const groupNo = Number(groupNoRaw)
+      for (const m of members || []) index.set(m, groupNo)
+    }
+    return index
+  }, [selectedGroupMembersByGroup])
+
+  const toggleStudentInGroup = (groupNo: number, studentId: string) => {
+    setSelectedGroupMembersByGroup((prev) => {
+      const current = new Set(prev[groupNo] || [])
+      const next: Record<number, string[]> = { ...prev }
+
+      if (current.has(studentId)) {
+        current.delete(studentId)
+        next[groupNo] = Array.from(current)
+        return next
+      }
+
+      // Remove student from any other group first (one student only in one group)
+      for (const [k, v] of Object.entries(next)) {
+        const g = Number(k)
+        next[g] = (v || []).filter((id) => id !== studentId)
+      }
+
+      current.add(studentId)
+      next[groupNo] = Array.from(current)
+      return next
+    })
+  }
+
   const toggleKelas = (kelasId: string, checked: boolean) => {
     setSelectedKelas((prev) => (checked ? [...prev, kelasId] : prev.filter((id) => id !== kelasId)))
   }
@@ -286,6 +369,13 @@ export default function AddAsesmenPage() {
 
         if (tipe === "TUGAS") {
           payload.tipePengerjaan = tipePengerjaan
+          payload.submissionComponents = submissionComponents
+          if (tipePengerjaan === "KELOMPOK") {
+            payload.groups = {
+              groupCount,
+              membersByGroup: selectedGroupMembersByGroup,
+            }
+          }
           payload.lampiran = fileName
           payload.fileData = fileData
           payload.fileName = fileName
@@ -347,7 +437,7 @@ export default function AddAsesmenPage() {
 
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
-          {/* Left: Panel nomor soal (sticky) */}
+          {/* Left: Panel (KUIS: nomor soal) | (TUGAS: toolbox) */}
           <div className="lg:sticky lg:top-20 space-y-4">
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
@@ -398,9 +488,43 @@ export default function AddAsesmenPage() {
                 </CardContent>
               </Card>
             )}
+
+            {tipe === "TUGAS" && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Komponen Pengumpulan</CardTitle>
+                  <CardDescription>Drag ke canvas untuk menambahkan</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "UPLOAD_FILE")}
+                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload File
+                  </button>
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "COMPILER")}
+                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
+                  >
+                    <CodeIcon className="h-4 w-4" />
+                    Compiler
+                  </button>
+
+                  <Separator className="my-2" />
+                  <div className="text-xs text-muted-foreground">
+                    Aktif di canvas: {submissionComponents.length ? submissionComponents.join(", ") : "(kosong)"}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
-          {/* Left: Builder + content utama */}
+          {/* Center: Builder + content utama */}
           <div className="space-y-6">
             {/* Header card ala Google Form (compact) */}
             <Card className="ios-glass-card border-border/30 rounded-2xl">
@@ -632,6 +756,88 @@ export default function AddAsesmenPage() {
                 </Button>
               </div>
             )}
+
+            {tipe === "TUGAS" && (
+              <Card
+                className={
+                  "ios-glass-card border-border/30 rounded-2xl transition " +
+                  (isCanvasDragOver ? "ring-2 ring-primary/30" : "")
+                }
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setIsCanvasDragOver(true)
+                }}
+                onDragLeave={() => setIsCanvasDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  setIsCanvasDragOver(false)
+                  const raw = e.dataTransfer.getData("text/plain") as SubmissionComponentType
+                  if (!raw) return
+                  if (raw !== "UPLOAD_FILE" && raw !== "COMPILER") return
+                  setSubmissionComponents((prev) => (prev.includes(raw) ? prev : [...prev, raw]))
+                }}
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Konten Pengumpulan</CardTitle>
+                  <CardDescription>Drop komponen dari panel kiri ke area ini.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {submissionComponents.length === 0 ? (
+                    <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+                      Canvas kosong. Drag "Upload File" atau "Compiler" dari panel kiri.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {submissionComponents.includes("UPLOAD_FILE") && (
+                        <div className="rounded-xl border p-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 font-medium">
+                              <Upload className="h-4 w-4" /> Upload File
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setSubmissionComponents((prev) => prev.filter((c) => c !== "UPLOAD_FILE"))
+                              }
+                            >
+                              Hapus
+                            </Button>
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Siswa akan melihat field upload saat melakukan pengumpulan.
+                          </p>
+                        </div>
+                      )}
+
+                      {submissionComponents.includes("COMPILER") && (
+                        <div className="rounded-xl border p-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 font-medium">
+                              <CodeIcon className="h-4 w-4" /> Compiler
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setSubmissionComponents((prev) => prev.filter((c) => c !== "COMPILER"))
+                              }
+                            >
+                              Hapus
+                            </Button>
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Siswa akan melihat editor kode dan hasil output (jika dijalankan).
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Right: Settings sticky */}
@@ -744,6 +950,18 @@ export default function AddAsesmenPage() {
                         </Select>
                       </div>
 
+                      {tipePengerjaan === "KELOMPOK" && (
+                        <div className="space-y-2">
+                          <Label>Kelompok</Label>
+                          <Button type="button" variant="outline" onClick={() => setKelompokDialogOpen(true)}>
+                            Atur Kelompok
+                          </Button>
+                          <p className="text-xs text-muted-foreground">
+                            Pengumpulan cukup 1 perwakilan per kelompok.
+                          </p>
+                        </div>
+                      )}
+
                       <div className="space-y-2">
                         <Label htmlFor="file">Lampiran (opsional)</Label>
                         <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
@@ -756,6 +974,116 @@ export default function AddAsesmenPage() {
             )}
           </div>
         </div>
+
+        <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Atur Kelompok</DialogTitle>
+              <DialogDescription>
+                Pilih anggota untuk tiap kelompok. Satu siswa hanya boleh ada di satu kelompok.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Label htmlFor="groupCount">Jumlah Kelompok</Label>
+                <Input
+                  id="groupCount"
+                  type="number"
+                  min={1}
+                  value={groupCount}
+                  onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
+                  className="w-28"
+                />
+              </div>
+
+              <div className="rounded-xl border p-3 space-y-3">
+                <p className="text-sm font-medium">Daftar Siswa</p>
+                {loadingStudents ? (
+                  <div className="text-sm text-muted-foreground">Memuat daftar siswa...</div>
+                ) : enrolledStudents.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">
+                    Tidak ada siswa terdaftar di course ini, atau endpoint students belum mengembalikan data.
+                  </div>
+                ) : (
+                  <div className="max-h-[280px] overflow-auto rounded-lg border border-border/30">
+                    <table className="w-full text-sm">
+                      <thead className="sticky top-0 bg-background/80 backdrop-blur border-b">
+                        <tr>
+                          <th className="text-left font-medium p-2">Siswa</th>
+                          <th className="text-left font-medium p-2 w-[120px]">Kelompok</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {enrolledStudents.map((s) => {
+                          const currentGroup = memberGroupIndex.get(s.id) || 0
+                          return (
+                            <tr key={s.id} className="border-b last:border-b-0">
+                              <td className="p-2">
+                                <div className="font-medium">{s.nama}</div>
+                                {s.email ? <div className="text-xs text-muted-foreground">{s.email}</div> : null}
+                              </td>
+                              <td className="p-2">
+                                <Select
+                                  value={currentGroup ? String(currentGroup) : "0"}
+                                  onValueChange={(v) => {
+                                    const g = Number(v)
+                                    if (!g) {
+                                      // remove from all groups
+                                      setSelectedGroupMembersByGroup((prev) => {
+                                        const next: Record<number, string[]> = { ...prev }
+                                        for (const [k, members] of Object.entries(next)) {
+                                          const gn = Number(k)
+                                          next[gn] = (members || []).filter((id) => id !== s.id)
+                                        }
+                                        return next
+                                      })
+                                      return
+                                    }
+                                    toggleStudentInGroup(g, s.id)
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="-" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="0">-</SelectItem>
+                                    {Array.from({ length: groupCount }).map((_, idx) => (
+                                      <SelectItem key={idx} value={String(idx + 1)}>
+                                        {`Kelompok ${idx + 1}`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Array.from({ length: groupCount }).map((_, idx) => (
+                  <div key={idx} className="rounded-xl border p-3">
+                    <div className="font-medium">Kelompok {idx + 1}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Anggota dipilih: {(selectedGroupMembersByGroup[idx + 1] || []).length}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setKelompokDialogOpen(false)}>
+                Tutup
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Menyimpan..." : "Simpan Asesmen"}

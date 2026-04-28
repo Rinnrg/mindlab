@@ -559,12 +559,34 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             <h2 className="text-base font-semibold sm:text-lg">Daftar Asesmen</h2>
             {isTeacherOrAdmin && (
-              <Button size="sm" className="w-full sm:w-auto rounded-xl" asChild>
-                <Link href={`/courses/${course.id}/add-asesmen`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Buat Asesmen
-                </Link>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" className="w-full sm:w-auto rounded-xl">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Buat Asesmen
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 ios-glass-card border-border/30 rounded-xl">
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href={`/courses/${course.id}/add-asesmen?type=KUIS`}>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Kuis
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href={`/courses/${course.id}/add-asesmen?type=TUGAS&mode=INDIVIDU`}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Pengumpulan (Individu)
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link href={`/courses/${course.id}/add-asesmen?type=TUGAS&mode=KELOMPOK`}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Pengumpulan (Kelompok)
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
           {assessments.length > 0 ? (

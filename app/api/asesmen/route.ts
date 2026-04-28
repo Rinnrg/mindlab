@@ -108,6 +108,8 @@ export async function POST(request: NextRequest) {
       kelasTarget,
       tipe,
       tipePengerjaan,
+  submissionComponents,
+  groups,
       tgl_mulai,
       tgl_selesai,
       durasi,
@@ -140,6 +142,24 @@ export async function POST(request: NextRequest) {
         { error: 'Tipe pengerjaan wajib diisi untuk tugas' },
         { status: 400 }
       )
+    }
+
+    // Validate submissionComponents for TUGAS (optional, defaults handled by DB)
+    if (tipe === 'TUGAS' && submissionComponents !== undefined) {
+      if (!Array.isArray(submissionComponents)) {
+        return NextResponse.json(
+          { error: 'submissionComponents harus berupa array' },
+          { status: 400 }
+        )
+      }
+      const allowed = new Set(['UPLOAD_FILE', 'COMPILER'])
+      const invalid = submissionComponents.find((c: any) => !allowed.has(String(c)))
+      if (invalid) {
+        return NextResponse.json(
+          { error: `submissionComponents tidak valid: ${String(invalid)}` },
+          { status: 400 }
+        )
+      }
     }
 
     // Validasi khusus untuk KUIS
@@ -247,6 +267,9 @@ export async function POST(request: NextRequest) {
     // Add tipePengerjaan only for TUGAS
     if (tipe === 'TUGAS') {
       asesmenData.tipePengerjaan = tipePengerjaan || 'INDIVIDU'
+      if (submissionComponents && Array.isArray(submissionComponents)) {
+        asesmenData.submissionComponents = submissionComponents
+      }
       asesmenData.lampiran = lampiran || null
       asesmenData.fileData = fileBuffer
       asesmenData.fileName = fileName
@@ -265,28 +288,55 @@ export async function POST(request: NextRequest) {
       fileData: asesmenData.fileData ? '(buffer)' : null
     })
     
-    let newAsesmen
+  let newAsesmen: { id: string }
     try {
       newAsesmen = await prisma.asesmen.create({
         data: asesmenData,
       })
       console.log(`✓ Asesmen created with ID: ${newAsesmen.id}`)
 
-      // Create Kelompok if it's a group task and members are selected
-      if (tipe === 'TUGAS' && tipePengerjaan === 'KELOMPOK' && body.selectedGroupMembers && Array.isArray(body.selectedGroupMembers)) {
-        console.log(`Creating Kelompok for asesmen ${newAsesmen.id} with ${body.selectedGroupMembers.length} members`)
-        await prisma.kelompok.create({
-          data: {
-            nama: `Kelompok ${nama}`,
-            asesmenId: newAsesmen.id,
-            anggota: {
-              create: body.selectedGroupMembers.map((siswaId: string) => ({
-                siswaId: siswaId
-              }))
+      // Create Kelompok per-asesmen when group task is configured via builder
+      if (tipe === 'TUGAS' && tipePengerjaan === 'KELOMPOK' && groups) {
+        const groupCount = Number((groups as any).groupCount)
+        const membersByGroup = (groups as any).membersByGroup as Record<string, string[]> | undefined
+
+        if (!Number.isFinite(groupCount) || groupCount < 1) {
+          throw new Error('groups.groupCount tidak valid')
+        }
+
+        const used = new Set<string>()
+        const payload = Array.from({ length: groupCount }).map((_, i) => {
+          const groupNo = String(i + 1)
+          const members = (membersByGroup && membersByGroup[groupNo]) || []
+          const uniqueMembers = Array.from(new Set(members.map(String)))
+          for (const m of uniqueMembers) {
+            if (used.has(m)) {
+              throw new Error(`Siswa ${m} terpilih di lebih dari satu kelompok`)
             }
+            used.add(m)
           }
+          return { groupNo, members: uniqueMembers }
         })
-        console.log(`✓ Kelompok created successfully`)
+
+        // Create only groups that have members (avoid empty groups)
+        const nonEmpty = payload.filter((g) => g.members.length > 0)
+        if (nonEmpty.length > 0) {
+          await prisma.$transaction(
+            nonEmpty.map((g) =>
+              prisma.kelompok.create({
+                // Use unchecked create to avoid client type mismatch when schema/client drift exists.
+                data: {
+                  nama: `Kelompok ${g.groupNo}`,
+                  asesmenId: newAsesmen.id,
+                  anggota: {
+                    create: g.members.map((siswaId) => ({ siswaId })),
+                  },
+                } as any,
+              })
+            )
+          )
+          console.log(`✓ ${nonEmpty.length} kelompok created successfully`)
+        }
       }
     } catch (createError: any) {
       console.error('Failed to create asesmen:', createError)

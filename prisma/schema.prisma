@@ -78,6 +78,7 @@ model Asesmen {
   kelasTarget       String[]            @db.VarChar(255)
   tipe              TipeAsesmen         @default(KUIS)
   tipePengerjaan    TipePengerjaan?
+  submissionComponents SubmissionComponent[] @default([UPLOAD_FILE])
   jml_soal          Int?
   durasi            Int?
   tgl_mulai         DateTime?
@@ -100,7 +101,7 @@ model Asesmen {
   kuisAttempts      KuisAttempt[]
   pengumpulanProyek PengumpulanProyek[]
   soal              Soal[]
-  kelompok          Kelompok[]
+  kelompok          Kelompok[]          @relation("AsesmenKelompok")
 
   @@index([guruId])
   @@index([courseId])
@@ -108,6 +109,11 @@ model Asesmen {
   @@index([tgl_mulai])
   @@index([tgl_selesai])
   @@index([kelasTarget])
+}
+
+enum SubmissionComponent {
+  UPLOAD_FILE
+  COMPILER
 }
 
 model Soal {
@@ -220,7 +226,7 @@ model Kelompok {
   asesmenId   String?             @db.Uuid
   anggota     AnggotaKelompok[]
   pbl         PBL?                @relation(fields: [pblId], references: [id])
-  asesmen     Asesmen?            @relation(fields: [asesmenId], references: [id])
+  asesmen     Asesmen?            @relation("AsesmenKelompok", fields: [asesmenId], references: [id])
   pengumpulan PengumpulanProyek[]
 
   @@index([pblId])

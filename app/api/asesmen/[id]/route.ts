@@ -109,11 +109,21 @@ export async function GET(
           fileUrl: true,
           tgl_unggah: true,
           siswaId: true,
+          siswa: {
+            select: {
+              id: true,
+              nama: true,
+              foto: true,
+            },
+          },
           nilai: true,
           namaKelompok: true,
           ketua: true,
           anggota: true,
           catatan: true,
+          kelompokId: true,
+          sourceCode: true,
+          output: true,
         },
         take: 1,
       }

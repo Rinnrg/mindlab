@@ -133,9 +133,19 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           setAsesmen(asesmenData)
 
           // Check if student already submitted
-          const submission = asesmenData.pengumpulanProyek?.find(
-            (p: any) => p.siswaId === user.id
-          )
+          // - Individu: by siswaId
+          // - Kelompok: by kelompok membership (any member's submission should count)
+          let submission: any = null
+          if (asesmenData.tipePengerjaan === 'KELOMPOK') {
+            const myKelompokId = asesmenData.kelompok?.find((k: any) =>
+              (k.anggota || []).some((a: any) => a.siswaId === user.id || a.siswa?.id === user.id)
+            )?.id
+            if (myKelompokId) {
+              submission = asesmenData.pengumpulanProyek?.find((p: any) => p.kelompokId === myKelompokId) || null
+            }
+          } else {
+            submission = asesmenData.pengumpulanProyek?.find((p: any) => p.siswaId === user.id) || null
+          }
 
           if (submission) {
             setExistingSubmission(submission)
@@ -151,6 +161,15 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
               setCompilerOutput(submission.output)
             }
           }
+
+          // Enforce allowed submit modes based on asesmen.submissionComponents
+          const comps = Array.isArray(asesmenData.submissionComponents)
+            ? asesmenData.submissionComponents
+            : null
+          const allowFile = !comps || comps.includes('UPLOAD_FILE')
+          const allowCompiler = !comps || comps.includes('COMPILER')
+          if (!allowCompiler && allowFile) setSubmitMode('file')
+          if (!allowFile && allowCompiler) setSubmitMode('compiler')
 
           // Fetch enrolled students for group selection
           if (asesmenData.tipePengerjaan === 'KELOMPOK') {
@@ -317,6 +336,15 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     : false
 
   const isKelompok = asesmen.tipePengerjaan === 'KELOMPOK'
+  const submissionComponents = Array.isArray(asesmen.submissionComponents)
+    ? (asesmen.submissionComponents as string[])
+    : null
+  const allowFile = !submissionComponents || submissionComponents.includes('UPLOAD_FILE')
+  const allowCompiler = !submissionComponents || submissionComponents.includes('COMPILER')
+
+  const isMyOwnSubmission = existingSubmission?.siswaId === user?.id
+  const submittedByName = existingSubmission?.siswa?.nama || existingSubmission?.ketua
+  const groupAlreadySubmittedByOther = isKelompok && existingSubmission && !isMyOwnSubmission
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
@@ -339,6 +367,16 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             Deadline pengumpulan sudah lewat. Anda tidak dapat mengumpulkan tugas.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {groupAlreadySubmittedByOther && (
+        <Alert>
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertDescription>
+            Tugas kelompok sudah dikumpulkan oleh <span className="font-medium">{submittedByName || 'anggota lain'}</span>.
+            Anda tidak bisa mengumpulkan ulang.
           </AlertDescription>
         </Alert>
       )}
@@ -372,8 +410,8 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         )}
       </Card>
 
-      {/* Kelompok Selection Card */}
-      {isKelompok && (
+  {/* Kelompok Selection Card */}
+  {isKelompok && !groupAlreadySubmittedByOther && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
@@ -532,17 +570,22 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           <form onSubmit={handleSubmit} className="space-y-6">
             <Tabs value={submitMode} onValueChange={(v) => setSubmitMode(v as "file" | "compiler")}>
               <TabsList className="ios-tab-list">
-                <TabsTrigger value="file" className="ios-tab-trigger">
-                  <FileText className="ios-tab-icon" />
-                  <span className="ios-tab-text">Upload File</span>
-                </TabsTrigger>
-                <TabsTrigger value="compiler" className="ios-tab-trigger">
-                  <Code className="ios-tab-icon" />
-                  <span className="ios-tab-text">Python Compiler</span>
-                </TabsTrigger>
+                {allowFile && (
+                  <TabsTrigger value="file" className="ios-tab-trigger">
+                    <FileText className="ios-tab-icon" />
+                    <span className="ios-tab-text">Upload File</span>
+                  </TabsTrigger>
+                )}
+                {allowCompiler && (
+                  <TabsTrigger value="compiler" className="ios-tab-trigger">
+                    <Code className="ios-tab-icon" />
+                    <span className="ios-tab-text">Python Compiler</span>
+                  </TabsTrigger>
+                )}
               </TabsList>
 
-              <TabsContent value="file" className="mt-4 space-y-4">
+              {allowFile && (
+                <TabsContent value="file" className="mt-4 space-y-4">
                 <FileUploadField
                   label="File Tugas"
                   value={fileUrl}
@@ -553,9 +596,11 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                       : "Upload file tugas atau berikan link ke file (Google Drive, OneDrive, dll)"
                   }
                 />
-              </TabsContent>
+                </TabsContent>
+              )}
 
-              <TabsContent value="compiler" className="mt-4 space-y-4">
+              {allowCompiler && (
+                <TabsContent value="compiler" className="mt-4 space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label>Kode Python</Label>
@@ -603,14 +648,15 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                     </div>
                   </div>
                 )}
-              </TabsContent>
+                </TabsContent>
+              )}
             </Tabs>
 
             {/* Actions */}
             <div className="flex gap-3">
               <Button
                 type="submit"
-                disabled={submitting || isDeadlinePassed}
+                disabled={submitting || isDeadlinePassed || groupAlreadySubmittedByOther}
                 className="flex-1"
               >
                 {submitting ? (

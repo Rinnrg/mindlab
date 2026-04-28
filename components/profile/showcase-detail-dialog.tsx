@@ -41,6 +41,9 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
   const p = showcase.pengumpulanProyek
   const a = p?.asesmen
   const dateLocale = idLocale
+  const hasCompiler = Boolean(p?.sourceCode)
+  const hasOutput = Boolean(p?.output)
+  const isKelompok = Boolean(p?.kelompok || p?.namaKelompok)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -85,6 +88,17 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
                 {p?.tgl_unggah ? format(new Date(p.tgl_unggah), "d MMMM yyyy", { locale: dateLocale }) : "-"}
               </p>
             </div>
+            {isKelompok && (
+              <div className="p-4 rounded-2xl ios-glass-inset space-y-1 sm:col-span-2 lg:col-span-3">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kelompok</p>
+                <p className="font-medium">{p?.kelompok?.nama || p?.namaKelompok || "-"}</p>
+                {Array.isArray(p?.anggota) && p.anggota.length > 0 && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Anggota: {p.anggota.join(", ")}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           <Separator className="bg-border/50" />
@@ -135,6 +149,15 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
                   <pre className="p-4 rounded-xl bg-background border border-border/50 overflow-x-auto text-sm font-mono leading-relaxed max-h-[400px]">
                     <code>{p.sourceCode}</code>
                   </pre>
+
+                  {hasOutput && (
+                    <div className="mt-4">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Output</p>
+                      <pre className="p-4 rounded-xl bg-background border border-border/50 overflow-x-auto text-sm font-mono leading-relaxed max-h-[240px] whitespace-pre-wrap">
+                        <code>{p.output}</code>
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
               {!p?.fileUrl && !p?.sourceCode && (
