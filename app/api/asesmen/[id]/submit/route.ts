@@ -45,6 +45,16 @@ export async function POST(
       )
     }
 
+    // Basic validation: require at least fileUrl OR sourceCode
+    const hasFile = typeof fileUrl === 'string' && fileUrl.trim().length > 0
+    const hasCode = typeof sourceCode === 'string' && sourceCode.trim().length > 0
+    if (!hasFile && !hasCode) {
+      return NextResponse.json(
+        { error: 'Silakan upload file atau isi kode terlebih dahulu' },
+        { status: 400 }
+      )
+    }
+
     // If kelompok task, find the kelompok that contains this siswa for this asesmen.
     let kelompokId: string | null = null
     if (asesmen.tipePengerjaan === 'KELOMPOK') {
@@ -126,9 +136,9 @@ export async function POST(
 
     return NextResponse.json({ pengumpulan }, { status: 200 })
   } catch (error) {
-    console.error('Error submitting task:', error)
+  console.error('Error submitting task:', error)
     return NextResponse.json(
-      { error: 'Gagal mengumpulkan tugas' },
+  { error: 'Gagal mengumpulkan tugas', details: (error as any)?.message },
       { status: 500 }
     )
   }
