@@ -491,13 +491,12 @@ export default function StudentProfilePage() {
                         </CardContent>
                         <CardFooter className="border-t p-3 sm:p-4">
                           {item.pengumpulanProyek?.asesmen && (
-                            <Button 
-                              className="w-full bg-transparent" 
-                              variant="outline" 
+                            <Button
+                              className="w-full bg-transparent"
+                              variant="outline"
                               size="sm"
                               onClick={() => {
-                                setSelectedShowcase(item)
-                                setShowcaseDialogOpen(true)
+                                router.push(`/profile/showcase/${item.id}`)
                               }}
                             >
                               Lihat Detail

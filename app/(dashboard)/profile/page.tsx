@@ -24,7 +24,6 @@ import { useAsyncAction } from "@/hooks/use-async-action"
 import { AvatarCropDialog } from "@/components/ui/avatar-crop-dialog"
 import { uploadProfilePhoto } from "../settings/actions"
 import { useRouter } from "next/navigation"
-import { ShowcaseDetailDialog } from "@/components/profile/showcase-detail-dialog"
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
@@ -53,8 +52,7 @@ export default function ProfilePage() {
   const [coursesLoading, setCoursesLoading] = useState(true)
   const [showcases, setShowcases] = useState<any[]>([])
   const [showcasesLoading, setShowcasesLoading] = useState(true)
-  const [selectedShowcase, setSelectedShowcase] = useState<any>(null)
-  const [showcaseDialogOpen, setShowcaseDialogOpen] = useState(false)
+  // Showcase details are now shown in a dedicated page: `/profile/showcase/[id]`.
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const dateLocale = locale === 'id' ? idLocale : enUS
@@ -639,13 +637,12 @@ export default function ProfilePage() {
                       </CardContent>
                       <CardFooter className="border-t p-3 sm:p-4">
                         {item.pengumpulanProyek?.asesmen && (
-                          <Button 
-                            className="w-full bg-transparent" 
-                            variant="outline" 
+                          <Button
+                            className="w-full bg-transparent"
+                            variant="outline"
                             size="sm"
                             onClick={() => {
-                              setSelectedShowcase(item)
-                              setShowcaseDialogOpen(true)
+                              router.push(`/profile/showcase/${item.id}`)
                             }}
                           >
                             {t("Lihat Detail")}
@@ -734,11 +731,6 @@ export default function ProfilePage() {
         onCropComplete={handleCropComplete}
       />
 
-      <ShowcaseDetailDialog 
-        showcase={selectedShowcase} 
-        open={showcaseDialogOpen} 
-        onOpenChange={setShowcaseDialogOpen} 
-      />
     </div>
   )
 }
