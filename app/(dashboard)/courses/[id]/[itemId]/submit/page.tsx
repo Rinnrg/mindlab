@@ -304,8 +304,18 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           body: JSON.stringify(payload),
         })
 
-        const responseData = await response.json()
-        if (!response.ok) throw new Error(responseData.error || "Gagal mengumpulkan tugas")
+        const responseText = await response.text()
+        let responseData: any = null
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null
+        } catch {
+          responseData = null
+        }
+        if (!response.ok) {
+          const message = responseData?.error || responseText || "Gagal mengumpulkan tugas"
+          const details = responseData?.details
+          throw new Error(details ? `${message} (${details})` : message)
+        }
       },
       {
         loadingMessage: existingSubmission ? "Memperbarui tugas..." : "Mengumpulkan tugas...",
