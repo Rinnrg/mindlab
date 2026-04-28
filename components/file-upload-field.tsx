@@ -69,33 +69,29 @@ export function FileUploadField({
     setFileName(file.name)
 
     try {
-      // Convert file to base64 and save directly
-      const reader = new FileReader()
-      
-      reader.onloadend = () => {
-        const base64String = reader.result as string
-        // Save as data URL (includes file type info)
-  updateValue(base64String)
-        setIsUploading(false)
-        toast({
-          title: "Berhasil",
-          description: "File berhasil diupload",
-        })
+      const form = new FormData()
+      form.append('file', file)
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: form,
+      })
+
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        throw new Error(data?.error || data?.details || 'Gagal upload file')
       }
 
-      reader.onerror = () => {
-        setIsUploading(false)
-        toast({
-          title: "Error",
-          description: "Gagal membaca file",
-          variant: "destructive",
-        })
-        setFileName('')
-        e.target.value = ''
+      if (!data?.url || typeof data.url !== 'string') {
+        throw new Error('Upload berhasil, tapi URL tidak tersedia')
       }
 
-      // Read file as data URL (base64)
-      reader.readAsDataURL(file)
+      updateValue(data.url)
+      toast({
+        title: 'Berhasil',
+        description: 'File berhasil diupload',
+      })
     } catch (error) {
       console.error('Error uploading file:', error)
       toast({
@@ -105,6 +101,7 @@ export function FileUploadField({
       })
       setFileName('')
       e.target.value = ''
+    } finally {
       setIsUploading(false)
     }
   }
@@ -114,8 +111,8 @@ export function FileUploadField({
     setFileName('')
   }
 
-  // Check if value is a data URL (base64)
-  const isDataURL = resolvedValue && resolvedValue.startsWith('data:')
+  // Old versions stored base64 data URLs directly; treat them as invalid here.
+  const isLegacyDataURL = resolvedValue && resolvedValue.startsWith('data:')
 
   return (
     <div className="space-y-2">
@@ -138,12 +135,12 @@ export function FileUploadField({
           <Input
             type="url"
             placeholder={placeholder || "https://..."}
-            value={isDataURL ? '' : resolvedValue}
+            value={isLegacyDataURL ? '' : resolvedValue}
             onChange={(e) => updateValue(e.target.value)}
           />
-          {isDataURL && (
+          {isLegacyDataURL && (
             <p className="text-xs text-amber-600">
-              File sudah diupload. Ganti ke tab "Upload File" untuk melihat atau menggantinya.
+              Format upload lama (base64) tidak didukung. Silakan upload ulang atau pakai link URL.
             </p>
           )}
         </TabsContent>
@@ -158,9 +155,9 @@ export function FileUploadField({
                     <p className="text-sm font-medium">
                       {fileName || (isDataURL ? 'File terupload' : 'Link eksternal')}
                     </p>
-                    {isDataURL ? (
+          {isLegacyDataURL ? (
                       <p className="text-xs text-muted-foreground">
-                        File disimpan di database
+            Base64 tidak didukung. Upload ulang.
                       </p>
                     ) : (
                       <a 

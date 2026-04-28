@@ -55,9 +55,50 @@ export async function POST(
             .filter(Boolean)
         : []
 
+    const fileUrlStr = typeof fileUrl === 'string' ? fileUrl.trim() : ''
+    const sourceCodeStr = typeof sourceCode === 'string' ? sourceCode : ''
+    const outputStr = typeof output === 'string' ? output : ''
+
+    // Hard limits from Prisma schema
+    const MAX_FILE_URL = 255
+    const MAX_SOURCE = 5000
+    const MAX_OUTPUT = 5000
+
+    // Reject data URLs or too-long URLs because DB column is VARCHAR(255)
+    if (fileUrlStr) {
+      if (fileUrlStr.startsWith('data:')) {
+        return NextResponse.json(
+          {
+            error:
+              'File hasil upload saat ini masih berbentuk base64 (data URL) dan terlalu panjang untuk disimpan. Silakan gunakan link (Google Drive/OneDrive) atau upload via endpoint /api/upload yang menghasilkan URL pendek.',
+          },
+          { status: 400 }
+        )
+      }
+      if (fileUrlStr.length > MAX_FILE_URL) {
+        return NextResponse.json(
+          { error: `Link file terlalu panjang (maks ${MAX_FILE_URL} karakter). Gunakan link pendek.` },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (sourceCodeStr && sourceCodeStr.length > MAX_SOURCE) {
+      return NextResponse.json(
+        { error: `Kode terlalu panjang (maks ${MAX_SOURCE} karakter).` },
+        { status: 400 }
+      )
+    }
+    if (outputStr && outputStr.length > MAX_OUTPUT) {
+      return NextResponse.json(
+        { error: `Output terlalu panjang (maks ${MAX_OUTPUT} karakter).` },
+        { status: 400 }
+      )
+    }
+
     // Basic validation: require at least fileUrl OR sourceCode
-    const hasFile = typeof fileUrl === 'string' && fileUrl.trim().length > 0
-    const hasCode = typeof sourceCode === 'string' && sourceCode.trim().length > 0
+    const hasFile = fileUrlStr.length > 0
+    const hasCode = sourceCodeStr.trim().length > 0
     if (!hasFile && !hasCode) {
       return NextResponse.json(
         { error: 'Silakan upload file atau isi kode terlebih dahulu' },
@@ -118,10 +159,10 @@ export async function POST(
           ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           ...(anggotaArr.length > 0 ? { anggota: anggotaArr } : {}),
-          fileUrl: fileUrl || existingSubmission.fileUrl,
+          fileUrl: fileUrlStr || existingSubmission.fileUrl,
           ...(typeof catatan === 'string' ? { catatan } : {}),
-          sourceCode: sourceCode || existingSubmission.sourceCode,
-          output: output || existingSubmission.output,
+          sourceCode: sourceCodeStr || existingSubmission.sourceCode,
+          output: outputStr || existingSubmission.output,
           kelompokId: existingSubmission.kelompokId || kelompokId,
           status: 'PENDING', // Reset status when re-submitted
         },
@@ -133,10 +174,10 @@ export async function POST(
           ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           anggota: anggotaArr,
-          ...(typeof fileUrl === 'string' && fileUrl.trim() ? { fileUrl } : {}),
+          ...(fileUrlStr ? { fileUrl: fileUrlStr } : {}),
           ...(typeof catatan === 'string' ? { catatan } : {}),
-          ...(typeof sourceCode === 'string' && sourceCode.trim() ? { sourceCode } : {}),
-          ...(typeof output === 'string' ? { output } : {}),
+          ...(sourceCodeStr.trim() ? { sourceCode: sourceCodeStr } : {}),
+          ...(outputStr ? { output: outputStr } : {}),
           siswaId,
           asesmenId: id,
           kelompokId,
