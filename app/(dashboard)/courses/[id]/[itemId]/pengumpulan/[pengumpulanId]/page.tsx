@@ -36,12 +36,21 @@ interface PageProps {
   params: {
     id: string
     itemId: string
-    pengumpulanId: string
+  pengumpulanId?: string
   }
 }
 
 export default function CoursePengumpulanDetailPage({ params }: PageProps) {
-  const { id: courseId, itemId: asesmenId, pengumpulanId } = params
+  const { id: courseId, itemId: asesmenId } = params
+  // Some production RSC edge-cases have been observed where the typed param isn't present.
+  // Fall back to reading the last path segment on client.
+  const pengumpulanId = React.useMemo(() => {
+    const direct = (params as any)?.pengumpulanId
+    if (direct) return String(direct)
+    if (typeof window === "undefined") return ""
+    const parts = window.location.pathname.split("/").filter(Boolean)
+    return parts[parts.length - 1] || ""
+  }, [params])
 
   const router = useRouter()
   const { user, isLoading } = useAuth()
@@ -59,6 +68,16 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   React.useEffect(() => {
+    // Canonicalize URL: /courses/[courseId]/[asesmenId]/[pengumpulanId]
+    // Keep this legacy route working via redirect.
+    if (typeof window !== "undefined") {
+      const should = `/courses/${courseId}/${asesmenId}/${pengumpulanId}`
+      if (window.location.pathname !== should) {
+        router.replace(should)
+        return
+      }
+    }
+
     if (!pengumpulanId || pengumpulanId === "undefined" || pengumpulanId === "null") {
       setLoadError("ID pengumpulan tidak valid")
       setLoading(false)
