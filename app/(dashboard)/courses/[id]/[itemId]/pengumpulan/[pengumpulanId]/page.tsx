@@ -68,16 +68,6 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   React.useEffect(() => {
-    // Canonicalize URL: /courses/[courseId]/[asesmenId]/[pengumpulanId]
-    // Keep this legacy route working via redirect.
-    if (typeof window !== "undefined") {
-      const should = `/courses/${courseId}/${asesmenId}/${pengumpulanId}`
-      if (window.location.pathname !== should) {
-        router.replace(should)
-        return
-      }
-    }
-
     if (!pengumpulanId || pengumpulanId === "undefined" || pengumpulanId === "null") {
       setLoadError("ID pengumpulan tidak valid")
       setLoading(false)

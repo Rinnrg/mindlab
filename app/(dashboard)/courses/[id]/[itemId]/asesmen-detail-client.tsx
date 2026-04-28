@@ -67,6 +67,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [rosterLoading, setRosterLoading] = useState(false)
   const [rosterError, setRosterError] = useState<string | null>(null)
 
+  // If these become empty at runtime, we want it to be visible via console errors rather than silently switching routes.
+
   useEffect(() => {
     if (authLoading) return
 
@@ -1243,13 +1245,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
-                                <Link
-                                  href={
-                                    courseId && asesmenId && pengumpulan?.id
-                                      ? `/courses/${courseId}/${asesmenId}/${pengumpulan.id}`
-                                      : `/courses/${courseId || ""}/${asesmenId || ""}`
-                                  }
-                                >
+                                <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </Link>

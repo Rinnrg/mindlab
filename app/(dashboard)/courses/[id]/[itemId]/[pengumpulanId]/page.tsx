@@ -1,9 +1,8 @@
 "use client"
 
-// New URL shape: /courses/[courseId]/[asesmenId]/[pengumpulanId]
-// This page is the canonical teacher detail view for a submission.
+// Canonical URL shape: /courses/[courseId]/[asesmenId]/[pengumpulanId]
 export const dynamic = "force-dynamic"
 
-import CoursePengumpulanDetailPage from "../pengumpulan/[pengumpulanId]/page"
-
-export default CoursePengumpulanDetailPage
+// Re-export the same page implementation from the legacy route file.
+// NOTE: We keep this indirection minimal; the legacy route no longer redirects.
+export { default } from "../pengumpulan/[pengumpulanId]/page"
