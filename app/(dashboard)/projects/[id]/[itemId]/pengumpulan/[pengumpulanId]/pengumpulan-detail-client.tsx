@@ -51,6 +51,11 @@ export default function PengumpulanDetailClient({
   const [showPdf, setShowPdf] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
+  const dbFileHref = (pengumpulan as any)?.fileData
+    ? `/api/pengumpulan/${pengumpulan.id}/file`
+    : null
+  const fileHref = dbFileHref || pengumpulan.fileUrl
+
   const onSaveGrade = async (isValidated: boolean = false) => {
     if (!nilai) {
       showError("Gagal", "Nilai wajib diisi")
@@ -143,9 +148,9 @@ export default function PengumpulanDetailClient({
                   <CardTitle className="text-lg">Hasil Tugas</CardTitle>
                 </div>
                 <div className="flex items-center gap-2">
-                  {pengumpulan.fileUrl && (
+          {fileHref && (
                     <Button variant="outline" size="sm" asChild>
-                      <a href={pengumpulan.fileUrl} download>
+            <a href={fileHref} download>
                         <Download className="mr-2 h-4 w-4" />
                         Unduh File
                       </a>
@@ -160,7 +165,7 @@ export default function PengumpulanDetailClient({
             </CardHeader>
             <CardContent className="p-0">
               <AnimatePresence mode="wait">
-                {showPdf && pengumpulan.fileUrl ? (
+    {showPdf && fileHref ? (
                   <motion.div 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
@@ -169,7 +174,7 @@ export default function PengumpulanDetailClient({
                   >
                     <div className="aspect-[3/4] sm:aspect-[4/5] w-full bg-muted/50">
                       <iframe 
-                        src={`${pengumpulan.fileUrl}#toolbar=0`}
+      src={`${fileHref}#toolbar=0`}
                         className="w-full h-full border-0"
                         title="Submission Preview"
                       />

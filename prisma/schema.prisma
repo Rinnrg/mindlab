@@ -255,6 +255,11 @@ model PengumpulanProyek {
   ketua           String?           @db.VarChar(255)
   anggota         String[]          @db.VarChar(255)
   fileUrl         String?           @db.VarChar(255)
+  // Store uploaded file bytes in DB to support serverless/production uploads.
+  fileData        Bytes?
+  fileName        String?           @db.VarChar(255)
+  fileType        String?           @db.VarChar(255)
+  fileSize        Int?
   status          StatusPengumpulan @default(PENDING)
   feedback        String?           @db.VarChar(1000)
   validatedAt     DateTime?

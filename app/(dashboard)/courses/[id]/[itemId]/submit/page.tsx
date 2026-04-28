@@ -68,6 +68,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [ketua, setKetua] = useState("")
   const [anggota, setAnggota] = useState("")
   const [fileUrl, setFileUrl] = useState("")
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [catatan, setCatatan] = useState("")
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
@@ -236,7 +237,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const hasFile = submitMode === "file" && fileUrl
+  const hasFile = submitMode === "file" && (fileUrl || uploadedFile)
     const hasCode = submitMode === "compiler" && sourceCode.trim()
 
     if (!hasFile && !hasCode) {
@@ -283,26 +284,49 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
     await execute(
       async () => {
-        const payload: Record<string, any> = {
-          siswaId: user?.id,
-          namaKelompok: isKelompok ? finalNamaKelompok : null,
-          ketua: isKelompok ? finalKetua : null,
-          anggota: isKelompok ? finalAnggota : null,
-          catatan,
-        }
+        const endpoint = `/api/asesmen/${asesmenId}/submit`
 
-        if (submitMode === "file") {
-          payload.fileUrl = fileUrl
-        } else {
-          payload.sourceCode = sourceCode
-          payload.output = compilerOutput
-        }
+        const response = await (async () => {
+          if (submitMode === 'file' && uploadedFile) {
+            const form = new FormData()
+            form.append('siswaId', user?.id || '')
+            if (isKelompok) {
+              form.append('namaKelompok', finalNamaKelompok || '')
+              form.append('ketua', finalKetua || '')
+              form.append('anggota', finalAnggota || '')
+            }
+            if (catatan) form.append('catatan', catatan)
+            // if user also filled a link manually, keep it too
+            if (fileUrl) form.append('fileUrl', fileUrl)
+            form.append('file', uploadedFile)
 
-        const response = await fetch(`/api/asesmen/${asesmenId}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
+            return fetch(endpoint, {
+              method: 'POST',
+              body: form,
+            })
+          }
+
+          const payload: Record<string, any> = {
+            siswaId: user?.id,
+            namaKelompok: isKelompok ? finalNamaKelompok : null,
+            ketua: isKelompok ? finalKetua : null,
+            anggota: isKelompok ? finalAnggota : null,
+            catatan,
+          }
+
+          if (submitMode === 'file') {
+            payload.fileUrl = fileUrl
+          } else {
+            payload.sourceCode = sourceCode
+            payload.output = compilerOutput
+          }
+
+          return fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        })()
 
         const responseText = await response.text()
         let responseData: any = null
@@ -326,6 +350,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => {
+          setUploadedFile(null)
           setTimeout(() => {
             router.push(`/courses/${courseId}/${asesmenId}`)
           }, 1500)
@@ -358,6 +383,10 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const isMyOwnSubmission = existingSubmission?.siswaId === user?.id
   const submittedByName = existingSubmission?.siswa?.nama || existingSubmission?.ketua
   const groupAlreadySubmittedByOther = isKelompok && existingSubmission && !isMyOwnSubmission
+
+  const existingSubmissionFileHref = existingSubmission?.fileData
+    ? `/api/pengumpulan/${existingSubmission.id}/file`
+    : null
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-6">
@@ -581,7 +610,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <Tabs value={submitMode} onValueChange={(v) => setSubmitMode(v as "file" | "compiler")}>
+            <Tabs
+              value={submitMode}
+              onValueChange={(v) => {
+                const next = v as "file" | "compiler"
+                setSubmitMode(next)
+                if (next !== 'file') setUploadedFile(null)
+              }}
+            >
               <TabsList className="ios-tab-list">
                 {allowFile && (
                   <TabsTrigger value="file" className="ios-tab-trigger">
@@ -599,6 +635,21 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
               {allowFile && (
                 <TabsContent value="file" className="mt-4 space-y-4">
+                {existingSubmissionFileHref && (
+                  <Alert>
+                    <AlertDescription>
+                      File tersimpan di sistem:{' '}
+                      <a
+                        className="underline"
+                        href={existingSubmissionFileHref}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Download / Lihat
+                      </a>
+                    </AlertDescription>
+                  </Alert>
+                )}
                 <FileUploadField
                   label="File Tugas"
                   value={fileUrl}
@@ -609,6 +660,26 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                       : "Upload file tugas atau berikan link ke file (Google Drive, OneDrive, dll)"
                   }
                 />
+
+                <div className="space-y-2">
+                  <Label>Upload langsung (tersimpan ke database)</Label>
+                  <Input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                    onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                    disabled={isDeadlinePassed}
+                  />
+                  {uploadedFile && (
+                    <p className="text-xs text-muted-foreground">
+                      File dipilih:{' '}
+                      <span className="font-medium">{uploadedFile.name}</span>
+                      {' '}({Math.round(uploadedFile.size / 1024)} KB)
+                    </p>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Ini dipakai untuk production (Vercel) agar upload tetap jalan.
+                  </p>
+                </div>
                 </TabsContent>
               )}
 

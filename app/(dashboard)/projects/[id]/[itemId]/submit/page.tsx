@@ -17,6 +17,7 @@ import { FileUploadField } from "@/components/file-upload-field"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import dynamic from "next/dynamic"
+import { AnimatePresence, motion } from "framer-motion"
 
 const Editor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -40,6 +41,7 @@ import {
   CheckCircle2,
   X,
   BookOpen,
+  Clock,
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -68,6 +70,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [ketua, setKetua] = useState("")
   const [anggota, setAnggota] = useState("")
   const [fileUrl, setFileUrl] = useState("")
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   // Compiler state
@@ -227,7 +230,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const hasFile = submitMode === "file" && fileUrl
+  const hasFile = submitMode === "file" && (fileUrl || uploadedFile)
     const hasCode = submitMode === "compiler" && sourceCode.trim()
 
     if (!hasFile && !hasCode) {
@@ -274,28 +277,56 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
     await execute(
       async () => {
-        const payload: Record<string, any> = {
-          siswaId: user?.id,
-          namaKelompok: isKelompok ? finalNamaKelompok : null,
-          ketua: isKelompok ? finalKetua : null,
-          anggota: isKelompok ? finalAnggota : null,
+        const endpoint = `/api/asesmen/${asesmenId}/submit`
+
+        const response = await (async () => {
+          if (submitMode === 'file' && uploadedFile) {
+            const form = new FormData()
+            form.append('siswaId', user?.id || '')
+            if (isKelompok) {
+              form.append('namaKelompok', finalNamaKelompok || '')
+              form.append('ketua', finalKetua || '')
+              form.append('anggota', finalAnggota || '')
+            }
+            if (fileUrl) form.append('fileUrl', fileUrl)
+            form.append('file', uploadedFile)
+
+            return fetch(endpoint, { method: 'POST', body: form })
+          }
+
+          const payload: Record<string, any> = {
+            siswaId: user?.id,
+            namaKelompok: isKelompok ? finalNamaKelompok : null,
+            ketua: isKelompok ? finalKetua : null,
+            anggota: isKelompok ? finalAnggota : null,
+          }
+
+          if (submitMode === 'file') {
+            payload.fileUrl = fileUrl
+          } else {
+            payload.sourceCode = sourceCode
+            payload.output = compilerOutput
+          }
+
+          return fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        })()
+
+        const responseText = await response.text()
+        let responseData: any = null
+        try {
+          responseData = responseText ? JSON.parse(responseText) : null
+        } catch {
+          responseData = null
         }
-
-        if (submitMode === "file") {
-          payload.fileUrl = fileUrl
-        } else {
-          payload.sourceCode = sourceCode
-          payload.output = compilerOutput
+        if (!response.ok) {
+          const message = responseData?.error || responseText || 'Gagal mengumpulkan tugas'
+          const details = responseData?.details
+          throw new Error(details ? `${message} (${details})` : message)
         }
-
-        const response = await fetch(`/api/asesmen/${asesmenId}/submit`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        })
-
-        const responseData = await response.json()
-        if (!response.ok) throw new Error(responseData.error || "Gagal mengumpulkan tugas")
       },
       {
         loadingMessage: existingSubmission ? "Memperbarui tugas..." : "Mengumpulkan tugas...",
@@ -306,6 +337,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => {
+          setUploadedFile(null)
           setTimeout(() => {
             router.push(`/projects/${courseId}/${asesmenId}`)
           }, 1500)
@@ -329,6 +361,10 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     : false
 
   const isKelompok = asesmen.tipePengerjaan === 'KELOMPOK'
+
+  const existingSubmissionFileHref = existingSubmission?.fileData
+    ? `/api/pengumpulan/${existingSubmission.id}/file`
+    : null
 
   return (
     <div className="w-full py-6 sm:py-8 space-y-8 max-w-5xl mx-auto">
@@ -391,7 +427,15 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             </CardHeader>
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-8">
-                <Tabs value={submitMode} onValueChange={(v) => setSubmitMode(v as "file" | "compiler")} className="w-full">
+                <Tabs
+                  value={submitMode}
+                  onValueChange={(v) => {
+                    const next = v as "file" | "compiler"
+                    setSubmitMode(next)
+                    if (next !== 'file') setUploadedFile(null)
+                  }}
+                  className="w-full"
+                >
                   <TabsList className="ios-tab-list w-full max-w-md mx-auto mb-8">
                     <TabsTrigger value="file" className="ios-tab-trigger">
                       <FileText className="ios-tab-icon" />
@@ -411,6 +455,21 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         exit={{ opacity: 0, x: 10 }}
                         className="space-y-4"
                       >
+                        {existingSubmissionFileHref && (
+                          <Alert className="rounded-2xl">
+                            <AlertDescription>
+                              File tersimpan di sistem:{' '}
+                              <a
+                                className="underline"
+                                href={existingSubmissionFileHref}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                Download / Lihat
+                              </a>
+                            </AlertDescription>
+                          </Alert>
+                        )}
                         <div className="p-8 border-2 border-dashed border-border/50 rounded-3xl bg-muted/20 hover:bg-muted/30 transition-colors">
                           <FileUploadField
                             label=""
@@ -422,6 +481,26 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                                 : "Seret file ke sini atau klik untuk memilih file (PDF, Gambar, atau Dokumen)"
                             }
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Upload langsung (tersimpan ke database)</Label>
+                          <Input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                            onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                            disabled={isDeadlinePassed}
+                          />
+                          {uploadedFile && (
+                            <p className="text-xs text-muted-foreground">
+                              File dipilih:{' '}
+                              <span className="font-medium">{uploadedFile.name}</span>
+                              {' '}({Math.round(uploadedFile.size / 1024)} KB)
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Ini dipakai untuk production (Vercel) agar upload tetap jalan.
+                          </p>
                         </div>
                       </motion.div>
                     </TabsContent>
@@ -470,7 +549,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                                 automaticLayout: true,
                                 padding: { top: 16, bottom: 16 },
                                 readOnly: isDeadlinePassed,
-                                borderRadius: 16,
                               }}
                             />
                           </div>

@@ -7,10 +7,38 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    const body = await request.json()
-  const { namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output } = body
 
-    if (!siswaId) {
+    const contentType = request.headers.get('content-type') || ''
+    const isMultipart = contentType.includes('multipart/form-data')
+
+    let namaKelompok: unknown
+    let ketua: unknown
+    let anggota: unknown
+    let fileUrl: unknown
+    let catatan: unknown
+    let siswaId: unknown
+    let sourceCode: unknown
+    let output: unknown
+    let uploadedFile: File | null = null
+
+    if (isMultipart) {
+      const form = await request.formData()
+      namaKelompok = form.get('namaKelompok')
+      ketua = form.get('ketua')
+      anggota = form.get('anggota')
+      fileUrl = form.get('fileUrl')
+      catatan = form.get('catatan')
+      siswaId = form.get('siswaId')
+      sourceCode = form.get('sourceCode')
+      output = form.get('output')
+      const f = form.get('file')
+      uploadedFile = f instanceof File ? f : null
+    } else {
+      const body = await request.json()
+      ;({ namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output } = body || {})
+    }
+
+  if (!siswaId || typeof siswaId !== 'string' || !siswaId.trim()) {
       return NextResponse.json(
         { error: 'Siswa ID diperlukan' },
         { status: 400 }
@@ -47,7 +75,7 @@ export async function POST(
 
     // Normalize anggota to string[] because Prisma schema expects String[]
     const anggotaArr: string[] = Array.isArray(anggota)
-      ? anggota.filter((x: unknown) => typeof x === 'string' && x.trim().length > 0)
+      ? (anggota as unknown[]).filter((x: unknown) => typeof x === 'string' && x.trim().length > 0) as string[]
       : typeof anggota === 'string'
         ? anggota
             .split(',')
@@ -59,12 +87,15 @@ export async function POST(
     const sourceCodeStr = typeof sourceCode === 'string' ? sourceCode : ''
     const outputStr = typeof output === 'string' ? output : ''
 
+  // If multipart file is provided, we'll store bytes in DB (PengumpulanProyek.fileData)
+  const hasUploadedFile = !!uploadedFile && typeof uploadedFile.name === 'string' && uploadedFile.size > 0
+
     // Hard limits from Prisma schema
     const MAX_FILE_URL = 255
     const MAX_SOURCE = 5000
     const MAX_OUTPUT = 5000
 
-    // Reject data URLs or too-long URLs because DB column is VARCHAR(255)
+  // Reject data URLs or too-long URLs because DB column is VARCHAR(255)
     if (fileUrlStr) {
       if (fileUrlStr.startsWith('data:')) {
         return NextResponse.json(
@@ -96,8 +127,17 @@ export async function POST(
       )
     }
 
-    // Basic validation: require at least fileUrl OR sourceCode
-    const hasFile = fileUrlStr.length > 0
+    // File constraints when uploading
+    const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+    if (hasUploadedFile && uploadedFile!.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'Ukuran file terlalu besar. Maksimal 10MB.' },
+        { status: 400 }
+      )
+    }
+
+    // Basic validation: require at least uploaded file OR fileUrl OR sourceCode
+    const hasFile = fileUrlStr.length > 0 || hasUploadedFile
     const hasCode = sourceCodeStr.trim().length > 0
     if (!hasFile && !hasCode) {
       return NextResponse.json(
@@ -142,6 +182,19 @@ export async function POST(
 
     let pengumpulan
 
+    // Prepare uploaded file data if any
+    let fileDataToSave: Buffer | null = null
+    let fileNameToSave: string | null = null
+    let fileTypeToSave: string | null = null
+    let fileSizeToSave: number | null = null
+    if (hasUploadedFile) {
+      const arr = await uploadedFile!.arrayBuffer()
+      fileDataToSave = Buffer.from(arr)
+      fileNameToSave = uploadedFile!.name
+      fileTypeToSave = uploadedFile!.type || 'application/octet-stream'
+      fileSizeToSave = uploadedFile!.size
+    }
+
     if (existingSubmission) {
       // For kelompok: only allow the same submitter to edit/update
       if (asesmen.tipePengerjaan === 'KELOMPOK' && existingSubmission.siswaId !== siswaId) {
@@ -159,7 +212,15 @@ export async function POST(
           ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           ...(anggotaArr.length > 0 ? { anggota: anggotaArr } : {}),
-          fileUrl: fileUrlStr || existingSubmission.fileUrl,
+          fileUrl: fileUrlStr || (hasUploadedFile ? null : existingSubmission.fileUrl),
+          ...(hasUploadedFile
+            ? {
+                fileData: fileDataToSave!,
+                fileName: fileNameToSave,
+                fileType: fileTypeToSave,
+                fileSize: fileSizeToSave,
+              }
+            : {}),
           ...(typeof catatan === 'string' ? { catatan } : {}),
           sourceCode: sourceCodeStr || existingSubmission.sourceCode,
           output: outputStr || existingSubmission.output,
@@ -175,10 +236,18 @@ export async function POST(
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           anggota: anggotaArr,
           ...(fileUrlStr ? { fileUrl: fileUrlStr } : {}),
+          ...(hasUploadedFile
+            ? {
+                fileData: fileDataToSave!,
+                fileName: fileNameToSave,
+                fileType: fileTypeToSave,
+                fileSize: fileSizeToSave,
+              }
+            : {}),
           ...(typeof catatan === 'string' ? { catatan } : {}),
           ...(sourceCodeStr.trim() ? { sourceCode: sourceCodeStr } : {}),
           ...(outputStr ? { output: outputStr } : {}),
-          siswaId,
+          siswaId: siswaId.trim(),
           asesmenId: id,
           kelompokId,
           status: 'PENDING',
