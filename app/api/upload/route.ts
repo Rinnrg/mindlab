@@ -39,23 +39,19 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Check if running in production (Vercel) - use data URL
+    // In production (Vercel/serverless) we can't rely on writing to local disk,
+    // and returning base64 data URLs breaks DB constraints (fileUrl is VARCHAR(255)).
+    // So we fail fast with a clear message.
     const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
-    
+
     if (isProduction) {
-      // In production, return base64 data URL (not recommended for large files)
-      const base64 = buffer.toString('base64')
-      const dataUrl = `data:${file.type};base64,${base64}`
-      
-      console.log('Production mode: returning data URL')
-      
-      return NextResponse.json({ 
-        url: dataUrl,
-        filename: file.name,
-        size: file.size,
-        type: file.type,
-        isDataUrl: true
-      })
+      return NextResponse.json(
+        {
+          error:
+            'Upload file langsung belum didukung di production. Silakan gunakan link (Google Drive/OneDrive) atau integrasikan storage (Supabase Storage/S3) agar menghasilkan URL pendek.',
+        },
+        { status: 400 }
+      )
     }
 
     // Development: save to file system

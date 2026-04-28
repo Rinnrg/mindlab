@@ -153,7 +153,7 @@ export function FileUploadField({
                   <File className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">
-                      {fileName || (isDataURL ? 'File terupload' : 'Link eksternal')}
+                          {fileName || (isLegacyDataURL ? 'Upload lama (base64)' : 'File terupload')}
                     </p>
           {isLegacyDataURL ? (
                       <p className="text-xs text-muted-foreground">
@@ -193,7 +193,7 @@ export function FileUploadField({
                 {isUploading && <Loader2 className="h-4 w-4 animate-spin" />}
               </div>
               <p className="text-xs text-muted-foreground">
-                Maksimal {maxSizeMB}MB. File akan disimpan di database.
+                Maksimal {maxSizeMB}MB. File akan diupload dan disimpan sebagai URL.
               </p>
             </div>
           )}
