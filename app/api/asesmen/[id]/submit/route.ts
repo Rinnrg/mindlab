@@ -45,6 +45,16 @@ export async function POST(
       )
     }
 
+    // Normalize anggota to string[] because Prisma schema expects String[]
+    const anggotaArr: string[] = Array.isArray(anggota)
+      ? anggota.filter((x: unknown) => typeof x === 'string' && x.trim().length > 0)
+      : typeof anggota === 'string'
+        ? anggota
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean)
+        : []
+
     // Basic validation: require at least fileUrl OR sourceCode
     const hasFile = typeof fileUrl === 'string' && fileUrl.trim().length > 0
     const hasCode = typeof sourceCode === 'string' && sourceCode.trim().length > 0
@@ -104,11 +114,12 @@ export async function POST(
       pengumpulan = await prisma.pengumpulanProyek.update({
         where: { id: existingSubmission.id },
         data: {
-          namaKelompok,
-          ketua,
-          anggota,
+          // only set group metadata when provided
+          ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
+          ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
+          ...(anggotaArr.length > 0 ? { anggota: anggotaArr } : {}),
           fileUrl: fileUrl || existingSubmission.fileUrl,
-          catatan,
+          ...(typeof catatan === 'string' ? { catatan } : {}),
           sourceCode: sourceCode || existingSubmission.sourceCode,
           output: output || existingSubmission.output,
           kelompokId: existingSubmission.kelompokId || kelompokId,
@@ -119,13 +130,13 @@ export async function POST(
       // Create new submission
       pengumpulan = await prisma.pengumpulanProyek.create({
         data: {
-          namaKelompok,
-          ketua,
-          anggota,
-          fileUrl,
-          catatan,
-          sourceCode,
-          output,
+          ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
+          ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
+          anggota: anggotaArr,
+          ...(typeof fileUrl === 'string' && fileUrl.trim() ? { fileUrl } : {}),
+          ...(typeof catatan === 'string' ? { catatan } : {}),
+          ...(typeof sourceCode === 'string' && sourceCode.trim() ? { sourceCode } : {}),
+          ...(typeof output === 'string' ? { output } : {}),
           siswaId,
           asesmenId: id,
           kelompokId,
@@ -136,9 +147,13 @@ export async function POST(
 
     return NextResponse.json({ pengumpulan }, { status: 200 })
   } catch (error) {
-  console.error('Error submitting task:', error)
+    console.error('Error submitting task:', error)
     return NextResponse.json(
-  { error: 'Gagal mengumpulkan tugas', details: (error as any)?.message },
+      {
+        error: 'Gagal mengumpulkan tugas',
+        details: (error as any)?.message,
+        code: (error as any)?.code,
+      },
       { status: 500 }
     )
   }
