@@ -157,13 +157,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
     return sortedKeys.map((kelas) => ({ kelas, students: groups[kelas] }))
   }, [enrollments])
 
-  // Set active tab from URL params
-  useEffect(() => {
-    const tab = searchParams.get("tab")
-    if (tab) {
-      setActiveTab(tab)
-    }
-  }, [searchParams])
+  // Note: tab query param handling is already done in the effect above.
 
   // Fetch enrolled students function with useCallback
   const fetchEnrollments = useCallback(async () => {
@@ -589,7 +583,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
               </DropdownMenu>
             )}
           </div>
-          {assessments.length > 0 ? (
+          {filteredAsesmen.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
                 <Link key={assessment.id} href={`/courses/${course.id}/${assessment.id}`} className="block">
