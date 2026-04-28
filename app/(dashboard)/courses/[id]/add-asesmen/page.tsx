@@ -291,6 +291,10 @@ export default function AddAsesmenPage() {
     })
   }
 
+  const addSubmissionComponent = React.useCallback((c: SubmissionComponentType) => {
+    setSubmissionComponents((prev) => (prev.includes(c) ? prev : [...prev, c]))
+  }, [])
+
   const toggleKelas = (kelasId: string, checked: boolean) => {
     setSelectedKelas((prev) => (checked ? [...prev, kelasId] : prev.filter((id) => id !== kelasId)))
   }
@@ -517,6 +521,7 @@ export default function AddAsesmenPage() {
                     type="button"
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", "UPLOAD_FILE")}
+                    onClick={() => addSubmissionComponent("UPLOAD_FILE")}
                     className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
                   >
                     <Upload className="h-4 w-4" />
@@ -526,6 +531,7 @@ export default function AddAsesmenPage() {
                     type="button"
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData("text/plain", "COMPILER")}
+                    onClick={() => addSubmissionComponent("COMPILER")}
                     className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
                   >
                     <CodeIcon className="h-4 w-4" />
@@ -929,44 +935,33 @@ export default function AddAsesmenPage() {
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <Label>Target Kelas (opsional)</Label>
-                    <p className="text-xs text-muted-foreground">Jika tidak dipilih, asesmen berlaku untuk semua siswa.</p>
+                  {(tipe === "KUIS" || (tipe === "TUGAS" && tipePengerjaan === "INDIVIDU")) && (
+                    <div className="space-y-2">
+                      <Label>Target Kelas (opsional)</Label>
+                      <p className="text-xs text-muted-foreground">Jika tidak dipilih, asesmen berlaku untuk semua siswa.</p>
 
-                    {loadingKelas ? (
-                      <div className="text-sm text-muted-foreground">Loading kelas...</div>
-                    ) : kelasList.length === 0 ? (
-                      <div className="text-sm text-muted-foreground">Belum ada data kelas.</div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-2">
-                        {kelasList.map((k) => {
-                          const checked = selectedKelas.includes(k.id)
-                          return (
-                            <label key={k.id} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
-                              <Checkbox checked={checked} onCheckedChange={(v) => toggleKelas(k.id, Boolean(v))} />
-                              <span className="text-sm">{k.nama}</span>
-                            </label>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
+                      {loadingKelas ? (
+                        <div className="text-sm text-muted-foreground">Loading kelas...</div>
+                      ) : kelasList.length === 0 ? (
+                        <div className="text-sm text-muted-foreground">Belum ada data kelas.</div>
+                      ) : (
+                        <div className="grid grid-cols-1 gap-2">
+                          {kelasList.map((k) => {
+                            const checked = selectedKelas.includes(k.id)
+                            return (
+                              <label key={k.id} className="flex items-center gap-2 rounded-lg border p-3 cursor-pointer">
+                                <Checkbox checked={checked} onCheckedChange={(v) => toggleKelas(k.id, Boolean(v))} />
+                                <span className="text-sm">{k.nama}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {tipe === "TUGAS" && (
                     <>
-                      <div className="space-y-2">
-                        <Label>Tipe Pengerjaan</Label>
-                        <Select value={tipePengerjaan} onValueChange={(v) => setTipePengerjaan(v as any)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih tipe pengerjaan" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INDIVIDU">Individu</SelectItem>
-                            <SelectItem value="KELOMPOK">Kelompok</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
                       {tipePengerjaan === "KELOMPOK" && (
                         <div className="space-y-2">
                           <Label>Kelompok</Label>
