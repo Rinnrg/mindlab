@@ -15,8 +15,8 @@ export async function GET(
   }
 
   try {
-  // Removed redundant extraction of id
-    const pengumpulan = await prisma.pengumpulanProyek.findUnique({
+    // First, try to interpret `id` as PengumpulanProyek.id
+    let pengumpulan = await prisma.pengumpulanProyek.findUnique({
       where: { id },
       include: {
         siswa: {
@@ -37,6 +37,34 @@ export async function GET(
         },
       },
     })
+
+    // Compatibility fallback:
+    // if the frontend accidentally passes an Asesmen ID in the URL (during routing refactors),
+    // resolve the most recent pengumpulan for that asesmen.
+    if (!pengumpulan) {
+      pengumpulan = await prisma.pengumpulanProyek.findFirst({
+        where: { asesmenId: id },
+        orderBy: { tgl_unggah: "desc" },
+        include: {
+          siswa: {
+            select: {
+              id: true,
+              nama: true,
+              email: true,
+              foto: true,
+            },
+          },
+          asesmen: {
+            select: {
+              id: true,
+              nama: true,
+              tipe: true,
+              tipePengerjaan: true,
+            },
+          },
+        },
+      })
+    }
 
     if (!pengumpulan) {
       return NextResponse.json(
