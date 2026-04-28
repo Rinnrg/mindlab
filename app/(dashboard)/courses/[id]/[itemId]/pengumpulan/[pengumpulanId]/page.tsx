@@ -1,5 +1,9 @@
 "use client"
 
+// Ensure this route is always resolved dynamically in production.
+// This helps avoid weird RSC prefetch/caching edge cases where params can be missing.
+export const dynamic = "force-dynamic"
+
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -55,6 +59,12 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   React.useEffect(() => {
+    if (!pengumpulanId || pengumpulanId === "undefined" || pengumpulanId === "null") {
+      setLoadError("ID pengumpulan tidak valid")
+      setLoading(false)
+      return
+    }
+
     if (isLoading) return
     if (!user) {
       router.push("/login")
