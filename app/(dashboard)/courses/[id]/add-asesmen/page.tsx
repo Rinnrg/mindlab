@@ -869,13 +869,15 @@ export default function AddAsesmenPage() {
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-base">Informasi</CardTitle>
-                  <CardDescription>Pengaturan tanggal, durasi, kelas target, dan opsi lainnya.</CardDescription>
+                  <CardDescription>Pengaturan tanggal, kelas target, dan opsi lainnya.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
-                    <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
-                  </div>
+                  {tipe === "KUIS" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
+                      <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
+                    </div>
+                  )}
 
                   <div className="grid gap-4">
                     <div className="space-y-2">
@@ -988,7 +990,7 @@ export default function AddAsesmenPage() {
         </div>
 
         <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
             <DialogHeader>
               <DialogTitle>Atur Kelompok</DialogTitle>
               <DialogDescription>
@@ -996,7 +998,7 @@ export default function AddAsesmenPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-auto pr-1">
               <div className="flex items-center gap-3">
                 <Label htmlFor="groupCount">Jumlah Kelompok</Label>
                 <Input

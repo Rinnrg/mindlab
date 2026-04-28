@@ -68,6 +68,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [ketua, setKetua] = useState("")
   const [anggota, setAnggota] = useState("")
   const [fileUrl, setFileUrl] = useState("")
+  const [catatan, setCatatan] = useState("")
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   // Compiler state
@@ -153,6 +154,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             setKetua(submission.ketua || "")
             setAnggota(submission.anggota || "")
             setFileUrl(submission.fileUrl || "")
+            setCatatan(submission.catatan || "")
             if (submission.sourceCode) {
               setSourceCode(submission.sourceCode)
               setSubmitMode("compiler")
@@ -286,6 +288,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           namaKelompok: isKelompok ? finalNamaKelompok : null,
           ketua: isKelompok ? finalKetua : null,
           anggota: isKelompok ? finalAnggota : null,
+          catatan,
         }
 
         if (submitMode === "file") {
