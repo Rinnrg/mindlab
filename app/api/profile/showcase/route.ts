@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const siswaId = searchParams.get("siswaId")
+  const onlyPublic = searchParams.get("public")
 
     if (!siswaId) {
       return NextResponse.json(
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const showcases = await prisma.profileShowcase.findMany({
       where: {
         siswaId,
-        isPublic: true,
+        ...(onlyPublic === "true" ? { isPublic: true } : {}),
       },
       include: {
         siswa: {
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest) {
             sourceCode: true,
             output: true,
             fileUrl: true,
+            status: true,
+            validatedAt: true,
+            validatedBy: true,
             namaKelompok: true,
             ketua: true,
             anggota: true,
@@ -68,7 +72,20 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ showcases })
+    // Normalize a few fields so the UI can rely on them.
+    const normalized = showcases.map((s) => {
+      const p = s.pengumpulanProyek
+      const courseTitle = p?.asesmen?.course?.judul
+      const asesmenTitle = p?.asesmen?.nama
+      const fallbackTitle = [asesmenTitle, courseTitle].filter(Boolean).join(" - ")
+      return {
+        ...s,
+        judul: s.judul || fallbackTitle || "Showcase",
+        deskripsi: s.deskripsi ?? p?.feedback ?? null,
+      }
+    })
+
+    return NextResponse.json({ showcases: normalized })
   } catch (error) {
     console.error("Error fetching showcases:", error)
     return NextResponse.json(
