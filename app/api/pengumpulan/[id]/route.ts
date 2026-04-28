@@ -6,8 +6,16 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
+  if (!id || id === "undefined" || id === "null") {
+    return NextResponse.json(
+      { error: "ID pengumpulan tidak valid" },
+      { status: 400 }
+    )
+  }
+
   try {
-    const { id } = await params
+  // Removed redundant extraction of id
     const pengumpulan = await prisma.pengumpulanProyek.findUnique({
       where: { id },
       include: {
@@ -52,8 +60,16 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
+  if (!id || id === "undefined" || id === "null") {
+    return NextResponse.json(
+      { error: "ID pengumpulan tidak valid" },
+      { status: 400 }
+    )
+  }
+
   try {
-    const { id } = await params
+  // Removed redundant extraction of id
     const body = await request.json()
     const { nilai, catatan, feedback, status, validatedBy } = body
 
