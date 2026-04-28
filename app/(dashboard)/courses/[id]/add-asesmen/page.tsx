@@ -72,6 +72,8 @@ export default function AddAsesmenPage() {
   const searchParams = useSearchParams()
   const courseId = params.id
   const sintak = searchParams.get('sintak')
+  const typeParam = searchParams.get('type')
+  const modeParam = searchParams.get('mode')
 
   const { user } = useAuth()
 
@@ -129,6 +131,21 @@ export default function AddAsesmenPage() {
   const [showSettings] = React.useState(true)
 
   const lastSoalRef = React.useRef<HTMLDivElement | null>(null)
+
+  // Sync initial intent from query params (from dropdown in course/project detail)
+  React.useEffect(() => {
+    const nextType = (typeParam || '').toUpperCase()
+    if (nextType === 'TUGAS' || nextType === 'KUIS') {
+      setTipe(nextType as TipeAsesmen)
+    }
+
+    const nextMode = (modeParam || '').toUpperCase()
+    if (nextMode === 'INDIVIDU' || nextMode === 'KELOMPOK') {
+      setTipePengerjaan(nextMode as any)
+      // If mode is specified, assume it's a TUGAS builder
+      setTipe('TUGAS')
+    }
+  }, [typeParam, modeParam])
 
   const scrollToLastSoal = React.useCallback(() => {
     // Delay to wait for DOM render
