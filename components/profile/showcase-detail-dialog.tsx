@@ -44,6 +44,7 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
   const hasCompiler = Boolean(p?.sourceCode)
   const hasOutput = Boolean(p?.output)
   const isKelompok = Boolean(p?.kelompok || p?.namaKelompok)
+  const fileHref = (p as any)?.fileData ? `/api/pengumpulan/${p.id}/file` : p?.fileUrl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -111,7 +112,7 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
                 Hasil Pengerjaan
               </h3>
               <div className="flex bg-muted p-1 rounded-xl">
-                {p?.fileUrl && (
+                {fileHref && (
                   <Button 
                     variant={activeView === "pdf" ? "default" : "ghost"} 
                     size="sm" 
@@ -135,10 +136,10 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
             </div>
 
             <div className="rounded-2xl border border-border/30 overflow-hidden bg-muted/30">
-              {activeView === "pdf" && p?.fileUrl && (
+      {activeView === "pdf" && fileHref && (
                 <div className="aspect-[4/5] w-full">
                   <iframe 
-                    src={`${p.fileUrl}#toolbar=0`}
+        src={`${fileHref}#toolbar=0`}
                     className="w-full h-full border-0"
                     title="Result PDF"
                   />
@@ -160,7 +161,7 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
                   )}
                 </div>
               )}
-              {!p?.fileUrl && !p?.sourceCode && (
+              {!fileHref && !p?.sourceCode && (
                 <div className="p-12 text-center text-muted-foreground">
                   Tidak ada konten hasil pengerjaan untuk ditampilkan.
                 </div>
@@ -193,9 +194,9 @@ export function ShowcaseDetailDialog({ showcase, open, onOpenChange }: ShowcaseD
             </div>
           </div>
           <div className="flex gap-2">
-            {p?.fileUrl && (
+      {fileHref && (
               <Button variant="outline" size="sm" asChild className="rounded-xl">
-                <a href={p.fileUrl} download>
+        <a href={fileHref} download>
                   <Download className="mr-2 h-4 w-4" />
                   Download
                 </a>
