@@ -458,8 +458,19 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           </div>
           <div className="space-y-2 sm:space-y-3">
             {(filteredMateri && filteredMateri.length > 0) ? filteredMateri.map((material, index) => (
-              <Link key={material.id} href={`/courses/${course.id}/${material.id}`} className="block">
-                <Card className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl">
+              <div key={material.id} className="block">
+                <Card
+                  className="ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer group rounded-2xl"
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(`/courses/${course.id}/${material.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      router.push(`/courses/${course.id}/${material.id}`)
+                    }
+                  }}
+                >
                   <CardContent className="flex items-center gap-2 p-3 sm:gap-4 sm:p-4">
                     <div className="hidden items-center justify-center text-xs font-medium text-muted-foreground sm:flex sm:h-10 sm:w-10 sm:text-sm">
                       {String(index + 1).padStart(2, "0")}
@@ -498,40 +509,39 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1.5 shrink-0 sm:gap-2" onClick={(e) => e.preventDefault()}>
-                      {/* Dropdown Menu for Edit/Delete */}
+                    <div className="flex gap-1.5 shrink-0 sm:gap-2" onClick={(e) => e.stopPropagation()}>
                       {isTeacherOrAdmin && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 sm:h-9 sm:w-9"
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/courses/${course.id}/${material.id}/edit`}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit Materi
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => handleDeleteMateri(material.id, material.judul)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 sm:h-9 sm:w-9"
+                            title="Edit Materi"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/courses/${course.id}/${material.id}/edit`)
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 sm:h-9 sm:w-9 text-destructive hover:text-destructive"
+                            title="Hapus Materi"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteMateri(material.id, material.judul)
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </div>
             )) : (
               <Card className="border-dashed border-border/30 ios-glass-card rounded-2xl">
                 <CardContent className="flex flex-col items-center justify-center py-8 text-center sm:py-12">
@@ -615,33 +625,27 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                           )}
                         </div>
                         {isTeacherOrAdmin && (
-                          <div onClick={(e) => e.preventDefault()}>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 shrink-0"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit Asesmen
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Hapus
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                          <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0"
+                              asChild
+                              title="Edit Asesmen"
+                            >
+                              <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
+                                <Pencil className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                              title="Hapus Asesmen"
+                              onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -824,27 +828,20 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                                   </p>
                                   <p className="text-xs text-muted-foreground">Nilai</p>
                                 </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem
-                                      onClick={() =>
-                                        handleRemoveStudent(
-                                          enrollment.siswa.id,
-                                          enrollment.siswa.nama
-                                        )
-                                      }
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Hapus dari Course
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
+                                  title="Hapus dari Course"
+                                  onClick={() =>
+                                    handleRemoveStudent(
+                                      enrollment.siswa.id,
+                                      enrollment.siswa.nama
+                                    )
+                                  }
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
                             </div>
                           ))}

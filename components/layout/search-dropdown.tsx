@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useAuth } from "@/lib/auth-context"
 import {
   FileText,
@@ -92,7 +91,6 @@ interface SearchResults {
 
 export function SearchDropdown() {
   const router = useRouter()
-  const { t } = useAutoTranslate()
   const { user } = useAuth()
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
@@ -174,80 +172,80 @@ export function SearchDropdown() {
       // Navigation items (static)
       {
         id: "dashboard",
-        title: t("Dashboard"),
-        description: t("Lihat ringkasan aktivitas Anda"),
+  title: "Dashboard",
+  description: "Lihat ringkasan aktivitas Anda",
         icon: LayoutDashboard,
         href: "/dashboard",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "courses-page",
-        title: t("Kursus"),
-        description: t("Jelajahi semua kursus yang tersedia"),
+  title: "Kursus",
+  description: "Jelajahi semua kursus yang tersedia",
         icon: BookOpen,
         href: "/courses",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "projects",
-        title: t("PBL"),
-        description: t("Kelola project based learning"),
+  title: "PBL",
+  description: "Kelola project based learning",
         icon: FolderOpen,
         href: "/projects",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "asesmen-page",
-        title: t("Asesmen"),
-        description: t("Lihat tugas dan kuis"),
+  title: "Asesmen",
+  description: "Lihat tugas dan kuis",
         icon: CheckSquare,
         href: "/asesmen",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "schedule",
-        title: t("Jadwal"),
-        description: t("Lihat jadwal dan kalender Anda"),
+  title: "Jadwal",
+  description: "Lihat jadwal dan kalender Anda",
         icon: Calendar,
         href: "/schedule",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "users",
-        title: t("Pengguna"),
-        description: t("Kelola pengguna sistem"),
+  title: "Pengguna",
+  description: "Kelola pengguna sistem",
         icon: Users,
         href: "/users",
-        category: t("Navigasi"),
+  category: "Navigasi",
       },
       {
         id: "compiler",
-        title: t("Compiler Python"),
-        description: t("Editor dan compiler kode Python"),
+  title: "Compiler Python",
+  description: "Editor dan compiler kode Python",
         icon: Code,
         href: "/compiler",
-        category: t("Tools"),
+  category: "Tools",
       },
       {
         id: "profile",
-        title: t("Profil"),
-        description: t("Lihat dan edit profil Anda"),
+  title: "Profil",
+  description: "Lihat dan edit profil Anda",
         icon: User,
         href: "/profile",
-        category: t("Pengaturan"),
+  category: "Pengaturan",
       },
       {
         id: "settings",
-        title: t("Pengaturan"),
-        description: t("Kelola preferensi akun Anda"),
+  title: "Pengaturan",
+  description: "Kelola preferensi akun Anda",
         icon: Settings,
         href: "/settings",
-        category: t("Pengaturan"),
+  category: "Pengaturan",
       },
     ]
 
     // Add courses from search results
-    const courseCategory = isRecent ? t("Kursus Terbaru") : t("Kursus")
+  const courseCategory = isRecent ? "Kursus Terbaru" : "Kursus"
     searchResults.courses.forEach((course) => {
       items.push({
         id: `course-${course.id}`,
@@ -261,7 +259,7 @@ export function SearchDropdown() {
     })
 
     // Add materi from search results
-    const materiCategory = isRecent ? t("Materi Terbaru") : t("Materi")
+  const materiCategory = isRecent ? "Materi Terbaru" : "Materi"
     searchResults.materi.forEach((materi) => {
       const materiAny = materi as any
       const enrollmentBadge = materiAny.kelasTarget && materiAny.kelasTarget.length > 0
@@ -280,7 +278,7 @@ export function SearchDropdown() {
     })
 
     // Add asesmen from search results
-    const asesmenCategory = isRecent ? t("Asesmen Terbaru") : t("Asesmen")
+  const asesmenCategory = isRecent ? "Asesmen Terbaru" : "Asesmen"
     searchResults.asesmen.forEach((asesmen) => {
       const asesmenAny = asesmen as any
       const tipeLabel = asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'
@@ -309,7 +307,7 @@ export function SearchDropdown() {
         description: `${schedule.guru.nama} • ${schedule.deskripsi.substring(0, 50)}`,
         icon: Calendar,
         href: `/projects/${schedule.id}`,
-        category: t("Jadwal"),
+  category: "Jadwal",
         badge: new Date(schedule.tgl_selesai).toLocaleDateString('id-ID', {
           day: 'numeric',
           month: 'short',
@@ -334,7 +332,7 @@ export function SearchDropdown() {
           description: u.email,
           icon: UserCircle,
           href: `/users`,
-          category: t("Pengguna"),
+          category: "Pengguna",
           badge: roleLabel(u.role),
           badgeVariant: 'outline',
         })
@@ -348,7 +346,7 @@ export function SearchDropdown() {
       : items
 
     return filteredByRole
-  }, [t, searchResults, user, isRecent])
+  }, [searchResults, user, isRecent])
 
   const filteredItems = React.useMemo(() => {
     if (!search) {
@@ -392,7 +390,7 @@ export function SearchDropdown() {
         <Input
           ref={inputRef}
           type="text"
-          placeholder={t("Cari")}
+          placeholder={"Cari"}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value)
@@ -413,12 +411,12 @@ export function SearchDropdown() {
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
                 <div className="flex items-center justify-center gap-2">
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  {t("Mencari")}...
+                  {"Mencari"}...
                 </div>
               </div>
             ) : filteredItems.length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                {search ? t("Tidak ada hasil ditemukan") : t("Mulai ketik untuk mencari...")}
+                {search ? "Tidak ada hasil ditemukan" : "Mulai ketik untuk mencari..."}
               </div>
             ) : (
               <>
@@ -464,7 +462,7 @@ export function SearchDropdown() {
                 ))}
                 {search && filteredItems.length > 0 && (
                   <div className="border-t mt-2 pt-2 px-3 py-2 text-xs text-muted-foreground text-center">
-                    {t("Menampilkan")} {filteredItems.length} {t("dari")} {searchItems.length} {t("hasil")}
+                    {"Menampilkan"} {filteredItems.length} {"dari"} {searchItems.length} {"hasil"}
                   </div>
                 )}
               </>

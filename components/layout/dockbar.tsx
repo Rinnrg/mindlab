@@ -6,7 +6,6 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useTransitionRouter } from "@/hooks/use-transition-router"
 import { Dock, DockIcon } from "@/components/ui/dock"
 import { buttonVariants } from "@/components/ui/button"
@@ -25,17 +24,16 @@ export function Dockbar({ className }: DockbarProps) {
   const pathname = usePathname()
   const router = useTransitionRouter()
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
   const [bouncingIndex, setBouncingIndex] = useState<number | null>(null)
 
   const menuItems = useMemo(() => [
-    { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
-    { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
-    { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
-    { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-    { title: t("Kelola"), href: "/users", icon: Users, roles: ["ADMIN"] },
-  ], [t])
+    { title: "Beranda", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
+    { title: "Jadwal", href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
+    { title: "Kursus", href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
+    { title: "PBL", href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: "Compiler", href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
+    { title: "Kelola", href: "/users", icon: Users, roles: ["ADMIN"] },
+  ], [])
 
   const filteredMenu = useMemo(
     () => menuItems.filter((item) => user && item.roles.includes(user.role)),

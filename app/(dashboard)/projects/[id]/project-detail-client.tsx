@@ -17,14 +17,11 @@ import {
   BarChart,
   BookOpen,
   Calendar,
-  MoreHorizontal,
   Pencil,
   Trash2
 } from "lucide-react"
 import Link from "next/link"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { AnimateIn } from "@/components/ui/animate-in"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { useRouter } from "next/navigation"
@@ -44,7 +41,6 @@ const SINTAKS_PHASES = [
 
 export default function ProjectDetailClient({ course, assessments }: ProjectDetailClientProps) {
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
   const router = useRouter()
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
@@ -79,10 +75,10 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
   const activeSintakInfo = SINTAKS_PHASES.find(s => s.id === activeSintak)
 
   const handleDeleteMateri = async (materiId: string, materiTitle: string) => {
-    const confirmed = await confirm(t("Hapus Materi"), {
-      description: t(`Apakah Anda yakin ingin menghapus materi "${materiTitle}"?`),
-      confirmText: t("Hapus"),
-      cancelText: t("Batal"),
+    const confirmed = await confirm("Hapus Materi", {
+      description: `Apakah Anda yakin ingin menghapus materi "${materiTitle}"?`,
+      confirmText: "Hapus",
+      cancelText: "Batal",
       type: "warning",
     })
 
@@ -96,10 +92,10 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
         if (!response.ok) throw new Error("Failed to delete materi")
       },
       {
-        loadingMessage: t("Menghapus materi..."),
-        successTitle: t("Berhasil!"),
-        successDescription: t(`Materi "${materiTitle}" berhasil dihapus`),
-        errorTitle: t("Gagal"),
+  loadingMessage: "Menghapus materi...",
+  successTitle: "Berhasil!",
+  successDescription: `Materi "${materiTitle}" berhasil dihapus`,
+  errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => router.refresh(),
       }
@@ -107,10 +103,10 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
   }
 
   const handleDeleteAsesmen = async (asesmenId: string, asesmenName: string) => {
-    const confirmed = await confirm(t("Hapus Asesmen"), {
-      description: t(`Apakah Anda yakin ingin menghapus asesmen "${asesmenName}"?`),
-      confirmText: t("Hapus"),
-      cancelText: t("Batal"),
+    const confirmed = await confirm("Hapus Asesmen", {
+      description: `Apakah Anda yakin ingin menghapus asesmen "${asesmenName}"?`,
+      confirmText: "Hapus",
+      cancelText: "Batal",
       type: "warning",
     })
 
@@ -124,10 +120,10 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
         if (!response.ok) throw new Error("Failed to delete asesmen")
       },
       {
-        loadingMessage: t("Menghapus asesmen..."),
-        successTitle: t("Berhasil!"),
-        successDescription: t(`Asesmen "${asesmenName}" berhasil dihapus`),
-        errorTitle: t("Gagal"),
+  loadingMessage: "Menghapus asesmen...",
+  successTitle: "Berhasil!",
+  successDescription: `Asesmen "${asesmenName}" berhasil dihapus`,
+  errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => router.refresh(),
       }
@@ -144,7 +140,7 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
           <div className="flex items-center gap-3">
             <Network className="h-8 w-8 sm:h-10 sm:w-10 text-primary" />
             <h1 className="text-xl font-bold tracking-tight sm:text-2xl md:text-3xl bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-              {t("Pembelajaran")} {course.judul}
+              Pembelajaran {course.judul}
             </h1>
           </div>
         </div>
@@ -215,28 +211,23 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                               </Link>
                             </Button>
                             {isTeacherOrAdmin && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/projects/${course.id}/${material.id}/edit`}>
-                                      <Pencil className="mr-2 h-4 w-4" />
-                                      Edit
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => handleDeleteMateri(material.id, material.judul)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Hapus
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <div className="flex items-center gap-2">
+                                <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3">
+                                  <Link href={`/projects/${course.id}/${material.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </Link>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteMateri(material.id, material.judul)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -256,34 +247,28 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                     </CardTitle>
                   </div>
                   {isTeacherOrAdmin && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="default" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
+                        <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=KUIS`}>
+                          <FileText className="h-4 w-4" />
+                          Kuis
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
+                        <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=INDIVIDU`}>
                           <Plus className="h-4 w-4" />
-                          Tambah Tugas
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 ios-glass-card border-border/30 rounded-xl">
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=KUIS`}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            Kuis
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=INDIVIDU`}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Pengumpulan (Individu)
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild className="cursor-pointer">
-                          <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=KELOMPOK`}>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Pengumpulan (Kelompok)
-                          </Link>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <span className="hidden sm:inline">Individu</span>
+                          <span className="sm:hidden">Indv</span>
+                        </Link>
+                      </Button>
+                      <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
+                        <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=KELOMPOK`}>
+                          <Plus className="h-4 w-4" />
+                          <span className="hidden sm:inline">Kelompok</span>
+                          <span className="sm:hidden">Kel</span>
+                        </Link>
+                      </Button>
+                    </div>
                   )}
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6">
@@ -320,28 +305,23 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                               </Link>
                             </Button>
                             {isTeacherOrAdmin && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/projects/${course.id}/${assessment.id}/edit`}>
-                                      <Pencil className="mr-2 h-4 w-4" />
-                                      Edit
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem
-                                    className="text-destructive"
-                                    onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Hapus
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <div className="flex items-center gap-2">
+                                <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3">
+                                  <Link href={`/projects/${course.id}/${assessment.id}/edit`}>
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Edit
+                                  </Link>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
+                                  onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </div>

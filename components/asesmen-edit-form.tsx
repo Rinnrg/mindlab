@@ -45,6 +45,25 @@ interface Soal {
   opsi: Opsi[]
 }
 
+function isDataUrl(value?: string) {
+  return typeof value === 'string' && value.startsWith('data:')
+}
+
+async function uploadPublicFile(file: File): Promise<string> {
+  const form = new FormData()
+  form.append('file', file)
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: form,
+  })
+
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(json?.error || 'Gagal upload file')
+  if (!json?.url) throw new Error('Upload berhasil tapi URL tidak ditemukan')
+  return String(json.url)
+}
+
 export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const router = useRouter()
   const { user, isLoading: isAuthLoading } = useAuth()
@@ -271,13 +290,13 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     setSoalList(newList)
   }
 
-  const handleSoalImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSoalImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Max 2MB for images
-    if (file.size > 2 * 1024 * 1024) {
-      showError("Error", "Ukuran gambar terlalu besar. Maksimal 2MB")
+    // Max 10MB (samakan dengan /api/upload)
+    if (file.size > 10 * 1024 * 1024) {
+      showError("Error", "Ukuran gambar terlalu besar. Maksimal 10MB")
       e.target.value = ''
       return
     }
@@ -288,13 +307,16 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       return
     }
 
-    const reader = new FileReader()
-    reader.onloadend = () => {
+    try {
+      const url = await uploadPublicFile(file)
       const newList = [...soalList]
-      newList[index] = { ...newList[index], gambar: reader.result as string }
+      newList[index] = { ...newList[index], gambar: url }
       setSoalList(newList)
+    } catch (err) {
+      showError("Error", err instanceof Error ? err.message : 'Gagal upload gambar')
+    } finally {
+      e.target.value = ''
     }
-    reader.readAsDataURL(file)
   }
 
   const handleRemoveSoalImage = (index: number) => {
@@ -579,6 +601,50 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                             placeholder="Tulis pertanyaan/soal di sini..."
                             rows={3}
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Gambar Soal (opsional)</Label>
+                          <Input
+                            value={soal.gambar || ""}
+                            onChange={(e) => handleSoalChange(index, 'gambar', e.target.value)}
+                            placeholder="Tempel link gambar (https://...)"
+                          />
+
+                          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                            <Input type="file" accept="image/*" onChange={(e) => void handleSoalImageUpload(index, e)} />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => handleRemoveSoalImage(index)}
+                              disabled={!soal.gambar}
+                            >
+                              Hapus gambar
+                            </Button>
+                          </div>
+
+                          {!!soal.gambar && isDataUrl(soal.gambar) && (
+                            <p className="text-xs text-destructive">
+                              Format data URL/base64 tidak didukung. Gunakan upload atau URL publik.
+                            </p>
+                          )}
+
+                          {!!soal.gambar && !isDataUrl(soal.gambar) && (
+                            <div className="rounded-xl border p-3 bg-background/30">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={soal.gambar}
+                                alt={`Gambar soal ${index + 1}`}
+                                className="max-h-60 w-auto rounded-lg"
+                                onError={(e) => {
+                                  ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Bisa tempel URL atau upload gambar. Disimpan sebagai URL (maks 255 karakter).
+                          </p>
                         </div>
 
                         <div className="space-y-2">

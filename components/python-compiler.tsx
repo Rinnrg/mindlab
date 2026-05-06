@@ -11,7 +11,6 @@ const Editor = dynamic(() => import("@monaco-editor/react"), {
     </div>
   ),
 })
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { cn } from "@/lib/utils"
 import {
   Play,
@@ -38,6 +37,22 @@ import {
   SquareTerminal,
 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+const UI_TEXT = {
+  addCode: "Tambah kode",
+  addText: "Tambah teks",
+  importFile: "Impor file",
+  exportFile: "Ekspor file",
+  printNotebook: "Cetak",
+  noCell: "Belum ada sel",
+  noCellDesc: "Tambahkan sel kode atau teks untuk mulai menulis dan menjalankan Python.",
+  addNewCell: "Tambah sel baru",
+  writeMarkdown: "Tulis catatan (Markdown)...",
+  output: "Output",
+  copyOutput: "Salin output",
+  showOutput: "Tampilkan output",
+  hideOutput: "Sembunyikan output",
+} as const
 type OutputSegment = {
   type: "text" | "image"
   content: string
@@ -73,8 +88,6 @@ for i in range(6):
 let cellIdCounter = 0
 
 export default function PythonCompiler({ onBack }: PythonCompilerProps) {
-  const { t } = useAutoTranslate()
-
   const [cells, setCells] = useState<CodeCell[]>(() => [
     {
       id: `cell-${cellIdCounter++}`,
@@ -432,7 +445,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
             <div className="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
               <Check className="h-3 w-3 text-white" strokeWidth={3} />
             </div>
-            <span className="text-sm font-medium">{t("outputCopied")}</span>
+            <span className="text-sm font-medium">Output disalin</span>
           </div>
         </div>
       )}
@@ -459,7 +472,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
               )}
             >
               <ChevronLeft className="h-4.5 w-4.5 md:h-4 md:w-4" />
-              <span className="hidden md:inline text-sm font-medium">{t("back")}</span>
+              <span className="hidden md:inline text-sm font-medium">Kembali</span>
             </button>
 
             {/* Logo & Title */}
@@ -472,8 +485,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                 <Braces className="h-4 w-4 text-white" strokeWidth={2.5} />
               </div>
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold truncate leading-tight">{t("compilerTitle")}</h2>
-                <p className="text-[11px] text-muted-foreground leading-tight hidden sm:block">{t("compilerVersion")}</p>
+                <h2 className="text-sm font-semibold truncate leading-tight">Compiler Python</h2>
+                <p className="text-[11px] text-muted-foreground leading-tight hidden sm:block">Versi Python 3</p>
               </div>
             </div>
           </div>
@@ -504,7 +517,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
               )}
             >
               <PlayCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">{t("runAll")}</span>
+              <span className="hidden sm:inline">Jalankan semua</span>
             </button>
 
             {/* More Menu */}
@@ -531,7 +544,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
                       <Code2 className="h-3.5 w-3.5 text-blue-500" />
                     </div>
-                    {t("addCode")}
+                    {UI_TEXT.addCode}
                   </button>
                   <button
                     onClick={() => addCell("markdown")}
@@ -540,7 +553,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
                       <FileText className="h-3.5 w-3.5 text-purple-500" />
                     </div>
-                    {t("addText")}
+                    {UI_TEXT.addText}
                   </button>
                   <div className="border-t border-border/50 my-1 md:hidden"></div>
                   <button
@@ -550,7 +563,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     <div className="h-7 w-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
                       <Upload className="h-3.5 w-3.5 text-orange-500" />
                     </div>
-                    {t("importFile")}
+                    {UI_TEXT.importFile}
                   </button>
                   <button
                     onClick={exportFile}
@@ -559,7 +572,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     <div className="h-7 w-7 rounded-lg bg-teal-500/10 flex items-center justify-center">
                       <FileDown className="h-3.5 w-3.5 text-teal-500" />
                     </div>
-                    {t("exportFile")}
+                    {UI_TEXT.exportFile}
                   </button>
                   <div className="border-t border-border/50 my-1"></div>
                   <button
@@ -569,7 +582,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     <div className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center">
                       <Printer className="h-3.5 w-3.5 text-muted-foreground" />
                     </div>
-                    {t("printNotebook")}
+                    {UI_TEXT.printNotebook}
                   </button>
                 </div>
               </PopoverContent>
@@ -589,7 +602,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
             )}
           >
             <Code2 className="h-3.5 w-3.5 text-blue-500" />
-            {t("addCode")}
+            {UI_TEXT.addCode}
           </button>
           <button
             onClick={() => addCell("markdown")}
@@ -601,7 +614,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
             )}
           >
             <FileText className="h-3.5 w-3.5 text-purple-500" />
-            {t("addText")}
+            {UI_TEXT.addText}
           </button>
         </div>
       </div>
@@ -620,8 +633,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                 <SquareTerminal className="h-10 w-10 text-primary/60" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold">{t("noCell")}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{t("noCellDesc")}</p>
+                <h3 className="text-lg font-semibold">{UI_TEXT.noCell}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{UI_TEXT.noCellDesc}</p>
               </div>
               <button
                 onClick={() => addCell("code")}
@@ -636,7 +649,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                 )}
               >
                 <Sparkles className="h-4 w-4" />
-                {t("addNewCell")}
+                {UI_TEXT.addNewCell}
               </button>
             </div>
           </div>
@@ -751,7 +764,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                           )}
                         >
                           <Play className="h-3 w-3" fill="currentColor" />
-                          <span className="hidden sm:inline">{t("runAll") === "Run All" ? "Run" : "Jalankan"}</span>
+                          <span className="hidden sm:inline">Jalankan</span>
                         </button>
                       )}
 
@@ -778,7 +791,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                       <textarea
                         value={cell.code}
                         onChange={(e) => updateCellCode(cell.id, e.target.value)}
-                        placeholder={t("writeMarkdown")}
+                        placeholder={UI_TEXT.writeMarkdown}
                         className={cn(
                           "w-full min-h-[80px] max-h-[300px] p-4 text-sm resize-none",
                           "bg-transparent border-none focus:outline-none focus:ring-0",
@@ -851,7 +864,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                             "text-xs font-medium",
                             cell.isError ? "text-red-500" : "text-muted-foreground"
                           )}>
-                            {cell.isError ? "Error" : t("output")}
+                            {cell.isError ? "Error" : UI_TEXT.output}
                           </span>
                         </div>
                         <div className="flex items-center gap-0.5">
@@ -865,7 +878,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                             )}
                           >
                             <Copy className="h-3 w-3" />
-                            <span className="hidden sm:inline">{t("copyOutput")}</span>
+                            <span className="hidden sm:inline">{UI_TEXT.copyOutput}</span>
                           </button>
                           <button
                             onClick={() => toggleOutputCollapse(cell.id)}
@@ -882,7 +895,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                               <ChevronUp className="h-3 w-3" />
                             )}
                             <span className="hidden sm:inline">
-                              {cell.isOutputCollapsed ? t("showOutput") : t("hideOutput")}
+                              {cell.isOutputCollapsed ? UI_TEXT.showOutput : UI_TEXT.hideOutput}
                             </span>
                           </button>
                         </div>
@@ -988,7 +1001,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                 <div className="h-7 w-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <Code2 className="h-3.5 w-3.5 text-blue-500" />
                 </div>
-                {t("addCode")}
+                {UI_TEXT.addCode}
               </button>
               <button
                 onClick={() => addCell("markdown")}
@@ -997,7 +1010,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                 <div className="h-7 w-7 rounded-lg bg-purple-500/10 flex items-center justify-center">
                   <FileText className="h-3.5 w-3.5 text-purple-500" />
                 </div>
-                {t("addText")}
+                {UI_TEXT.addText}
               </button>
             </PopoverContent>
           </Popover>

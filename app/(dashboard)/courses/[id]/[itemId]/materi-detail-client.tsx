@@ -328,23 +328,16 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
               </div>
 
               {isTeacherOrAdmin && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleEditMateri}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit Materi
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={handleDeleteMateri}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={handleEditMateri}>
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" className="gap-2" onClick={handleDeleteMateri}>
+                    <Trash2 className="h-4 w-4" />
+                    Hapus
+                  </Button>
+                </div>
               )}
             </div>
 

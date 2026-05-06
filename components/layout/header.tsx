@@ -4,14 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useNavigationMode } from "@/lib/navigation-mode-context"
 import { cn } from "@/lib/utils"
-import { Bell, Moon, Sun, Search, LogOut, User, Languages, Menu } from "lucide-react"
+import { Bell, Moon, Sun, Search, LogOut, User, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SearchDropdown } from "@/components/layout/search-dropdown"
 import { SearchDialog } from "@/components/layout/search-dialog"
 import { ActivityDropdown } from "@/components/layout/activity-dropdown"
+import { RoleGuideDialog } from "@/components/role-guide-dialog"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import {
   DropdownMenu,
@@ -32,7 +32,6 @@ interface HeaderProps {
 export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) {
   const { user, logout } = useAuth()
   const { theme, setTheme } = useTheme()
-  const { locale, setLocale, t } = useAutoTranslate()
   const { navigationMode } = useNavigationMode()
   const router = useRouter()
   const [showSearchDialog, setShowSearchDialog] = useState(false)
@@ -48,16 +47,16 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
   }
 
   const handleLogout = async () => {
-    const result = await confirm(t("Konfirmasi Logout"), {
-      message: t("Apakah Anda yakin ingin keluar?"),
-      confirmText: t("Ya, Keluar"),
-      cancelText: t("Batal"),
+    const result = await confirm("Konfirmasi Logout", {
+      message: "Apakah Anda yakin ingin keluar?",
+      confirmText: "Ya, Keluar",
+      cancelText: "Batal",
       type: "question"
     })
 
     if (result) {
       logout()
-      success(t("Berhasil!"), t("Anda telah logout."))
+  success("Berhasil!", "Anda telah logout.")
 
       setTimeout(() => {
         router.push("/login")
@@ -126,7 +125,7 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
             className="flex-1 justify-start gap-2 text-muted-foreground bg-background/40 hover:bg-background/60 border-0 rounded-xl"
           >
             <Search className="h-4 w-4" />
-            <span className="text-sm">{t("Cari")}...</span>
+            <span className="text-sm">Cari...</span>
           </Button>
         )}
       </div>
@@ -134,34 +133,7 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
       <div className="flex items-center gap-0.5 sm:gap-1">
         {/* BAGIAN DROPDOWN ROLE TELAH DIHAPUS DARI SINI */}
 
-        {/* Language Dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-primary transition-[color,transform] duration-[140ms] ease-[cubic-bezier(0.32,0.72,0,1)]"
-            >
-              <Languages className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-[140ms] ease-[cubic-bezier(0.32,0.72,0,1)] hover:scale-110" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40 animate-scale-in">
-            <DropdownMenuItem
-              onClick={() => setLocale("id")}
-              className={`text-sm cursor-pointer ${locale === "id" ? "bg-primary/10 text-primary" : ""}`}
-            >
-              <span className="mr-2">🇮🇩</span>
-              Indonesia
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setLocale("en")}
-              className={`text-sm cursor-pointer ${locale === "en" ? "bg-primary/10 text-primary" : ""}`}
-            >
-              <span className="mr-2">🇬🇧</span>
-              English
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+  <RoleGuideDialog />
 
         <Button
           variant="ghost"
@@ -207,7 +179,7 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
             <DropdownMenuItem asChild className="text-xs sm:text-sm cursor-pointer">
               <Link href="/profile">
                 <User className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                {t("Profil")}
+                Profil
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -216,7 +188,7 @@ export function Header({ onMenuClick, isMobile, isMobileSidebar }: HeaderProps) 
               className="text-xs sm:text-sm text-destructive focus:text-destructive cursor-pointer"
             >
               <LogOut className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              {t("Keluar")}
+              Keluar
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation"
 import { useRef, useState, useEffect, useCallback, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useTransitionRouter } from "@/hooks/use-transition-router"
 import {
   LayoutDashboard,
@@ -39,7 +38,6 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
   const pathname = usePathname()
   const router = useTransitionRouter()
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
 
   const barRef = useRef<HTMLDivElement>(null)
   const blobRef = useRef<HTMLDivElement>(null)
@@ -58,13 +56,13 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
   const prevActiveRef = useRef<number>(-1)
 
   const menuItems = useMemo(() => [
-    { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
-    { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["ADMIN", "GURU", "SISWA"] },
-    { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
-    { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-    { title: t("Kelola"), href: "/users", icon: Users, roles: ["ADMIN"] },
-  ], [t])
+    { title: "Beranda", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
+    { title: "Jadwal", href: "/schedule", icon: Calendar, roles: ["ADMIN", "GURU", "SISWA"] },
+    { title: "Kursus", href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
+    { title: "PBL", href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: "Compiler", href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
+    { title: "Kelola", href: "/users", icon: Users, roles: ["ADMIN"] },
+  ], [])
 
   const filteredMenu = menuItems.filter((item) => user && item.roles.includes(user.role)).slice(0, 5)
 

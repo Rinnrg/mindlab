@@ -8,13 +8,30 @@ export async function POST(
   try {
     const { id: asesmenId } = await params
     const body = await request.json()
-    const { pertanyaan, bobot, opsi } = body
+  const { pertanyaan, bobot, opsi, gambar } = body
 
     if (!pertanyaan || !bobot || !opsi || !Array.isArray(opsi)) {
       return NextResponse.json(
         { error: 'Data tidak lengkap' },
         { status: 400 }
       )
+    }
+
+    // Optional image URL validation (stored in Prisma Soal.gambar VARCHAR(255))
+    if (typeof gambar === 'string' && gambar.trim()) {
+      const g = gambar.trim()
+      if (g.startsWith('data:')) {
+        return NextResponse.json(
+          { error: 'Format base64/data URL tidak didukung. Gunakan upload agar menjadi URL.' },
+          { status: 400 }
+        )
+      }
+      if (g.length > 255) {
+        return NextResponse.json(
+          { error: 'URL gambar terlalu panjang (maks 255 karakter)' },
+          { status: 400 }
+        )
+      }
     }
 
     if (opsi.length < 2) {
@@ -56,6 +73,7 @@ export async function POST(
     const soal = await prisma.soal.create({
       data: {
         pertanyaan,
+  gambar: typeof gambar === 'string' && gambar.trim() ? gambar.trim() : null,
         bobot: parseInt(bobot),
         asesmenId,
         opsi: {

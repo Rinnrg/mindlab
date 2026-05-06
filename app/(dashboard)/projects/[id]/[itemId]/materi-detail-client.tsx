@@ -35,8 +35,6 @@ import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 
-import { useAutoTranslate } from "@/lib/auto-translate-context"
-
 interface MateriDetailClientProps {
   materi: {
     id: string
@@ -75,7 +73,6 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
   const { user } = useAuth()
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
-  const { t } = useAutoTranslate()
   const [selectedMateriId, setSelectedMateriId] = useState(materi.id)
   const [showPdfViewer, setShowPdfViewer] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -322,23 +319,16 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
               </div>
 
               {isTeacherOrAdmin && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleEditMateri} className="text-primary focus:text-primary focus:bg-primary/10">
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit Materi
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={handleDeleteMateri}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Hapus
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="outline" size="sm" className="gap-2" onClick={handleEditMateri}>
+                    <Pencil className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" className="gap-2" onClick={handleDeleteMateri}>
+                    <Trash2 className="h-4 w-4" />
+                    Hapus
+                  </Button>
+                </div>
               )}
             </div>
 

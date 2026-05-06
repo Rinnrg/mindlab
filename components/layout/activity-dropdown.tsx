@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Bell, Award, Upload, BookOpen, Clock, Loader2, Check, CheckCheck, FileText, FolderKanban, UserPlus, BookMarked } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
-import { id as localeId, enUS } from "date-fns/locale"
+import { id as localeId } from "date-fns/locale"
 
 interface Activity {
   id: string
@@ -31,8 +30,7 @@ interface Activity {
 
 export function ActivityDropdown() {
   const { user } = useAuth()
-  const { t, locale } = useAutoTranslate()
-  const dateLocale = locale === 'id' ? localeId : enUS
+  const dateLocale = localeId
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -150,27 +148,27 @@ export function ActivityDropdown() {
   const getActivityLabel = (action: string) => {
     switch (action) {
       case 'completed':
-        return t('Menyelesaikan')
+  return 'Menyelesaikan'
       case 'submitted':
-        return t('Mengumpulkan')
+  return 'Mengumpulkan'
       case 'graded':
-        return t('Dinilai')
+  return 'Dinilai'
       case 'enrolled':
-        return t('Bergabung ke')
+  return 'Bergabung ke'
       case 'created':
-        return t('Membuat')
+  return 'Membuat'
       case 'new_materi':
-        return t('Materi baru:')
+  return 'Materi baru:'
       case 'student_enrolled':
-        return t('Siswa bergabung:')
+  return 'Siswa bergabung:'
       case 'user_created':
-        return t('Pengguna baru:')
+  return 'Pengguna baru:'
       case 'course_created':
-        return t('Kursus baru:')
+  return 'Kursus baru:'
       case 'assessment_created':
-        return t('Asesmen baru:')
+  return 'Asesmen baru:'
       case 'materi_created':
-        return t('Materi baru:')
+  return 'Materi baru:'
       default:
         return action
     }
@@ -223,11 +221,11 @@ export function ActivityDropdown() {
         sideOffset={8}
       >
         <div className="flex items-center justify-between p-3 sm:p-4 pb-2">
-          <h3 className="font-semibold text-sm sm:text-base">{t("Aktivitas Terbaru")}</h3>
+          <h3 className="font-semibold text-sm sm:text-base">Aktivitas Terbaru</h3>
           <div className="flex items-center gap-1.5 sm:gap-2">
             {unreadCount > 0 && (
               <Badge variant="secondary" className="text-[10px] sm:text-xs px-1.5 py-0">
-                {unreadCount} {t("baru")}
+                {unreadCount} baru
               </Badge>
             )}
             {activities.length > 0 && unreadCount > 0 && (
@@ -242,7 +240,7 @@ export function ActivityDropdown() {
                 }}
               >
                 <CheckCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-                <span className="hidden xs:inline">{t("Tandai Semua")}</span>
+                <span className="hidden xs:inline">Tandai Semua</span>
                 <span className="xs:hidden">✓</span>
               </Button>
             )}
@@ -295,7 +293,7 @@ export function ActivityDropdown() {
                                   e.stopPropagation()
                                   markAsRead(activityId)
                                 }}
-                                title={t("Tandai telah dibaca")}
+                                title="Tandai telah dibaca"
                               >
                                 <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                               </Button>
@@ -331,9 +329,9 @@ export function ActivityDropdown() {
             <div className="rounded-full bg-muted p-3 mb-3">
               <Bell className="h-6 w-6 text-muted-foreground" />
             </div>
-            <p className="text-sm font-medium">{t("Belum ada aktivitas")}</p>
+            <p className="text-sm font-medium">Belum ada aktivitas</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {t("Aktivitas Anda akan muncul di sini")}
+              Aktivitas Anda akan muncul di sini
             </p>
           </div>
         )}

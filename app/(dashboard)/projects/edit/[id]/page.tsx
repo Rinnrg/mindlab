@@ -3,7 +3,6 @@
 import { useState, useEffect, use } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -37,7 +36,6 @@ interface PBL {
 export default function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: projectId } = use(params)
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
   const router = useRouter()
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
@@ -74,12 +72,12 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
             sintaks: proyekData.sintaks || []
           })
         } else {
-          showError(t("Gagal"), data.error || t("Gagal memuat data PBL"))
+          showError("Gagal", data.error || "Gagal memuat data PBL")
           router.push("/projects")
         }
       } catch (error) {
         console.error("Error loading proyek:", error)
-        showError(t("Error"), t("Terjadi kesalahan saat memuat data"))
+        showError("Error", "Terjadi kesalahan saat memuat data")
         router.push("/projects")
       } finally {
         setLoading(false)
@@ -87,7 +85,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
     }
 
     loadProyek()
-  }, [projectId, router, showError, t])
+  }, [projectId, router, showError])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -118,32 +116,32 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
     
     // Validation
     if (!formData.judul.trim()) {
-      showError(t("Validasi"), t("Judul PBL harus diisi"))
+  showError("Validasi", "Judul PBL harus diisi")
       return
     }
 
     if (!formData.deskripsi.trim()) {
-      showError(t("Validasi"), t("Deskripsi PBL harus diisi"))
+  showError("Validasi", "Deskripsi PBL harus diisi")
       return
     }
 
     if (!formData.tgl_mulai) {
-      showError(t("Validasi"), t("Tanggal mulai harus diisi"))
+  showError("Validasi", "Tanggal mulai harus diisi")
       return
     }
 
     if (!formData.tgl_selesai) {
-      showError(t("Validasi"), t("Tanggal selesai harus diisi"))
+  showError("Validasi", "Tanggal selesai harus diisi")
       return
     }
 
     if (formData.sintaks.length === 0) {
-      showError(t("Validasi"), t("Pilih minimal satu tahapan sintaks"))
+  showError("Validasi", "Pilih minimal satu tahapan sintaks")
       return
     }
 
     if (new Date(formData.tgl_mulai) >= new Date(formData.tgl_selesai)) {
-      showError(t("Validasi"), t("Tanggal selesai harus lebih besar dari tanggal mulai"))
+  showError("Validasi", "Tanggal selesai harus lebih besar dari tanggal mulai")
       return
     }
 
@@ -163,14 +161,14 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           const data = await response.json()
 
           if (!response.ok) {
-            throw new Error(data.error || t("Gagal mengupdate PBL"))
+            throw new Error(data.error || "Gagal mengupdate PBL")
           }
         },
         {
-          loadingMessage: t("Menyimpan perubahan..."),
-          successTitle: t("Berhasil"),
-          successDescription: t("PBL berhasil diupdate"),
-          errorTitle: t("Gagal"),
+          loadingMessage: "Menyimpan perubahan...",
+          successTitle: "Berhasil",
+          successDescription: "PBL berhasil diupdate",
+          errorTitle: "Gagal",
           onSuccess: () => {
             setTimeout(() => {
               router.push(`/projects/${projectId}`)
@@ -207,8 +205,8 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Edit className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t("PBL tidak ditemukan")}</h3>
-            <p className="text-muted-foreground mb-4">{t("PBL yang ingin Anda edit tidak ada.")}</p>
+            <h3 className="text-lg font-semibold mb-2">PBL tidak ditemukan</h3>
+            <p className="text-muted-foreground mb-4">PBL yang ingin Anda edit tidak ada.</p>
           </CardContent>
         </Card>
       </div>
@@ -222,8 +220,8 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Edit className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t("Tidak ada akses")}</h3>
-            <p className="text-muted-foreground mb-4">{t("Anda tidak memiliki izin untuk mengedit PBL ini.")}</p>
+            <h3 className="text-lg font-semibold mb-2">Tidak ada akses</h3>
+            <p className="text-muted-foreground mb-4">Anda tidak memiliki izin untuk mengedit PBL ini.</p>
           </CardContent>
         </Card>
       </div>
@@ -239,9 +237,9 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
       <AnimateIn>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">{t("Edit PBL")}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">Edit PBL</h1>
             <p className="text-sm text-muted-foreground mt-1 sm:text-base">
-              {t("Ubah detail PBL")} "{proyek.judul}"
+              Ubah detail PBL "{proyek.judul}"
             </p>
           </div>
         </div>
@@ -252,7 +250,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              {t("Detail PBL")}
+        Detail PBL
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -260,13 +258,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               {/* Judul Proyek */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul PBL")} <span className="text-red-500">*</span>
+          Judul PBL <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul PBL...")}
+          placeholder="Masukkan judul PBL..."
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -277,12 +275,12 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               {/* Deskripsi */}
               <div className="space-y-2">
                 <Label htmlFor="deskripsi" className="text-sm font-medium">
-                  {t("Deskripsi")} <span className="text-red-500">*</span>
+                  Deskripsi <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
+                  placeholder="Jelaskan tujuan dan detail PBL..."
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -295,7 +293,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="tgl_mulai" className="text-sm font-medium">
-                    {t("Tanggal Mulai")} <span className="text-red-500">*</span>
+                    Tanggal Mulai <span className="text-red-500">*</span>
                   </Label>
                   <DatePicker
                     id="tgl_mulai"
@@ -303,13 +301,13 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                     value={formData.tgl_mulai}
                     onChange={(val) => setFormData(prev => ({ ...prev, tgl_mulai: val }))}
                     required
-                    placeholder={t("Pilih tanggal mulai")}
+                    placeholder="Pilih tanggal mulai"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="tgl_selesai" className="text-sm font-medium">
-                    {t("Tanggal Selesai")} <span className="text-red-500">*</span>
+                    Tanggal Selesai <span className="text-red-500">*</span>
                   </Label>
                   <DatePicker
                     id="tgl_selesai"
@@ -318,7 +316,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                     onChange={(val) => setFormData(prev => ({ ...prev, tgl_selesai: val }))}
                     min={formData.tgl_mulai}
                     required
-                    placeholder={t("Pilih tanggal selesai")}
+                    placeholder="Pilih tanggal selesai"
                   />
                 </div>
               </div>
@@ -326,10 +324,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               {/* Tahapan Sintaks */}
               <div className="space-y-4">
                 <Label className="text-sm font-medium">
-                  {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
+                  Tahapan Sintaks <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
+                  Pilih tahapan-tahapan PBL yang akan dijalankan
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -348,10 +346,10 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
                           >
                             <span className="text-base">{sintaksInfo.icon}</span>
-                            {t(sintaksInfo.title)}
+                            {sintaksInfo.title}
                           </label>
                           <p className="text-xs text-muted-foreground">
-                            {t(sintaksInfo.description)}
+                            {sintaksInfo.description}
                           </p>
                         </div>
                       </div>
@@ -363,14 +361,14 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               {/* File Upload */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
-                  {t("Lampiran")} <span className="text-muted-foreground">({t("Opsional")})</span>
+                  Lampiran <span className="text-muted-foreground">(Opsional)</span>
                 </Label>
                 <FileUploadField
                   onFileUpload={handleFileUpload}
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung PBL")}
+                  placeholder="Upload file pendukung PBL"
                 />
               </div>
 
@@ -378,7 +376,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
               <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
                 <Link href={`/projects/${projectId}`}>
                   <Button type="button" variant="outline" className="w-full sm:w-auto">
-                    {t("Batal")}
+                    Batal
                   </Button>
                 </Link>
                 <Button 
@@ -386,7 +384,7 @@ export default function EditProjectPage({ params }: { params: Promise<{ id: stri
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Update PBL")}
+                  {isSubmitting ? "Menyimpan..." : "Update PBL"}
                 </Button>
               </div>
             </form>

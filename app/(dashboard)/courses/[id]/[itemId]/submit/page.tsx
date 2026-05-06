@@ -665,7 +665,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   <Label>Upload langsung (tersimpan ke database)</Label>
                   <Input
                     type="file"
-                    accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                    accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
                     onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
                     disabled={isDeadlinePassed}
                   />

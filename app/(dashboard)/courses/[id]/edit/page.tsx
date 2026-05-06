@@ -15,12 +15,8 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 
-const categoriesMap = {
-  id: ["Programming", "Database", "Design", "Networking", "Security", "DevOps"],
-  en: ["Programming", "Database", "Design", "Networking", "Security", "DevOps"],
-}
+const categories = ["Programming", "Database", "Design", "Networking", "Security", "DevOps"]
 
 interface CourseData {
   id: string
@@ -34,7 +30,6 @@ export default function EditCoursePage() {
   const router = useRouter()
   const params = useParams()
   const courseId = params.id as string
-  const { t, locale } = useAutoTranslate()
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   
@@ -71,7 +66,7 @@ export default function EditCoursePage() {
       el.setSelectionRange(cursorStart, cursorEnd)
     })
   }, [description])
-  const categories = categoriesMap[locale]
+  // categories sudah dikunci Indonesia-only
   
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
@@ -134,7 +129,7 @@ export default function EditCoursePage() {
         setOriginalThumbnail(course.gambar || null)
       } catch (err: any) {
         console.error("Error fetching course:", err)
-        showError(t("Error"), err.message || t("Gagal memuat data kursus"))
+  showError("Error", err.message || "Gagal memuat data kursus")
       } finally {
         setLoading(false)
       }
@@ -143,19 +138,19 @@ export default function EditCoursePage() {
     if (courseId) {
       fetchCourse()
     }
-  }, [courseId, t, showError])
+  }, [courseId, showError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validation
     if (!title.trim()) {
-      showError(t("Error"), t("Judul kursus tidak boleh kosong"))
+  showError("Error", "Judul kursus tidak boleh kosong")
       return
     }
     
     if (!category) {
-      showError(t("Error"), t("Kategori harus dipilih"))
+  showError("Error", "Kategori harus dipilih")
       return
     }
     
@@ -186,10 +181,10 @@ export default function EditCoursePage() {
           }
         },
         {
-          loadingMessage: t("Menyimpan kursus..."),
-          successTitle: t("Berhasil!"),
-          successDescription: t("Kursus berhasil diperbarui"),
-          errorTitle: t("Gagal"),
+          loadingMessage: "Menyimpan kursus...",
+          successTitle: "Berhasil!",
+          successDescription: "Kursus berhasil diperbarui",
+          errorTitle: "Gagal",
           onSuccess: () => {
             setTimeout(() => {
               router.push("/courses")
@@ -234,7 +229,7 @@ export default function EditCoursePage() {
       <Button variant="ghost" size="sm" asChild>
         <Link href={`/courses/${courseId}`}>
           <ArrowLeft className="mr-2 h-4 w-4" />
-          {t("Kembali ke Detail Kursus")}
+          Kembali ke Detail Kursus
         </Link>
       </Button>
 
@@ -242,12 +237,12 @@ export default function EditCoursePage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{t("Edit Kursus")}</CardTitle>
-              <CardDescription>{t("Perbarui informasi kursus Anda")}</CardDescription>
+              <CardTitle>Edit Kursus</CardTitle>
+              <CardDescription>Perbarui informasi kursus Anda</CardDescription>
             </div>
             {hasChanges && (
               <Badge variant="secondary" className="text-xs">
-                {t("Belum Disimpan")}
+                Belum Disimpan
               </Badge>
             )}
           </div>
@@ -256,12 +251,12 @@ export default function EditCoursePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Thumbnail Upload */}
             <div className="space-y-2">
-              <Label>{t("Gambar Kursus")}</Label>
+      <Label>Gambar Kursus</Label>
               {thumbnail ? (
                 <div className="relative aspect-video overflow-hidden rounded-lg border">
                   <img
                     src={thumbnail || "/placeholder.svg"}
-                    alt={t("Gambar kursus")}
+        alt="Gambar kursus"
                     className="h-full w-full object-cover"
                   />
                   <Button
@@ -280,8 +275,8 @@ export default function EditCoursePage() {
                   htmlFor="thumbnail-upload"
                 >
                   <ImageIcon className="h-10 w-10 text-muted-foreground" />
-                  <p className="mt-2 text-sm text-muted-foreground">{t("Klik untuk upload gambar")}</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG {t("maksimal")} 5MB</p>
+                  <p className="mt-2 text-sm text-muted-foreground">Klik untuk upload gambar</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG maksimal 5MB</p>
                   <input
                     id="thumbnail-upload"
                     type="file"
@@ -295,10 +290,10 @@ export default function EditCoursePage() {
 
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">{t("Judul Kursus")}</Label>
+              <Label htmlFor="title">Judul Kursus</Label>
               <Input
                 id="title"
-                placeholder={t("Contoh: Pengenalan Web Development")}
+                placeholder="Contoh: Pengenalan Web Development"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -307,7 +302,7 @@ export default function EditCoursePage() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label htmlFor="description">{t("Deskripsi Kursus")}</Label>
+              <Label htmlFor="description">Deskripsi Kursus</Label>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"
@@ -315,17 +310,17 @@ export default function EditCoursePage() {
                   size="sm"
                   className="h-8 px-2"
                   onClick={() => wrapSelection("**")}
-                  title={t("Tebalkan teks")}
+                  title="Tebalkan teks"
                 >
                   <span className="font-bold">B</span>
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  {t("Gunakan Enter untuk baris baru. Bold: pilih teks lalu klik B atau pakai **text**")}
+                  Gunakan Enter untuk baris baru. Bold: pilih teks lalu klik B atau pakai **text**
                 </p>
               </div>
               <Textarea
                 id="description"
-                placeholder={t("Jelaskan apa yang akan dipelajari siswa dalam kursus ini...")}
+                placeholder="Jelaskan apa yang akan dipelajari siswa dalam kursus ini..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 ref={descriptionRef}
@@ -335,10 +330,10 @@ export default function EditCoursePage() {
 
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="category">{t("Kategori")}</Label>
+        <Label htmlFor="category">Kategori</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder={t("Pilih kategori")} />
+          <SelectValue placeholder="Pilih kategori" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -359,7 +354,7 @@ export default function EditCoursePage() {
                 onClick={() => router.back()}
                 disabled={saving}
               >
-                {t("Batal")}
+                Batal
               </Button>
               <Button 
                 type="submit" 
@@ -369,12 +364,12 @@ export default function EditCoursePage() {
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    {t("Menyimpan...")}
+                    Menyimpan...
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    {hasChanges ? t("Simpan Perubahan") : t("Tidak Ada Perubahan")}
+                    {hasChanges ? "Simpan Perubahan" : "Tidak Ada Perubahan"}
                   </>
                 )}
               </Button>

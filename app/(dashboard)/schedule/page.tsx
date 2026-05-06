@@ -8,7 +8,6 @@ import { Calendar } from "@/components/ui/calendar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import Link from "next/link"
 import {
   ChevronLeft,
@@ -34,7 +33,7 @@ import {
   isAfter,
   addDays,
 } from "date-fns"
-import { id as localeId, enUS } from "date-fns/locale"
+import { id as localeId } from "date-fns/locale"
 import type { DayButtonProps } from "react-day-picker"
 import { AnimateIn } from "@/components/ui/animate-in"
 
@@ -54,8 +53,7 @@ interface ScheduleEvent {
 
 export default function SchedulePage() {
   const { user } = useAuth()
-  const { t, locale } = useAutoTranslate()
-  const dateLocale = locale === 'id' ? localeId : enUS
+  const dateLocale = localeId
 
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
@@ -102,24 +100,24 @@ export default function SchedulePage() {
         color: "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
         dotColor: "bg-blue-500",
         icon: GraduationCap,
-        label: t("assessment"),
+  label: "Asesmen",
       },
       project: {
         color:
           "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
         dotColor: "bg-emerald-500",
         icon: FolderKanban,
-        label: t("project"),
+  label: "Proyek",
       },
       lesson: {
         color:
           "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800",
         dotColor: "bg-purple-500",
         icon: BookOpen,
-        label: t("lesson"),
+    label: "Materi",
       },
     }),
-    [t],
+  [],
   )
 
   const filteredEvents = useMemo(() => {
@@ -174,7 +172,7 @@ export default function SchedulePage() {
 
   const formatDateLabel = (date: Date) => {
     if (isToday(date)) {
-      return t("today")
+  return "Hari ini"
     }
     return format(date, "EEEE, d MMMM", { locale: dateLocale })
   }
@@ -234,8 +232,8 @@ export default function SchedulePage() {
         <div className="ios-schedule-header">
           <div className="ios-header-content">
             <div className="ios-title-section">
-              <h1 className="ios-main-title">{t("schedule")}</h1>
-              <p className="ios-subtitle">{t("scheduleDesc")}</p>
+              <h1 className="ios-main-title">Jadwal</h1>
+              <p className="ios-subtitle">Lihat jadwal asesmen, proyek, dan materi Anda</p>
             </div>
             <div className="ios-header-controls">
               <div className="ios-view-toggle">
@@ -243,21 +241,21 @@ export default function SchedulePage() {
                   <TabsList className="ios-tab-list">
                     <TabsTrigger value="calendar" className="ios-tab-trigger">
                       <CalendarDays className="ios-tab-icon" />
-                      <span className="ios-tab-text">{t("calendarView")}</span>
+            <span className="ios-tab-text">Tampilan Kalender</span>
                     </TabsTrigger>
                     <TabsTrigger value="list" className="ios-tab-trigger">
                       <FileText className="ios-tab-icon" />
-                      <span className="ios-tab-text">{t("listView")}</span>
+            <span className="ios-tab-text">Tampilan Daftar</span>
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
               <Select value={filterType} onValueChange={(v) => setFilterType(v as "all" | EventType)}>
                 <SelectTrigger className="ios-filter-select">
-                  <SelectValue placeholder={t("filter")} />
+          <SelectValue placeholder="Filter" />
                 </SelectTrigger>
                 <SelectContent className="ios-select-content">
-                  <SelectItem value="all">{t("allEvents")}</SelectItem>
+          <SelectItem value="all">Semua</SelectItem>
                   {(Object.entries(eventTypeConfig) as [EventType, (typeof eventTypeConfig)[EventType]][]).map(
                     ([type, config]) => (
                       <SelectItem key={type} value={type}>
@@ -294,7 +292,7 @@ export default function SchedulePage() {
               </div>
               <div className="ios-alert-text">
                 <p className="ios-alert-title">
-                  {overdueEvents.length} {t("overdueItems")}
+                  {overdueEvents.length} aktivitas terlewat
                 </p>
                 <div className="ios-alert-badges">
                   {overdueEvents.map((event) => (
@@ -336,7 +334,7 @@ export default function SchedulePage() {
                     setSelectedDate(new Date())
                   }}
                 >
-                  {t("today")}
+                  Hari ini
                 </Button>
                 <Button
                   variant="ghost"
@@ -394,7 +392,7 @@ export default function SchedulePage() {
                   ) : (
                     <div className="ios-empty-state">
                       <CalendarDays className="ios-empty-icon" />
-                      <p className="ios-empty-text">{t("noEvents")}</p>
+                      <p className="ios-empty-text">Tidak ada event</p>
                     </div>
                   )}
                 </div>
@@ -410,7 +408,7 @@ export default function SchedulePage() {
               <div className="ios-card ios-selected-day-card">
                 <div className="ios-card-header-simple">
                   <h3 className="ios-card-subtitle">
-                    {selectedDate ? formatDateLabel(selectedDate) : t("selectDate")}
+                    {selectedDate ? formatDateLabel(selectedDate) : "Pilih tanggal"}
                   </h3>
                 </div>
                 <div className="ios-card-content-simple">
@@ -450,7 +448,7 @@ export default function SchedulePage() {
                       })}
                     </div>
                   ) : (
-                    <p className="ios-no-events-text">{t("noEvents")}</p>
+                    <p className="ios-no-events-text">Tidak ada event</p>
                   )}
                 </div>
               </div>
@@ -462,7 +460,7 @@ export default function SchedulePage() {
               <div className="ios-card-header-simple">
                 <div className="ios-card-subtitle-with-icon">
                   <Clock className="ios-subtitle-icon" />
-                  <h3 className="ios-card-subtitle">{t("next7Days")}</h3>
+                  <h3 className="ios-card-subtitle">7 hari ke depan</h3>
                 </div>
               </div>
               <div className="ios-card-content-simple">
@@ -506,7 +504,7 @@ export default function SchedulePage() {
                     })}
                   </div>
                 ) : (
-                  <p className="ios-no-events-text">{t("noUpcoming")}</p>
+                  <p className="ios-no-events-text">Tidak ada jadwal dalam 7 hari ke depan</p>
                 )}
               </div>
             </div>
@@ -515,7 +513,7 @@ export default function SchedulePage() {
           <AnimateIn stagger={5}>
             <div className="ios-card ios-summary-card">
               <div className="ios-card-header-simple">
-                <h3 className="ios-card-subtitle">{t("monthSummary")}</h3>
+                <h3 className="ios-card-subtitle">Ringkasan Bulan Ini</h3>
               </div>
               <div className="ios-card-content-simple">
                 <div className="ios-summary-grid">

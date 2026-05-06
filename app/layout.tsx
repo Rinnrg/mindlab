@@ -4,7 +4,6 @@ import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context"
-import { AutoTranslateProvider } from "@/lib/auto-translate-context"
 import { NavigationModeProvider } from "@/lib/navigation-mode-context"
 import { BreadcrumbProvider } from "@/hooks/use-breadcrumb"
 import { PageTransitionProvider } from "@/lib/page-transition-context"
@@ -54,15 +53,13 @@ export default function RootLayout({
       <body className={`${inter.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <NavigationModeProvider>
-            <AutoTranslateProvider>
-              <AuthProvider>
-                <BreadcrumbProvider>
-                  <PageTransitionProvider>
-                    {children}
-                  </PageTransitionProvider>
-                </BreadcrumbProvider>
-              </AuthProvider>
-            </AutoTranslateProvider>
+            <AuthProvider>
+              <BreadcrumbProvider>
+                <PageTransitionProvider>
+                  {children}
+                </PageTransitionProvider>
+              </BreadcrumbProvider>
+            </AuthProvider>
           </NavigationModeProvider>
         </ThemeProvider>
         <Analytics />

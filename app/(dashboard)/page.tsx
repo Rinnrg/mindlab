@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { redirect } from "next/navigation"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useState, useEffect, useRef, useCallback } from "react"
 import {
   BookOpen,
@@ -25,17 +24,15 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
-import { id as localeId, enUS } from "date-fns/locale"
+import { id as localeId } from "date-fns/locale"
 import { DashboardSkeleton } from "@/components/ui/loading-skeletons"
 import { fetchJSON } from "@/lib/fetch-cache"
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth()
-  // FIX: Rename 'locale' menjadi 'currentLocale' untuk menghindari konflik nama variabel
-  const { t, locale: currentLocale } = useAutoTranslate()
-  
-  // FIX: Tentukan objek locale date-fns berdasarkan currentLocale string
-  const dateFnsLocale = currentLocale === 'id' ? localeId : enUS
+
+  // Indonesia only
+  const dateFnsLocale = localeId
 
   // State untuk data dari API
   const [stats, setStats] = useState<any>(null)
@@ -116,9 +113,9 @@ export default function DashboardPage() {
 
   const greeting = () => {
     const hour = new Date().getHours()
-    if (hour < 12) return t("Selamat Pagi")
-    if (hour < 18) return t("Selamat Siang")
-    return t("Selamat Malam")
+  if (hour < 12) return "Selamat Pagi"
+  if (hour < 18) return "Selamat Siang"
+  return "Selamat Malam"
   }
 
   const formatTimeAgo = (dateString: string) => {
@@ -126,21 +123,21 @@ export default function DashboardPage() {
     const date = new Date(dateString)
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
     
-    if (diffInSeconds < 60) return currentLocale === 'id' ? 'Baru saja' : 'Just now'
+    if (diffInSeconds < 60) return "Baru saja"
     if (diffInSeconds < 3600) {
       const minutes = Math.floor(diffInSeconds / 60)
-      return currentLocale === 'id' ? `${minutes} menit lalu` : `${minutes}m ago`
+      return `${minutes} menit lalu`
     }
     if (diffInSeconds < 86400) {
       const hours = Math.floor(diffInSeconds / 3600)
-      return currentLocale === 'id' ? `${hours} jam lalu` : `${hours}h ago`
+      return `${hours} jam lalu`
     }
     const days = Math.floor(diffInSeconds / 86400)
-    if (days === 1) return t("Kemarin")
-    if (days < 7) return currentLocale === 'id' ? `${days} hari lalu` : `${days} days ago`
+    if (days === 1) return "Kemarin"
+    if (days < 7) return `${days} hari lalu`
     if (days < 30) {
       const weeks = Math.floor(days / 7)
-      return currentLocale === 'id' ? `${weeks} minggu lalu` : `${weeks} weeks ago`
+      return `${weeks} minggu lalu`
     }
     return format(date, "d MMM yyyy", { locale: dateFnsLocale })
   }
@@ -152,15 +149,15 @@ export default function DashboardPage() {
           <p className="text-xs font-medium text-muted-foreground sm:text-sm">{greeting()}</p>
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">{user.nama.split(" ")[0]}</h1>
           <p className="max-w-md text-xs text-muted-foreground sm:text-[15px]">
-            {user.role === "SISWA" && t("Pantau perkembangan belajar Anda")}
-            {user.role === "GURU" && t("Kelola kursus dan materi pembelajaran")}
-            {user.role === "ADMIN" && t("Ringkasan Sistem")}
+            {user.role === "SISWA" && "Pantau perkembangan belajar Anda"}
+            {user.role === "GURU" && "Kelola kursus dan materi pembelajaran"}
+            {user.role === "ADMIN" && "Ringkasan Sistem"}
           </p>
         </div>
         {user.role === "GURU" && (
           <Button asChild className="w-full sm:w-fit" size="sm">
             <Link href="/courses/add">
-              {t("Buat Kursus")}
+              Buat Kursus
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -171,25 +168,25 @@ export default function DashboardPage() {
         {user.role === "SISWA" && stats && (
           <>
             <StatsCard
-              title={t("Kursus Diikuti")}
+              title={"Kursus Diikuti"}
               value={stats.coursesCount || 0}
               icon={BookOpen}
               trend={{ value: 12, isPositive: true }}
             />
             <StatsCard
-              title={t("Selesai")}
+              title={"Selesai"}
               value={stats.asesmenCount || 0}
               icon={CheckCircle2}
               iconColor="bg-success/10"
             />
             <StatsCard
-              title={t("Tertunda")}
+              title={"Tertunda"}
               value={stats.proyekCount || 0}
               icon={AlertCircle}
               iconColor="bg-warning/10"
             />
             <StatsCard
-              title={t("Nilai Rata-rata")}
+              title={"Nilai Rata-rata"}
               value={`${Math.round(stats.avgNilai || 0)}%`}
               icon={TrendingUp}
               trend={{ value: 5, isPositive: true }}
@@ -199,19 +196,19 @@ export default function DashboardPage() {
         {user.role === "GURU" && stats && (
           <>
             <StatsCard
-              title={t("Kursus Aktif")}
+              title={"Kursus Aktif"}
               value={stats.coursesCount || 0}
               icon={BookOpen}
             />
-            <StatsCard title={t("Siswa")} value={stats.studentsCount || 0} icon={Users} />
+            <StatsCard title={"Siswa"} value={stats.studentsCount || 0} icon={Users} />
             <StatsCard
-              title={t("Menunggu Review")}
+              title={"Menunggu Review"}
               value={stats.proyekCount || 0}
               icon={FileText}
               iconColor="bg-warning/10"
             />
             <StatsCard
-              title={t("Asesmen")}
+              title={"Asesmen"}
               value={stats.asesmenCount || 0}
               icon={GraduationCap}
             />
@@ -220,23 +217,23 @@ export default function DashboardPage() {
         {user.role === "ADMIN" && stats && (
           <>
             <StatsCard
-              title={t("Total Pengguna")}
+              title={"Total Pengguna"}
               value={stats.usersCount || 0}
               icon={Users}
               trend={{ value: 8, isPositive: true }}
             />
             <StatsCard
-              title={t("Kursus")}
+              title={"Kursus"}
               value={stats.coursesCount || 0}
               icon={BookOpen}
             />
             <StatsCard
-              title={t("Siswa Aktif")}
+              title={"Siswa Aktif"}
               value={stats.usersByRole?.SISWA || 0}
               icon={GraduationCap}
             />
             <StatsCard
-              title={t("Instruktur")}
+              title={"Instruktur"}
               value={stats.usersByRole?.GURU || 0}
               icon={Users}
             />
@@ -249,15 +246,15 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold sm:text-lg">
-                {user.role === "SISWA" ? t("Lanjutkan Belajar") : t("Kursus Anda")}
+                {user.role === "SISWA" ? "Lanjutkan Belajar" : "Kursus Anda"}
               </h2>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                {user.role === "SISWA" ? t("Ambil di mana Anda tinggalkan") : t("Baru Diperbarui")}
+                {user.role === "SISWA" ? "Ambil di mana Anda tinggalkan" : "Baru Diperbarui"}
               </p>
             </div>
             <Button variant="ghost" size="sm" asChild className="text-muted-foreground">
               <Link href="/courses">
-                {t("Lihat Semua")}
+                Lihat Semua
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -316,14 +313,14 @@ export default function DashboardPage() {
         <div className="space-y-4 sm:space-y-6 lg:col-span-2">
           <Card className="border-border/50 p-3 sm:p-5">
             <div className="mb-3 flex items-center justify-between sm:mb-4">
-              <h3 className="text-sm font-semibold sm:text-base">{t("Mendatang")}</h3>
+              <h3 className="text-sm font-semibold sm:text-base">Mendatang</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 asChild
                 className="h-6 text-[10px] text-muted-foreground sm:h-7 sm:text-xs"
               >
-                <Link href="/schedule">{t("Lihat Kalender")}</Link>
+                <Link href="/schedule">Lihat Kalender</Link>
               </Button>
             </div>
             <div className="space-y-2 sm:space-y-3">
@@ -350,7 +347,7 @@ export default function DashboardPage() {
           {(user.role === "ADMIN" || user.role === "GURU" || user.role === "SISWA") && (
             <Card className="border-border/50 p-3 sm:p-5">
               <h3 className="mb-3 text-sm font-semibold sm:mb-4 sm:text-base">
-                {user.role === "SISWA" ? t("Siap Dikerjakan") : t("Asesmen Terbaru")}
+                {user.role === "SISWA" ? "Siap Dikerjakan" : "Asesmen Terbaru"}
               </h3>
               <div className="space-y-2">
                 {asesmenList.slice(0, 3).map((asesmen) => {
@@ -371,7 +368,7 @@ export default function DashboardPage() {
                     } else if (isOverdue) {
                       borderColor = 'border-red-500'
                       bgColor = 'bg-muted/30'
-                      statusLabel = t("Terlambat")
+                      statusLabel = "Terlambat"
                     }
                   }
                   
@@ -390,7 +387,7 @@ export default function DashboardPage() {
                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground sm:gap-2 sm:text-xs">
                           <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           {asesmen.durasi}m<span className="text-border">•</span>
-                          {asesmen.jml_soal} {t("Soal")}
+                          {asesmen.jml_soal} Soal
                           {statusLabel && user.role === "SISWA" && (
                             <>
                               <span className="text-border">•</span>
@@ -406,7 +403,7 @@ export default function DashboardPage() {
                         asChild
                       >
                         <Link href={`/courses/${asesmen.courseId}/${asesmen.id}`}>
-                          {user.role === "SISWA" ? (isCompleted ? t("Lihat") : t("Mulai")) : t("Edit")}
+                          {user.role === "SISWA" ? (isCompleted ? "Lihat" : "Mulai") : "Edit"}
                         </Link>
                       </Button>
                     </div>
@@ -421,7 +418,7 @@ export default function DashboardPage() {
       {/* Recent Activity - Full width */}
       {(user.role === "ADMIN" || user.role === "GURU" || user.role === "SISWA") && (
         <Card className="border-border/50 p-3 sm:p-5">
-          <h3 className="mb-3 text-sm font-semibold sm:mb-4 sm:text-base">{t("Aktivitas Terbaru")}</h3>
+          <h3 className="mb-3 text-sm font-semibold sm:mb-4 sm:text-base">Aktivitas Terbaru</h3>
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {activities.slice(0, 4).map((activity, index) => (
               <div key={index} className="flex items-start gap-2 rounded-lg bg-muted/30 p-2 sm:gap-3 sm:p-3">

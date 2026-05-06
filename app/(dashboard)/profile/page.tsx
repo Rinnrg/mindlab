@@ -15,9 +15,8 @@ import { Separator } from "@/components/ui/separator"
 import { Search, Award, Star, Calendar, ExternalLink, Code, BookOpen, Mail, User, Users, Clock, Trophy, Settings, Camera, Shield, Palette, Globe, Check, Pencil } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
-import { id as idLocale, enUS } from "date-fns/locale"
+import { id as idLocale } from "date-fns/locale"
 import { AnimateIn } from "@/components/ui/animate-in"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { useTheme } from "next-themes"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
@@ -27,7 +26,6 @@ import { useRouter } from "next/navigation"
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
-  const { t, locale, setLocale } = useAutoTranslate()
   const { theme, setTheme } = useTheme()
   const router = useRouter()
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
@@ -55,7 +53,7 @@ export default function ProfilePage() {
   // Showcase details are now shown in a dedicated page: `/profile/showcase/[id]`.
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const dateLocale = locale === 'id' ? idLocale : enUS
+  const dateLocale = idLocale
 
   // Fetch real courses data
   useEffect(() => {
@@ -106,9 +104,9 @@ export default function ProfilePage() {
     await execute(
       async () => { /* profile save logic */ },
       {
-        loadingMessage: t("Menyimpan profil..."),
-        successTitle: t("Berhasil!"),
-        successDescription: t("Profil berhasil disimpan"),
+  loadingMessage: "Menyimpan profil...",
+  successTitle: "Berhasil!",
+  successDescription: "Profil berhasil disimpan",
         skipSuccessDialog: false,
       }
     )
@@ -140,16 +138,16 @@ export default function ProfilePage() {
         formData.append('photo', blob, 'profile.jpg')
         const result = await uploadProfilePhoto(user.id, formData)
         if (!result.success) {
-          throw new Error(result.error || t("Terjadi kesalahan saat mengupload foto"))
+          throw new Error(result.error || "Terjadi kesalahan saat mengupload foto")
         }
         await refreshUser()
         router.refresh()
       },
       {
-        loadingMessage: t("Mengupload foto..."),
-        successTitle: t("Berhasil!"),
-        successDescription: t("Foto profil berhasil diperbarui"),
-        errorTitle: t("Gagal Upload"),
+        loadingMessage: "Mengupload foto...",
+        successTitle: "Berhasil!",
+        successDescription: "Foto profil berhasil diperbarui",
+        errorTitle: "Gagal Upload",
       }
     )
     setUploading(false)
@@ -160,28 +158,28 @@ export default function ProfilePage() {
   }
 
   const handleUpdatePassword = async () => {
-    const confirmed = await confirm(t("Perbarui Kata Sandi"), {
-      description: t("Anda yakin ingin memperbarui kata sandi?"),
-      confirmText: t("Perbarui"),
-      cancelText: t("Batal"),
+    const confirmed = await confirm("Perbarui Kata Sandi", {
+      description: "Anda yakin ingin memperbarui kata sandi?",
+      confirmText: "Perbarui",
+      cancelText: "Batal",
       type: "question",
     })
     if (confirmed) {
       await execute(
         async () => { /* password update logic */ },
         {
-          loadingMessage: t("Memperbarui kata sandi..."),
-          successTitle: t("Berhasil!"),
-          successDescription: t("Kata sandi berhasil diperbarui"),
+          loadingMessage: "Memperbarui kata sandi...",
+          successTitle: "Berhasil!",
+          successDescription: "Kata sandi berhasil diperbarui",
         }
       )
     }
   }
 
   const themeItems = [
-    { value: "light", label: t("Terang"), icon: "☀️" },
-    { value: "dark", label: t("Gelap"), icon: "🌙" },
-    { value: "system", label: t("Sistem"), icon: "💻" },
+  { value: "light", label: "Terang", icon: "☀️" },
+  { value: "dark", label: "Gelap", icon: "🌙" },
+  { value: "system", label: "Sistem", icon: "💻" },
   ]
 
   // Get user's showcases (real data)
@@ -222,16 +220,16 @@ export default function ProfilePage() {
     }
   }
 
-  const getRoleLabel = (role: string) => {
+  const getRoleLabel = (role?: string) => {
     switch (role) {
       case "ADMIN":
-        return t("Admin")
+        return "Admin"
       case "GURU":
-        return t("Guru")
+        return "Guru"
       case "SISWA":
-        return t("Siswa")
+        return "Siswa"
       default:
-        return role
+        return "-"
     }
   }
 
@@ -268,7 +266,7 @@ export default function ProfilePage() {
                   </span>
                   <span className="flex items-center justify-center gap-1 sm:justify-start">
                     <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    {t("Bergabung")} {user?.createdAt ? format(user.createdAt, "MMMM yyyy", { locale: dateLocale }) : "-"}
+                    Bergabung {user?.createdAt ? format(user.createdAt, "MMMM yyyy", { locale: dateLocale }) : "-"}
                   </span>
                 </div>
               </div>
@@ -283,7 +281,7 @@ export default function ProfilePage() {
                   }}
                 >
                   <Pencil className="h-4 w-4" />
-                  {t("Edit Profil")}
+                  Edit Profil
                 </Button>
                 <Button
                   variant="outline"
@@ -292,7 +290,7 @@ export default function ProfilePage() {
                   onClick={() => router.push("/settings")}
                 >
                   <Settings className="h-4 w-4" />
-                  {t("Pengaturan")}
+                  Pengaturan
                 </Button>
               </div>
             </div>
@@ -307,11 +305,11 @@ export default function ProfilePage() {
             <CardHeader className="pb-4 sm:pb-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-base sm:text-lg">{t("Pengaturan")}</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">{t("Kelola preferensi akun dan pengaturan Anda")}</CardDescription>
+                  <CardTitle className="text-base sm:text-lg">Pengaturan</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Kelola preferensi akun dan pengaturan Anda</CardDescription>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)} className="text-xs">
-                  {t("Tutup")}
+                  Tutup
                 </Button>
               </div>
             </CardHeader>
@@ -324,15 +322,15 @@ export default function ProfilePage() {
                   <TabsList className="ios-tab-list">
                     <TabsTrigger value="profile" className="ios-tab-trigger">
                       <User className="ios-tab-icon" />
-                      <span className="ios-tab-text">{t("Edit Profil")}</span>
+                      <span className="ios-tab-text">Edit Profil</span>
                     </TabsTrigger>
                     <TabsTrigger value="appearance" className="ios-tab-trigger">
                       <Palette className="ios-tab-icon" />
-                      <span className="ios-tab-text">{t("Tampilan")}</span>
+                      <span className="ios-tab-text">Tampilan</span>
                     </TabsTrigger>
                     <TabsTrigger value="security" className="ios-tab-trigger">
                       <Shield className="ios-tab-icon" />
-                      <span className="ios-tab-text">{t("Keamanan")}</span>
+                      <span className="ios-tab-text">Keamanan</span>
                     </TabsTrigger>
                   </TabsList>
                 </div>
@@ -377,7 +375,7 @@ export default function ProfilePage() {
                         onClick={handleAvatarClick}
                         disabled={uploading}
                       >
-                        {uploading ? t("Mengupload...") : t("Ubah Avatar")}
+                        {uploading ? "Mengupload..." : "Ubah Avatar"}
                       </Button>
                     </div>
                   </div>
@@ -386,26 +384,26 @@ export default function ProfilePage() {
 
                   <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="nama" className="text-xs sm:text-sm">{t("Nama Lengkap")}</Label>
+                      <Label htmlFor="nama" className="text-xs sm:text-sm">Nama Lengkap</Label>
                       <Input id="nama" value={nama} onChange={(e) => setNama(e.target.value)} className="h-9 sm:h-10" />
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="email" className="text-xs sm:text-sm">{t("Email")}</Label>
+                      <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
                       <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-9 sm:h-10" />
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="username" className="text-xs sm:text-sm">{t("Username")}</Label>
+                      <Label htmlFor="username" className="text-xs sm:text-sm">Username</Label>
                       <Input id="username" defaultValue={user?.username || ""} className="h-9 sm:h-10" />
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="role" className="text-xs sm:text-sm">{t("Peran")}</Label>
-                      <Input id="role" value={user?.role === "SISWA" ? t("Siswa") : user?.role === "GURU" ? t("Guru") : t("Admin")} disabled className="h-9 sm:h-10" />
+                      <Label htmlFor="role" className="text-xs sm:text-sm">Peran</Label>
+                      <Input id="role" value={getRoleLabel(user?.role)} disabled className="h-9 sm:h-10" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5 sm:space-y-2">
-                    <Label htmlFor="bio" className="text-xs sm:text-sm">{t("Bio")}</Label>
-                    <Textarea id="bio" placeholder={t("Ceritakan tentang diri Anda...")} value={bio} onChange={(e) => setBio(e.target.value)} rows={3} className="text-sm" />
+                    <Label htmlFor="bio" className="text-xs sm:text-sm">Bio</Label>
+                    <Textarea id="bio" placeholder="Ceritakan tentang diri Anda..." value={bio} onChange={(e) => setBio(e.target.value)} rows={3} className="text-sm" />
                   </div>
 
                   <div className="flex justify-end">
@@ -413,10 +411,10 @@ export default function ProfilePage() {
                       {saved ? (
                         <>
                           <Check className="mr-2 h-4 w-4" />
-                          {t("Tersimpan")}
+                          Tersimpan
                         </>
                       ) : (
-                        t("Simpan Perubahan")
+                        "Simpan Perubahan"
                       )}
                     </Button>
                   </div>
@@ -425,7 +423,7 @@ export default function ProfilePage() {
                 {/* Appearance Tab */}
                 <TabsContent value="appearance" key={`appearance-${settingsTabKey}`} className="animate-in fade-in-0 slide-in-from-bottom-4 duration-300 space-y-4 sm:space-y-6">
                   <div className="space-y-3 sm:space-y-4">
-                    <Label className="text-sm">{t("Tema")}</Label>
+                    <Label className="text-sm">Tema</Label>
                     <div className="grid grid-cols-3 gap-2 sm:gap-4">
                       {themeItems.map((item) => (
                         <Button
@@ -440,54 +438,27 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   </div>
-
-                  <Separator />
-
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
-                      <Label className="text-sm">{t("Bahasa")}</Label>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
-                      <Button
-                        variant={locale === 'id' ? "default" : "outline"}
-                        size="sm"
-                        className={`sm:size-auto ${locale !== "id" ? "bg-transparent" : ""}`}
-                        onClick={() => setLocale("id")}
-                      >
-                        🇮🇩 Indonesia
-                      </Button>
-                      <Button
-                        variant={locale === 'en' ? "default" : "outline"}
-                        size="sm"
-                        className={`sm:size-auto ${locale !== "en" ? "bg-transparent" : ""}`}
-                        onClick={() => setLocale("en")}
-                      >
-                        🇬🇧 English
-                      </Button>
-                    </div>
-                  </div>
                 </TabsContent>
 
                 {/* Security Tab */}
                 <TabsContent value="security" key={`security-${settingsTabKey}`} className="animate-in fade-in-0 slide-in-from-bottom-4 duration-300 space-y-4 sm:space-y-6">
                   <div className="space-y-3 sm:space-y-4">
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="current-password" className="text-xs sm:text-sm">{t("Kata Sandi Saat Ini")}</Label>
-                      <Input id="current-password" type="password" placeholder={t("Masukkan kata sandi saat ini")} className="h-9 sm:h-10" />
+                      <Label htmlFor="current-password" className="text-xs sm:text-sm">Kata Sandi Saat Ini</Label>
+                      <Input id="current-password" type="password" placeholder="Masukkan kata sandi saat ini" className="h-9 sm:h-10" />
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="new-password" className="text-xs sm:text-sm">{t("Kata Sandi Baru")}</Label>
-                      <Input id="new-password" type="password" placeholder={t("Masukkan kata sandi baru")} className="h-9 sm:h-10" />
+                      <Label htmlFor="new-password" className="text-xs sm:text-sm">Kata Sandi Baru</Label>
+                      <Input id="new-password" type="password" placeholder="Masukkan kata sandi baru" className="h-9 sm:h-10" />
                     </div>
                     <div className="space-y-1.5 sm:space-y-2">
-                      <Label htmlFor="confirm-password" className="text-xs sm:text-sm">{t("Konfirmasi Kata Sandi")}</Label>
-                      <Input id="confirm-password" type="password" placeholder={t("Konfirmasi kata sandi baru")} className="h-9 sm:h-10" />
+                      <Label htmlFor="confirm-password" className="text-xs sm:text-sm">Konfirmasi Kata Sandi</Label>
+                      <Input id="confirm-password" type="password" placeholder="Konfirmasi kata sandi baru" className="h-9 sm:h-10" />
                     </div>
                   </div>
                   <div className="flex justify-end">
                     <Button size="sm" className="w-full sm:w-auto" onClick={handleUpdatePassword}>
-                      {t("Perbarui Kata Sandi")}
+                      Perbarui Kata Sandi
                     </Button>
                   </div>
                 </TabsContent>
@@ -506,7 +477,7 @@ export default function ProfilePage() {
                   <BookOpen className="h-5 w-5 text-primary sm:h-6 sm:w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground sm:text-sm">{t("Total Kursus")}</p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">Total Kursus</p>
                   <p className="text-xl font-bold sm:text-2xl">{courses.length}</p>
                 </div>
               </CardContent>
@@ -519,7 +490,7 @@ export default function ProfilePage() {
                   <Award className="h-5 w-5 text-yellow-600 dark:text-yellow-400 sm:h-6 sm:w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground sm:text-sm">{t("Portofolio")}</p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">Portofolio</p>
                   <p className="text-xl font-bold sm:text-2xl">{totalShowcases}</p>
                 </div>
               </CardContent>
@@ -532,7 +503,7 @@ export default function ProfilePage() {
                   <Star className="h-5 w-5 text-green-600 dark:text-green-400 sm:h-6 sm:w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground sm:text-sm">{t("Rata-rata")}</p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">Rata-rata</p>
                   <p className="text-xl font-bold sm:text-2xl">{averageGrade}</p>
                 </div>
               </CardContent>
@@ -545,7 +516,7 @@ export default function ProfilePage() {
                   <Trophy className="h-5 w-5 text-orange-600 dark:text-orange-400 sm:h-6 sm:w-6" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground sm:text-sm">{t("Tertinggi")}</p>
+                  <p className="text-xs text-muted-foreground sm:text-sm">Tertinggi</p>
                   <p className="text-xl font-bold sm:text-2xl">{highestGrade}</p>
                 </div>
               </CardContent>
@@ -564,12 +535,12 @@ export default function ProfilePage() {
               {user?.role !== "GURU" && (
                 <TabsTrigger value="showcase" className="ios-tab-trigger">
                   <Award className="ios-tab-icon" />
-                  <span className="ios-tab-text">{t("Portofolio")}</span>
+                  <span className="ios-tab-text">Portofolio</span>
                 </TabsTrigger>
               )}
               <TabsTrigger value="courses" className="ios-tab-trigger">
                 <BookOpen className="ios-tab-icon" />
-                <span className="ios-tab-text">{t("Kursus Saya")}</span>
+                <span className="ios-tab-text">Kursus Saya</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -580,7 +551,7 @@ export default function ProfilePage() {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={t("Cari proyek...")}
+                  placeholder="Cari proyek..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="h-9 pl-9 sm:h-10"
@@ -588,12 +559,12 @@ export default function ProfilePage() {
               </div>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="h-9 w-full sm:h-10 sm:w-[150px]">
-                  <SelectValue placeholder={t("Urutkan")} />
+                  <SelectValue placeholder="Urutkan" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">{t("Terbaru")}</SelectItem>
-                  <SelectItem value="highest">{t("Nilai Tertinggi")}</SelectItem>
-                  <SelectItem value="alphabetical">{t("Abjad")}</SelectItem>
+                  <SelectItem value="newest">Terbaru</SelectItem>
+                  <SelectItem value="highest">Nilai Tertinggi</SelectItem>
+                  <SelectItem value="alphabetical">Abjad</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -645,7 +616,7 @@ export default function ProfilePage() {
                               router.push(`/profile/showcase/${item.id}`)
                             }}
                           >
-                            {t("Lihat Detail")}
+                            Lihat Detail
                             <ExternalLink className="ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         )}
@@ -657,9 +628,9 @@ export default function ProfilePage() {
             ) : (
               <Card className="flex flex-col items-center justify-center p-8 text-center sm:p-12">
                 <Award className="h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
-                <h3 className="mt-4 text-sm font-semibold sm:text-base">{t("Belum ada proyek")}</h3>
+                <h3 className="mt-4 text-sm font-semibold sm:text-base">Belum ada proyek</h3>
                 <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
-                  {searchQuery ? t("Coba kata kunci lain") : t("Proyek terbaik Anda akan ditampilkan di sini")}
+                  {searchQuery ? "Coba kata kunci lain" : "Proyek terbaik Anda akan ditampilkan di sini"}
                 </p>
               </Card>
             )}
@@ -698,12 +669,12 @@ export default function ProfilePage() {
                         </Badge>
                         <h3 className="text-sm font-semibold sm:text-base">{course.judul}</h3>
                         <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
-                          {t("Instruktur")}: {course.guru?.nama}
+                          Instruktur: {course.guru?.nama}
                         </p>
                       </CardContent>
                       <CardFooter className="border-t p-3 sm:p-4">
                         <Button asChild className="w-full bg-transparent" variant="outline" size="sm">
-                          <Link href={`/courses/${course.id}`}>{t("Lihat Kursus")}</Link>
+                          <Link href={`/courses/${course.id}`}>Lihat Kursus</Link>
                         </Button>
                       </CardFooter>
                     </Card>
@@ -713,9 +684,9 @@ export default function ProfilePage() {
             ) : (
               <Card className="flex flex-col items-center justify-center p-8 text-center sm:p-12">
                 <BookOpen className="h-10 w-10 text-muted-foreground sm:h-12 sm:w-12" />
-                <h3 className="mt-4 text-sm font-semibold sm:text-base">{t("Belum ada kursus")}</h3>
+                <h3 className="mt-4 text-sm font-semibold sm:text-base">Belum ada kursus</h3>
                 <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
-                  {user?.role === "GURU" ? t("Anda belum membuat kursus") : t("Anda belum terdaftar di kursus manapun")}
+                  {user?.role === "GURU" ? "Anda belum membuat kursus" : "Anda belum terdaftar di kursus manapun"}
                 </p>
               </Card>
             )}

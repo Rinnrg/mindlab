@@ -14,12 +14,10 @@ import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { AnimateIn } from "@/components/ui/animate-in"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 
 export default function EditUserPage() {
   const router = useRouter()
   const params = useParams()
-  const { t } = useAutoTranslate()
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
   const userId = params.id as string
@@ -56,7 +54,7 @@ export default function EditUserPage() {
         setFoto(userData.foto || "")
         setPreviewImage(userData.foto || "")
       } catch (err) {
-        showError(t("Terjadi kesalahan"), t("Gagal memuat data pengguna"))
+  showError("Terjadi kesalahan", "Gagal memuat data pengguna")
         console.error('Fetch error:', err)
       } finally {
         setLoading(false)
@@ -66,7 +64,7 @@ export default function EditUserPage() {
     if (userId) {
       fetchUser()
     }
-  }, [userId, t, showError])
+  }, [userId, showError])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -106,10 +104,10 @@ export default function EditUserPage() {
         }
       },
       {
-        loadingMessage: t("Menyimpan pengguna..."),
-        successTitle: t("Berhasil!"),
-        successDescription: t("Data pengguna berhasil diperbarui"),
-        errorTitle: t("Gagal"),
+  loadingMessage: "Menyimpan pengguna...",
+  successTitle: "Berhasil!",
+  successDescription: "Data pengguna berhasil diperbarui",
+  errorTitle: "Gagal",
         onSuccess: () => {
           setTimeout(() => {
             router.push("/users")
@@ -126,7 +124,7 @@ export default function EditUserPage() {
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">{t("Memuat")}</p>
+          <p className="text-sm text-muted-foreground">Memuat</p>
         </div>
       </div>
     )
@@ -140,8 +138,8 @@ export default function EditUserPage() {
       <AnimateIn stagger={1}>
         <Card>
           <CardHeader>
-            <CardTitle>{t("Edit Pengguna")}</CardTitle>
-            <CardDescription>{t("Perbarui informasi pengguna")}</CardDescription>
+            <CardTitle>Edit Pengguna</CardTitle>
+            <CardDescription>Perbarui informasi pengguna</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -158,9 +156,9 @@ export default function EditUserPage() {
                 </Avatar>
                 <div className="flex-1 text-center sm:text-left">
                   <Label htmlFor="photo" className="text-sm font-medium">
-                    {t("Foto Profil")}
+                    Foto Profil
                   </Label>
-                  <p className="text-xs text-muted-foreground mb-2">{t("Upload foto profil pengguna (maks 2MB)")}</p>
+                  <p className="text-xs text-muted-foreground mb-2">Upload foto profil pengguna (maks 2MB)</p>
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -170,7 +168,7 @@ export default function EditUserPage() {
                       className="bg-transparent"
                     >
                       <Upload className="mr-2 h-4 w-4" />
-                      {t("Upload Foto")}
+                      Upload Foto
                     </Button>
                     <input
                       id="photo"
@@ -186,12 +184,12 @@ export default function EditUserPage() {
 
 
               <div className="space-y-2">
-                <Label htmlFor="nama">{t("Nama Lengkap")}</Label>
+                <Label htmlFor="nama">Nama Lengkap</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="nama"
-                    placeholder={t("Masukkan nama lengkap")}
+                    placeholder="Masukkan nama lengkap"
                     value={nama}
                     onChange={(e) => setNama(e.target.value)}
                     className="pl-9"
@@ -202,13 +200,13 @@ export default function EditUserPage() {
 
 
               <div className="space-y-2">
-                <Label htmlFor="email">{t("Email")}</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder={t("Masukkan email")}
+                    placeholder="Masukkan email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-9"
@@ -218,12 +216,12 @@ export default function EditUserPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="username">{t("Username")}</Label>
+        <Label htmlFor="username">Username</Label>
                 <div className="relative">
                   <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="username"
-                    placeholder={t("Masukkan username")}
+          placeholder="Masukkan username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     className="pl-9"
@@ -233,41 +231,41 @@ export default function EditUserPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">{t("Password Baru")}</Label>
+        <Label htmlFor="password">Password Baru</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="password"
                     type="password"
-                    placeholder={t("Biarkan kosong untuk tetap menggunakan password lama")}
+          placeholder="Biarkan kosong untuk tetap menggunakan password lama"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-9"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">{t("Kosongkan jika tidak ingin mengubah password")}</p>
+        <p className="text-xs text-muted-foreground">Kosongkan jika tidak ingin mengubah password</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="role">{t("Role")}</Label>
+        <Label htmlFor="role">Role</Label>
                 <Select value={role} onValueChange={setRole} required>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("Pilih role")} />
+          <SelectValue placeholder="Pilih role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="SISWA">{t("Siswa")}</SelectItem>
-                    <SelectItem value="GURU">{t("Guru")}</SelectItem>
-                    <SelectItem value="ADMIN">{t("Admin")}</SelectItem>
+          <SelectItem value="SISWA">Siswa</SelectItem>
+          <SelectItem value="GURU">Guru</SelectItem>
+          <SelectItem value="ADMIN">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {role === "SISWA" && (
                 <div className="space-y-2">
-                  <Label htmlFor="kelas">{t("Kelas")}</Label>
+                  <Label htmlFor="kelas">Kelas</Label>
                   <Input
                     id="kelas"
-                    placeholder={t("Masukkan kelas (contoh: 10 IPA 1)")}
+                    placeholder="Masukkan kelas (contoh: 10 IPA 1)"
                     value={kelas}
                     onChange={(e) => setKelas(e.target.value)}
                   />
@@ -282,16 +280,16 @@ export default function EditUserPage() {
                   onClick={() => router.back()}
                   disabled={submitting}
                 >
-                  {t("Batal")}
+                  Batal
                 </Button>
                 <Button type="submit" className="flex-1" disabled={submitting}>
                   {submitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("Memperbarui")}
+                      Memperbarui
                     </>
                   ) : (
-                    t("Perbarui Pengguna")
+                    "Perbarui Pengguna"
                   )}
                 </Button>
               </div>

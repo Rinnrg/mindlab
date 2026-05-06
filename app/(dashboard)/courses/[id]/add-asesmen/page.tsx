@@ -29,6 +29,21 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
+async function uploadPublicFile(file: File): Promise<string> {
+  const form = new FormData()
+  form.append('file', file)
+
+  const res = await fetch('/api/upload', {
+    method: 'POST',
+    body: form,
+  })
+
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new Error(json?.error || 'Gagal upload file')
+  if (!json?.url) throw new Error('Upload berhasil tapi URL tidak ditemukan')
+  return String(json.url)
+}
+
 type TipeSoal = "PILIHAN_GANDA" | "ISIAN"
 
 type Opsi = {
@@ -42,6 +57,10 @@ type Soal = {
   bobot: number
   tipeJawaban: TipeSoal
   opsi: Opsi[]
+}
+
+function isDataUrl(value?: string) {
+  return typeof value === 'string' && value.startsWith('data:')
 }
 
 type Kelas = { id: string; nama: string }
@@ -666,6 +685,80 @@ export default function AddAsesmenPage() {
                             placeholder="Tulis pertanyaan/soal di sini..."
                             rows={3}
                           />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Gambar Soal (opsional)</Label>
+                          <Input
+                            value={soal.gambar || ""}
+                            onChange={(e) =>
+                              setSoalList((prev) => {
+                                const next = [...prev]
+                                next[index] = { ...next[index], gambar: e.target.value }
+                                return next
+                              })
+                            }
+                            placeholder="Tempel link gambar (https://...)"
+                          />
+
+                          <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                            <Input
+                              type="file"
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const f = e.target.files?.[0]
+                                if (!f) return
+                                try {
+                                  const url = await uploadPublicFile(f)
+                                  setSoalList((prev) => {
+                                    const next = [...prev]
+                                    next[index] = { ...next[index], gambar: url }
+                                    return next
+                                  })
+                                } catch (err) {
+                                  showError('Gagal upload', err instanceof Error ? err.message : 'Gagal upload gambar')
+                                } finally {
+                                  e.currentTarget.value = ''
+                                }
+                              }}
+                            />
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                setSoalList((prev) => {
+                                  const next = [...prev]
+                                  next[index] = { ...next[index], gambar: '' }
+                                  return next
+                                })
+                              }
+                              disabled={!soal.gambar}
+                            >
+                              Hapus gambar
+                            </Button>
+                          </div>
+                          {!!soal.gambar && isDataUrl(soal.gambar) && (
+                            <p className="text-xs text-destructive">
+                              Format data URL/base64 tidak didukung untuk gambar soal (terlalu panjang untuk database). Gunakan link gambar.
+                            </p>
+                          )}
+                          {!!soal.gambar && !isDataUrl(soal.gambar) && (
+                            <div className="rounded-xl border p-3 bg-background/30">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={soal.gambar}
+                                alt={`Gambar soal ${index + 1}`}
+                                className="max-h-60 w-auto rounded-lg"
+                                onError={(e) => {
+                                  ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                                }}
+                              />
+                            </div>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            Bisa tempel URL atau upload gambar. Gambar akan disimpan sebagai URL (maks 255 karakter).
+                          </p>
                         </div>
 
                         {soal.tipeJawaban === "PILIHAN_GANDA" ? (

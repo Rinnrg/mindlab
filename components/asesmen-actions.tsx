@@ -2,14 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { MoreVertical, Pencil, Trash2, Copy } from "lucide-react"
+import { Pencil, Trash2, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -109,31 +103,31 @@ export function AsesmenActions({ asesmenId, asesmenNama, userRole, courseId }: A
 
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleEdit}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleCopy} disabled={isCopying}>
-            <Copy className="mr-2 h-4 w-4" />
-            {isCopying ? "Menyalin..." : "Salin Asesmen"}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setShowDeleteDialog(true)}
-            className="text-destructive"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Hapus
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" className="gap-2" onClick={handleEdit}>
+          <Pencil className="h-4 w-4" />
+          Edit
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleCopy}
+          disabled={isCopying}
+        >
+          <Copy className="h-4 w-4" />
+          {isCopying ? "Menyalin..." : "Salin"}
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="gap-2"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <Trash2 className="h-4 w-4" />
+          Hapus
+        </Button>
+      </div>
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

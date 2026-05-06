@@ -11,8 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
+ 
 import { UserTableSkeleton } from "@/components/ui/loading-skeletons"
 import {
   Dialog,
@@ -25,7 +24,6 @@ import {
   Search,
   Plus,
   Upload,
-  MoreHorizontal,
   Pencil,
   Trash2,
   Users,
@@ -40,14 +38,13 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { format } from "date-fns"
-import { id as idLocale, enUS } from "date-fns/locale"
+import { id as idLocale } from "date-fns/locale"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { AnimateIn } from "@/components/ui/animate-in"
 import { cn } from "@/lib/utils"
 import { useAsyncAction } from "@/hooks/use-async-action"
 
 export default function UsersPage() {
-  const { t, locale: currentLocale, setLocale } = useAutoTranslate()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [filterRole, setFilterRole] = useState("all")
@@ -61,17 +58,17 @@ export default function UsersPage() {
   const { execute, ActionFeedback } = useAsyncAction()
   const { users, loading, error, refetch } = useUsers()
 
-  const dateLocale = currentLocale === 'id' ? idLocale : enUS
+  const dateLocale = idLocale
 
   const roleConfig: Record<UserRole, { label: string; color: string; icon: typeof Users }> = {
-    ADMIN: { label: t("Admin"), color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", icon: UserCog },
+    ADMIN: { label: "Admin", color: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400", icon: UserCog },
     GURU: {
-      label: t("Guru"),
+      label: "Guru",
       color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
       icon: Users,
     },
     SISWA: {
-      label: t("Siswa"),
+      label: "Siswa",
       color: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
       icon: GraduationCap,
     },
@@ -99,10 +96,10 @@ export default function UsersPage() {
   }
 
   const handleDeleteUser = async (userId: string, userName: string) => {
-    const confirmed = await confirm(t("Hapus Pengguna"), {
-      description: t("Apakah Anda yakin ingin menghapus pengguna") + ` "${userName}"? ` + t("Tindakan ini tidak dapat dibatalkan."),
-      confirmText: t("Hapus"),
-      cancelText: t("Batal"),
+    const confirmed = await confirm("Hapus Pengguna", {
+      description: `Apakah Anda yakin ingin menghapus pengguna "${userName}"? Tindakan ini tidak dapat dibatalkan.`,
+      confirmText: "Hapus",
+      cancelText: "Batal",
       type: "warning",
       onConfirm: async () => {
         await execute(
@@ -118,10 +115,10 @@ export default function UsersPage() {
             router.refresh()
           },
           {
-            loadingMessage: t("Menghapus pengguna..."),
-            successTitle: t("Berhasil"),
-            successDescription: `"${userName}" ${t("berhasil dihapus")}`,
-            errorTitle: t("Gagal"),
+            loadingMessage: "Menghapus pengguna...",
+            successTitle: "Berhasil",
+            successDescription: `"${userName}" berhasil dihapus`,
+            errorTitle: "Gagal",
             autoCloseMs: 1500,
           }
         )
@@ -217,30 +214,22 @@ export default function UsersPage() {
       <AnimateIn stagger={0}>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{t("Manajemen Pengguna")}</h1>
-            <p className="text-sm text-muted-foreground">{t("Kelola data pengguna sistem Mindlab")}</p>
+            <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Manajemen Pengguna</h1>
+            <p className="text-sm text-muted-foreground">Kelola data pengguna sistem Mindlab</p>
           </div>
           <div className="flex gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" className="flex-1 sm:flex-none">
-                  <Plus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">{t("Tambah")}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/users/add">
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    {t("Manual")}
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openImportDialog()}>
-                  <FileSpreadsheet className="mr-2 h-4 w-4" />
-                  {t("Import Excel")}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button size="sm" className="flex-1 sm:flex-none" asChild>
+              <Link href="/users/add">
+                <UserPlus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Tambah Manual</span>
+                <span className="sm:hidden">Tambah</span>
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" className="flex-1 sm:flex-none" onClick={() => openImportDialog()}>
+              <FileSpreadsheet className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Import Excel</span>
+              <span className="sm:hidden">Import</span>
+            </Button>
 
             {/* Import Excel Dialog */}
             <Dialog open={isImportDialogOpen} onOpenChange={(open) => { setIsImportDialogOpen(open); if (!open) { setImportStep("choose"); setImportResult(null) } }}>
@@ -259,8 +248,8 @@ export default function UsersPage() {
                 {importStep === "choose" && (
                   <>
                     <DialogHeader>
-                      <DialogTitle>{t("Import Excel")}</DialogTitle>
-                      <DialogDescription>{t("Tambahkan banyak pengguna sekaligus melalui file Excel")}</DialogDescription>
+                      <DialogTitle>Import Excel</DialogTitle>
+                      <DialogDescription>Tambahkan banyak pengguna sekaligus melalui file Excel</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-3 py-2">
@@ -271,8 +260,8 @@ export default function UsersPage() {
                       >
                         <Upload className="h-5 w-5 text-primary" />
                         <div className="text-left">
-                          <p className="font-medium">{t("Sudah Mempunyai Excel")}</p>
-                          <p className="text-xs text-muted-foreground font-normal">{t("Upload file Excel yang sudah berisi data pengguna")}</p>
+                          <p className="font-medium">Sudah Mempunyai Excel</p>
+                          <p className="text-xs text-muted-foreground font-normal">Upload file Excel yang sudah berisi data pengguna</p>
                         </div>
                       </Button>
                       <Button
@@ -282,8 +271,8 @@ export default function UsersPage() {
                       >
                         <FileDown className="h-5 w-5 text-primary" />
                         <div className="text-left">
-                          <p className="font-medium">{t("Download Template Excel")}</p>
-                          <p className="text-xs text-muted-foreground font-normal">{t("Unduh template Excel untuk mengisi data pengguna")}</p>
+                          <p className="font-medium">Download Template Excel</p>
+                          <p className="text-xs text-muted-foreground font-normal">Unduh template Excel untuk mengisi data pengguna</p>
                         </div>
                       </Button>
                     </div>
@@ -294,8 +283,8 @@ export default function UsersPage() {
                 {importStep === "download-template" && (
                   <>
                     <DialogHeader>
-                      <DialogTitle>{t("Download Template Excel")}</DialogTitle>
-                      <DialogDescription>{t("Pilih template sesuai role yang ingin diimpor")}</DialogDescription>
+                      <DialogTitle>Download Template Excel</DialogTitle>
+                      <DialogDescription>Pilih template sesuai role yang ingin diimpor</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3 py-2">
                       <Button
@@ -305,8 +294,8 @@ export default function UsersPage() {
                       >
                         <GraduationCap className="h-5 w-5 text-green-600" />
                         <div className="text-left">
-                          <p className="font-medium">{t("Template Siswa")}</p>
-                          <p className="text-xs text-muted-foreground font-normal">{t("Kolom: Nama, Kelas, Jenis Kelamin, Username, Email, Password")}</p>
+                          <p className="font-medium">Template Siswa</p>
+                          <p className="text-xs text-muted-foreground font-normal">Kolom: Nama, Kelas, Jenis Kelamin, Username, Email, Password</p>
                         </div>
                       </Button>
                       <Button
@@ -316,13 +305,13 @@ export default function UsersPage() {
                       >
                         <Users className="h-5 w-5 text-blue-600" />
                         <div className="text-left">
-                          <p className="font-medium">{t("Template Guru")}</p>
-                          <p className="text-xs text-muted-foreground font-normal">{t("Kolom: Nama, Jenis Kelamin, Username, Email, Password")}</p>
+              <p className="font-medium">Template Guru</p>
+              <p className="text-xs text-muted-foreground font-normal">Kolom: Nama, Jenis Kelamin, Username, Email, Password</p>
                         </div>
                       </Button>
                     </div>
                     <Button variant="ghost" size="sm" className="w-full" onClick={() => setImportStep("choose")}>
-                      {t("Kembali")}
+            Kembali
                     </Button>
                   </>
                 )}
@@ -331,12 +320,12 @@ export default function UsersPage() {
                 {importStep === "uploading" && (
                   <>
                     <DialogHeader>
-                      <DialogTitle>{t("Mengimpor Data")}</DialogTitle>
+                      <DialogTitle>Mengimpor Data</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col items-center justify-center py-10">
                       <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                      <p className="text-lg font-medium">{t("Mengimpor data...")}</p>
-                      <p className="text-sm text-muted-foreground">{t("Mohon tunggu sebentar")}</p>
+                      <p className="text-lg font-medium">Mengimpor data...</p>
+                      <p className="text-sm text-muted-foreground">Mohon tunggu sebentar</p>
                     </div>
                   </>
                 )}
@@ -345,7 +334,7 @@ export default function UsersPage() {
                 {importStep === "success" && importResult && (
                   <>
                     <DialogHeader>
-                      <DialogTitle>{t("Import Berhasil!")}</DialogTitle>
+                      <DialogTitle>Import Berhasil!</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col items-center justify-center pt-6 pb-2">
                       <div className="relative mb-4">
@@ -354,8 +343,8 @@ export default function UsersPage() {
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">
-                        {importResult.success} {importRole === "SISWA" ? t("siswa") : t("guru")} {t("berhasil ditambahkan")}
-                        {importResult.failed > 0 && `, ${importResult.failed} ${t("gagal")}`}
+                        {importResult.success} {importRole === "SISWA" ? "siswa" : "guru"} berhasil ditambahkan
+                        {importResult.failed > 0 && `, ${importResult.failed} gagal`}
                       </p>
                     </div>
 
@@ -365,9 +354,9 @@ export default function UsersPage() {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="text-xs">{t("Nama")}</TableHead>
-                              <TableHead className="text-xs">{t("Username")}</TableHead>
-                              {importRole === "SISWA" && <TableHead className="text-xs">{t("Kelas")}</TableHead>}
+                              <TableHead className="text-xs">Nama</TableHead>
+                              <TableHead className="text-xs">Username</TableHead>
+                              {importRole === "SISWA" && <TableHead className="text-xs">Kelas</TableHead>}
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -388,7 +377,7 @@ export default function UsersPage() {
                       <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                          <p className="text-sm font-medium">{importResult.failed} {t("data gagal diimpor")}</p>
+                          <p className="text-sm font-medium">{importResult.failed} data gagal diimpor</p>
                         </div>
                         <ul className="space-y-1 text-xs text-muted-foreground max-h-24 overflow-y-auto">
                           {importResult.errors.map((err, i) => (
@@ -399,7 +388,7 @@ export default function UsersPage() {
                     )}
 
                     <Button className="w-full mt-2" onClick={() => setIsImportDialogOpen(false)}>
-                      {t("Selesai")}
+                      Selesai
                     </Button>
                   </>
                 )}
@@ -408,7 +397,7 @@ export default function UsersPage() {
                 {importStep === "error" && importResult && (
                   <>
                     <DialogHeader>
-                      <DialogTitle>{t("Import Gagal")}</DialogTitle>
+                      <DialogTitle>Import Gagal</DialogTitle>
                     </DialogHeader>
                     <div className="flex flex-col items-center justify-center pt-6 pb-2">
                       <div className="h-16 w-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
@@ -429,10 +418,10 @@ export default function UsersPage() {
 
                     <div className="flex gap-2 mt-2">
                       <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setImportStep("choose")}>
-                        {t("Coba Lagi")}
+                        Coba Lagi
                       </Button>
                       <Button className="flex-1" onClick={() => setIsImportDialogOpen(false)}>
-                        {t("Tutup")}
+                        Tutup
                       </Button>
                     </div>
                   </>
@@ -452,7 +441,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{stats.total}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Total Pengguna")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">Total Pengguna</p>
               </div>
             </CardContent>
           </Card>
@@ -465,7 +454,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{stats.admin}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Admin")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">Admin</p>
               </div>
             </CardContent>
           </Card>
@@ -478,7 +467,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{stats.guru}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Guru")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">Guru</p>
               </div>
             </CardContent>
           </Card>
@@ -491,7 +480,7 @@ export default function UsersPage() {
               </div>
               <div>
                 <p className="text-lg font-bold sm:text-2xl">{stats.siswa}</p>
-                <p className="text-[10px] text-muted-foreground sm:text-sm">{t("Siswa")}</p>
+                <p className="text-[10px] text-muted-foreground sm:text-sm">Siswa</p>
               </div>
             </CardContent>
           </Card>
@@ -503,7 +492,7 @@ export default function UsersPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder={t("Cari pengguna...")}
+              placeholder="Cari pengguna..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="h-9 pl-9 sm:h-10"
@@ -511,13 +500,13 @@ export default function UsersPage() {
           </div>
           <Select value={filterRole} onValueChange={setFilterRole}>
             <SelectTrigger className="h-9 w-full sm:h-10 sm:w-[150px]">
-              <SelectValue placeholder={t("Filter berdasarkan role")} />
+              <SelectValue placeholder="Filter berdasarkan role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t("Semua Role")}</SelectItem>
-              <SelectItem value="ADMIN">{t("Admin")}</SelectItem>
-              <SelectItem value="GURU">{t("Guru")}</SelectItem>
-              <SelectItem value="SISWA">{t("Siswa")}</SelectItem>
+              <SelectItem value="all">Semua Role</SelectItem>
+              <SelectItem value="ADMIN">Admin</SelectItem>
+              <SelectItem value="GURU">Guru</SelectItem>
+              <SelectItem value="SISWA">Siswa</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -531,7 +520,7 @@ export default function UsersPage() {
               <CardHeader className="pb-2 sm:pb-6">
                 <CardTitle className="text-sm sm:text-lg flex items-center gap-2">
                   <UserCog className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  {t("Admin")} ({adminUsers.length})
+                  Admin ({adminUsers.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -554,28 +543,22 @@ export default function UsersPage() {
                           </Badge>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/users/edit/${user.id}`}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              {t("Edit")}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteUser(user.id, user.nama)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t("Hapus")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                          <Link href={`/users/edit/${user.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          aria-label="Hapus"
+                          onClick={() => handleDeleteUser(user.id, user.nama)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -585,10 +568,10 @@ export default function UsersPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">{t("Pengguna")}</TableHead>
-                        <TableHead>{t("Username")}</TableHead>
-                        <TableHead>{t("Role")}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t("Tanggal Bergabung")}</TableHead>
+                        <TableHead className="min-w-[200px]">Pengguna</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Tanggal Bergabung</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -619,28 +602,22 @@ export default function UsersPage() {
                             {format(user.createdAt, "MMM d, yyyy", { locale: dateLocale })}
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/users/edit/${user.id}`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    {t("Edit")}
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteUser(user.id, user.nama)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  {t("Hapus")}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                                <Link href={`/users/edit/${user.id}`}>
+                                  <Pencil className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                aria-label="Hapus"
+                                onClick={() => handleDeleteUser(user.id, user.nama)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -657,7 +634,7 @@ export default function UsersPage() {
               <CardHeader className="pb-2 sm:pb-6">
                 <CardTitle className="text-sm sm:text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  {t("Guru")} ({guruUsers.length})
+                  Guru ({guruUsers.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -680,28 +657,22 @@ export default function UsersPage() {
                           </Badge>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/users/edit/${user.id}`}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              {t("Edit")}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteUser(user.id, user.nama)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t("Hapus")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                          <Link href={`/users/edit/${user.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          aria-label="Hapus"
+                          onClick={() => handleDeleteUser(user.id, user.nama)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -711,10 +682,10 @@ export default function UsersPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">{t("Pengguna")}</TableHead>
-                        <TableHead>{t("Username")}</TableHead>
-                        <TableHead>{t("Role")}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t("Tanggal Bergabung")}</TableHead>
+                        <TableHead className="min-w-[200px]">Pengguna</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Tanggal Bergabung</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -745,28 +716,22 @@ export default function UsersPage() {
                             {format(user.createdAt, "MMM d, yyyy", { locale: dateLocale })}
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/users/edit/${user.id}`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    {t("Edit")}
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteUser(user.id, user.nama)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  {t("Hapus")}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                                <Link href={`/users/edit/${user.id}`}>
+                                  <Pencil className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                aria-label="Hapus"
+                                onClick={() => handleDeleteUser(user.id, user.nama)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -783,7 +748,7 @@ export default function UsersPage() {
               <CardHeader className="pb-2 sm:pb-6">
                 <CardTitle className="text-sm sm:text-lg flex items-center gap-2">
                   <GraduationCap className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  {t("Siswa")} ({siswaUsers.length})
+                  Siswa ({siswaUsers.length})
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
@@ -813,28 +778,22 @@ export default function UsersPage() {
                           </div>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/users/edit/${user.id}`}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              {t("Edit")}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDeleteUser(user.id, user.nama)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            {t("Hapus")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                          <Link href={`/users/edit/${user.id}`}>
+                            <Pencil className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          aria-label="Hapus"
+                          onClick={() => handleDeleteUser(user.id, user.nama)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -844,11 +803,11 @@ export default function UsersPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">{t("Pengguna")}</TableHead>
-                        <TableHead>{t("Username")}</TableHead>
-                        <TableHead>{t("Kelas")}</TableHead>
-                        <TableHead>{t("Role")}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t("Tanggal Bergabung")}</TableHead>
+                        <TableHead className="min-w-[200px]">Pengguna</TableHead>
+                        <TableHead>Username</TableHead>
+                        <TableHead>Kelas</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead className="hidden md:table-cell">Tanggal Bergabung</TableHead>
                         <TableHead className="w-[50px]"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -880,28 +839,22 @@ export default function UsersPage() {
                             {format(user.createdAt, "MMM d, yyyy", { locale: dateLocale })}
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/users/edit/${user.id}`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    {t("Edit")}
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={() => handleDeleteUser(user.id, user.nama)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  {t("Hapus")}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button asChild variant="ghost" size="icon" className="h-8 w-8" aria-label="Edit">
+                                <Link href={`/users/edit/${user.id}`}>
+                                  <Pencil className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                aria-label="Hapus"
+                                onClick={() => handleDeleteUser(user.id, user.nama)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}

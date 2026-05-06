@@ -5,7 +5,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import {
   LayoutDashboard,
   BookOpen,
@@ -30,7 +29,6 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: SidebarProps) {
   const pathname = usePathname()
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
   const [isHovered, setIsHovered] = useState(false)
 
   // Blob system refs
@@ -45,16 +43,16 @@ export function Sidebar({ isCollapsed, setIsCollapsed, isMobile, onNavClick }: S
   const WATER_EASING = "cubic-bezier(0.25, 0.46, 0.45, 0.94)"
 
   const menuItems = useMemo(() => [
-    { title: t("Beranda"), href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
-    { title: t("Jadwal"), href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
-    { title: t("Kursus"), href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: t("PBL"), href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
-    { title: t("Compiler"), href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
-  ], [t])
+    { title: "Beranda", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
+    { title: "Jadwal", href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
+    { title: "Kursus", href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
+    { title: "PBL", href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: "Compiler", href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
+  ], [])
 
   const adminMenuItems = useMemo(() => [
-    { title: t("Manajemen Role"), href: "/users", icon: Users, roles: ["ADMIN"] },
-  ], [t])
+    { title: "Manajemen Role", href: "/users", icon: Users, roles: ["ADMIN"] },
+  ], [])
 
   const filteredMenu = useMemo(() => menuItems.filter((item) => user && item.roles.includes(user.role)), [menuItems, user])
   const filteredAdminMenu = useMemo(() => adminMenuItems.filter((item) => user && item.roles.includes(user.role)), [adminMenuItems, user])

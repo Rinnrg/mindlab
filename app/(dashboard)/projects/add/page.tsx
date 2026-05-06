@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
-import { useAutoTranslate } from "@/lib/auto-translate-context"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,7 +27,6 @@ interface ClassInfo {
 
 export default function AddProjectPage() {
   const { user } = useAuth()
-  const { t } = useAutoTranslate()
   const router = useRouter()
   const { error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
@@ -129,38 +127,38 @@ export default function AddProjectPage() {
     e.preventDefault()
     
     if (!user?.id) {
-      showError(t("Error"), t("User tidak ditemukan"))
+  showError("Error", "User tidak ditemukan")
       return
     }
 
     // Validation
     if (!formData.judul.trim()) {
-      showError(t("Validasi"), t("Judul PBL harus diisi"))
+  showError("Validasi", "Judul PBL harus diisi")
       return
     }
 
     if (!formData.deskripsi.trim()) {
-      showError(t("Validasi"), t("Deskripsi PBL harus diisi"))
+  showError("Validasi", "Deskripsi PBL harus diisi")
       return
     }
 
     if (!formData.tgl_mulai) {
-      showError(t("Validasi"), t("Tanggal mulai harus diisi"))
+  showError("Validasi", "Tanggal mulai harus diisi")
       return
     }
 
     if (!formData.tgl_selesai) {
-      showError(t("Validasi"), t("Tanggal selesai harus diisi"))
+  showError("Validasi", "Tanggal selesai harus diisi")
       return
     }
 
     if (formData.sintaks.length === 0) {
-      showError(t("Validasi"), t("Pilih minimal satu tahapan sintaks"))
+  showError("Validasi", "Pilih minimal satu tahapan sintaks")
       return
     }
 
     if (new Date(formData.tgl_mulai) >= new Date(formData.tgl_selesai)) {
-      showError(t("Validasi"), t("Tanggal selesai harus lebih besar dari tanggal mulai"))
+  showError("Validasi", "Tanggal selesai harus lebih besar dari tanggal mulai")
       return
     }
 
@@ -184,14 +182,14 @@ export default function AddProjectPage() {
           const data = await response.json()
 
           if (!response.ok) {
-            throw new Error(data.error || t("Gagal membuat PBL"))
+            throw new Error(data.error || "Gagal membuat PBL")
           }
         },
         {
-          loadingMessage: t("Membuat PBL..."),
-          successTitle: t("Berhasil"),
-          successDescription: t("PBL berhasil dibuat"),
-          errorTitle: t("Gagal"),
+          loadingMessage: "Membuat PBL...",
+          successTitle: "Berhasil",
+          successDescription: "PBL berhasil dibuat",
+          errorTitle: "Gagal",
           onSuccess: () => {
             setTimeout(() => {
               router.push("/projects")
@@ -216,9 +214,9 @@ export default function AddProjectPage() {
       <AnimateIn>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">{t("Buat PBL Baru")}</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">Buat PBL Baru</h1>
             <p className="text-sm text-muted-foreground mt-1 sm:text-base">
-              {t("Buat project based learning untuk siswa")}
+              Buat project based learning untuk siswa
             </p>
           </div>
         </div>
@@ -229,7 +227,7 @@ export default function AddProjectPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Plus className="h-5 w-5" />
-              {t("Detail PBL")}
+              Detail PBL
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -237,13 +235,13 @@ export default function AddProjectPage() {
               {/* Judul Masalah */}
               <div className="space-y-2">
                 <Label htmlFor="judul" className="text-sm font-medium">
-                  {t("Judul PBL")} <span className="text-red-500">*</span>
+                  Judul PBL <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="judul"
                   name="judul"
                   type="text"
-                  placeholder={t("Masukkan judul PBL...")}
+                  placeholder="Masukkan judul PBL..."
                   value={formData.judul}
                   onChange={handleInputChange}
                   required
@@ -254,12 +252,12 @@ export default function AddProjectPage() {
               {/* Deskripsi */}
               <div className="space-y-2">
                 <Label htmlFor="deskripsi" className="text-sm font-medium">
-                  {t("Deskripsi")} <span className="text-red-500">*</span>
+                  Deskripsi <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="deskripsi"
                   name="deskripsi"
-                  placeholder={t("Jelaskan tujuan dan detail PBL...")}
+                  placeholder="Jelaskan tujuan dan detail PBL..."
                   value={formData.deskripsi}
                   onChange={handleInputChange}
                   required
@@ -272,7 +270,7 @@ export default function AddProjectPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="tgl_mulai" className="text-sm font-medium">
-                    {t("Tanggal Mulai")} <span className="text-red-500">*</span>
+                    Tanggal Mulai <span className="text-red-500">*</span>
                   </Label>
                   <DatePicker
                     id="tgl_mulai"
@@ -281,13 +279,13 @@ export default function AddProjectPage() {
                     onChange={(val) => setFormData(prev => ({ ...prev, tgl_mulai: val }))}
                     min={minDate}
                     required
-                    placeholder={t("Pilih tanggal mulai")}
+                    placeholder="Pilih tanggal mulai"
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="tgl_selesai" className="text-sm font-medium">
-                    {t("Tanggal Selesai")} <span className="text-red-500">*</span>
+                    Tanggal Selesai <span className="text-red-500">*</span>
                   </Label>
                   <DatePicker
                     id="tgl_selesai"
@@ -296,7 +294,7 @@ export default function AddProjectPage() {
                     onChange={(val) => setFormData(prev => ({ ...prev, tgl_selesai: val }))}
                     min={formData.tgl_mulai || minDate}
                     required
-                    placeholder={t("Pilih tanggal selesai")}
+                    placeholder="Pilih tanggal selesai"
                   />
                 </div>
               </div>
@@ -304,10 +302,10 @@ export default function AddProjectPage() {
               {/* Tahapan Sintaks */}
               <div className="space-y-4">
                 <Label className="text-sm font-medium">
-                  {t("Tahapan Sintaks")} <span className="text-red-500">*</span>
+                  Tahapan Sintaks <span className="text-red-500">*</span>
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {t("Pilih tahapan-tahapan PBL yang akan dijalankan")}
+                  Pilih tahapan-tahapan PBL yang akan dijalankan
                 </p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {SINTAKS_KEYS.map((sintaksKey) => {
@@ -326,10 +324,10 @@ export default function AddProjectPage() {
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer flex items-center gap-2"
                           >
                             <span className="text-base">{sintaksInfo.icon}</span>
-                            {t(sintaksInfo.title)}
+                            {sintaksInfo.title}
                           </label>
                           <p className="text-xs text-muted-foreground">
-                            {t(sintaksInfo.description)}
+                            {sintaksInfo.description}
                           </p>
                         </div>
                       </div>
@@ -341,14 +339,14 @@ export default function AddProjectPage() {
               {/* File Upload */}
               <div className="space-y-2">
                 <Label className="text-sm font-medium">
-                  {t("Lampiran")} <span className="text-muted-foreground">({t("Opsional")})</span>
+                  Lampiran <span className="text-muted-foreground">(Opsional)</span>
                 </Label>
                 <FileUploadField
                   onFileUpload={handleFileUpload}
                   currentFile={formData.lampiran}
                   accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
-                  placeholder={t("Upload file pendukung PBL")}
+                  placeholder="Upload file pendukung PBL"
                 />
               </div>
 
@@ -357,16 +355,16 @@ export default function AddProjectPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label className="text-sm font-medium">
-                      {t("Enrollment Siswa")} <span className="text-muted-foreground">({t("Opsional")})</span>
+                      Enrollment Siswa <span className="text-muted-foreground">(Opsional)</span>
                     </Label>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {t("Pilih kelas untuk mendaftarkan siswa ke dalam masalah ini")}
+                      Pilih kelas untuk mendaftarkan siswa ke dalam masalah ini
                     </p>
                   </div>
                   {totalSelectedStudents > 0 && (
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Users className="h-3 w-3" />
-                      {totalSelectedStudents} {t("siswa")}
+                      {totalSelectedStudents} siswa
                     </Badge>
                   )}
                 </div>
@@ -374,12 +372,12 @@ export default function AddProjectPage() {
                 {loadingClasses ? (
                   <div className="flex items-center justify-center py-8 border rounded-lg">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground mr-2" />
-                    <span className="text-sm text-muted-foreground">{t("Memuat data kelas...")}</span>
+                    <span className="text-sm text-muted-foreground">Memuat data kelas...</span>
                   </div>
                 ) : classData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-8 border rounded-lg text-center">
                     <GraduationCap className="h-10 w-10 text-muted-foreground/50 mb-2" />
-                    <p className="text-sm text-muted-foreground">{t("Tidak ada kelas yang tersedia")}</p>
+                    <p className="text-sm text-muted-foreground">Tidak ada kelas yang tersedia</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -394,7 +392,7 @@ export default function AddProjectPage() {
                         htmlFor="select-all-classes"
                         className="text-sm font-medium leading-none cursor-pointer"
                       >
-                        {t("Pilih Semua")} ({classData.length} {t("kelas")})
+                        Pilih Semua ({classData.length} kelas)
                       </label>
                     </div>
 
@@ -426,7 +424,7 @@ export default function AddProjectPage() {
                               <div className="flex items-center justify-between">
                                 <p className="text-sm font-semibold">{cls.kelas}</p>
                                 <Badge variant="secondary" className="text-xs">
-                                  {cls.total} {t("siswa")}
+                                  {cls.total} siswa
                                 </Badge>
                               </div>
                             </label>
@@ -442,7 +440,7 @@ export default function AddProjectPage() {
               <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:justify-end">
                 <Link href="/projects">
                   <Button type="button" variant="outline" className="w-full sm:w-auto">
-                    {t("Batal")}
+                    Batal
                   </Button>
                 </Link>
                 <Button 
@@ -450,7 +448,7 @@ export default function AddProjectPage() {
                   disabled={isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {isSubmitting ? t("Menyimpan...") : t("Buat PBL")}
+                  {isSubmitting ? "Menyimpan..." : "Buat PBL"}
                 </Button>
               </div>
             </form>
