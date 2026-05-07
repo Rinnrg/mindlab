@@ -17,7 +17,7 @@ export async function POST(
       )
     }
 
-    // Optional image URL validation (stored in Prisma Soal.gambar VARCHAR(255))
+    // Image URL validation (Prisma Soal.gambar is now @db.Text)
     if (typeof gambar === 'string' && gambar.trim()) {
       const g = gambar.trim()
       if (g.startsWith('data:')) {
@@ -26,28 +26,23 @@ export async function POST(
           { status: 400 }
         )
       }
-      if (g.length > 255) {
+    }
+
+    // Check if there's exactly one correct answer for multiple choice
+    if (body.tipeJawaban !== 'ISIAN') {
+      if (!opsi || !Array.isArray(opsi) || opsi.length < 2) {
         return NextResponse.json(
-          { error: 'URL gambar terlalu panjang (maks 255 karakter)' },
+          { error: 'Minimal 2 pilihan jawaban untuk pilihan ganda' },
           { status: 400 }
         )
       }
-    }
-
-    if (opsi.length < 2) {
-      return NextResponse.json(
-        { error: 'Minimal 2 pilihan jawaban' },
-        { status: 400 }
-      )
-    }
-
-    // Check if there's exactly one correct answer
-    const correctAnswers = opsi.filter((o: any) => o.isBenar)
-    if (correctAnswers.length !== 1) {
-      return NextResponse.json(
-        { error: 'Harus ada tepat 1 jawaban benar' },
-        { status: 400 }
-      )
+      const correctAnswers = opsi.filter((o: any) => o.isBenar)
+      if (correctAnswers.length !== 1) {
+        return NextResponse.json(
+          { error: 'Harus ada tepat 1 jawaban benar untuk pilihan ganda' },
+          { status: 400 }
+        )
+      }
     }
 
     // Check if asesmen exists and is a quiz
@@ -73,15 +68,16 @@ export async function POST(
     const soal = await prisma.soal.create({
       data: {
         pertanyaan,
-  gambar: typeof gambar === 'string' && gambar.trim() ? gambar.trim() : null,
+        gambar: typeof gambar === 'string' && gambar.trim() ? gambar.trim() : null,
         bobot: parseInt(bobot),
+        tipeJawaban: body.tipeJawaban || 'PILIHAN_GANDA',
         asesmenId,
-        opsi: {
+        opsi: (opsi && Array.isArray(opsi) && opsi.length > 0) ? {
           create: opsi.map((o: any) => ({
             teks: o.teks,
-            isBenar: o.isBenar,
+            isBenar: o.isBenar || false,
           })),
-        },
+        } : undefined,
       },
       include: {
         opsi: true,

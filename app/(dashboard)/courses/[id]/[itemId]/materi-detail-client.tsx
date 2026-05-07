@@ -494,7 +494,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                                 onClick={openPdfFullscreen}
                               >
                                 <Maximize2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">Layar Penuh</span>
+                                <span className="inline">Layar Penuh</span>
                               </Button>
                               <Button
                                 variant="outline"

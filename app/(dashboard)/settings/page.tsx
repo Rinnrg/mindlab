@@ -95,24 +95,26 @@ export default function SettingsPage() {
   return (
     <div className="w-full space-y-5 sm:space-y-6">
       <Tabs defaultValue="navigation" className="space-y-6">
-        <TabsList className="ios-tab-list">
-          <TabsTrigger value="general" className="ios-tab-trigger">
-            <Palette className="ios-tab-icon" />
-            <span className="ios-tab-text">Umum</span>
-          </TabsTrigger>
-          <TabsTrigger value="navigation" className="ios-tab-trigger">
-            <Navigation className="ios-tab-icon" />
-            <span className="ios-tab-text">Navigasi</span>
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="ios-tab-trigger">
-            <Bell className="ios-tab-icon" />
-            <span className="ios-tab-text">Notifikasi</span>
-          </TabsTrigger>
-          <TabsTrigger value="security" className="ios-tab-trigger">
-            <Shield className="ios-tab-icon" />
-            <span className="ios-tab-text">Keamanan</span>
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-2 scrollbar-hide">
+          <TabsList className="ios-tab-list min-w-max">
+            <TabsTrigger value="general" className="ios-tab-trigger">
+              <Palette className="ios-tab-icon" />
+              <span className="ios-tab-text">Umum</span>
+            </TabsTrigger>
+            <TabsTrigger value="navigation" className="ios-tab-trigger">
+              <Navigation className="ios-tab-icon" />
+              <span className="ios-tab-text">Navigasi</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="ios-tab-trigger">
+              <Bell className="ios-tab-icon" />
+              <span className="ios-tab-text">Notifikasi</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="ios-tab-trigger">
+              <Shield className="ios-tab-icon" />
+              <span className="ios-tab-text">Keamanan</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* ═══ General Tab ═══ */}
         <TabsContent value="general" className="space-y-6">

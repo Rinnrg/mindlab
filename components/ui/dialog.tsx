@@ -82,8 +82,8 @@ function DialogContent({
           'rounded-[13px] sm:rounded-[20px]',
           'overflow-hidden',
           /* Responsive sizing like mobile alert */
-          'w-full max-w-[270px] sm:max-w-[400px] md:max-w-lg',
-          'mx-4 sm:mx-auto',
+          'w-full max-w-[calc(100%-2rem)] sm:max-w-[400px] md:max-w-lg',
+          'mx-auto',
           /* Position and animations */
           'fixed top-[50%] left-[50%] z-50',
           'translate-x-[-50%] translate-y-[-50%]',

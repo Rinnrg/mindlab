@@ -424,8 +424,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         setActiveTab(value)
         setTabKey(prev => prev + 1)
       }} className="space-y-4 sm:space-y-6">
-        <div className="overflow-visible">
-          <TabsList className="ios-tab-list">
+        <div className="w-full overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="ios-tab-list min-w-max">
             <TabsTrigger value="materials" className="ios-tab-trigger">
               <BookOpen className="ios-tab-icon" />
               <span className="ios-tab-text">Materi</span>
@@ -711,7 +711,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                 </Badge>
                 <Button size="sm" className="gap-2 rounded-xl" onClick={() => setAddStudentOpen(true)}>
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Tambah Siswa</span>
+                  <span className="inline">Tambah Siswa</span>
                 </Button>
               </div>
             </div>

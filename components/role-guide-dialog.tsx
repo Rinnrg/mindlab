@@ -56,49 +56,45 @@ function getRoleGuide(role?: UserRole | null): RoleGuide {
         label: "Admin",
         icon: <ShieldCheck className="h-4 w-4" />,
         intro: "Panduan admin berbasis halaman: fokus ke manajemen role/pengguna dan monitoring.",
-        tabs: [
+          tabs: [
           {
-            value: "role",
-            label: "Manajemen Role",
+            value: "user-management",
+            label: "Kelola Pengguna",
             sections: [
               {
-                title: "Tujuan",
-                description: "Mengatur hak akses agar fitur yang muncul sesuai tanggung jawab pengguna.",
+                title: "Manajemen Role & Akses",
+                description: "Penting untuk memastikan pengguna memiliki hak akses yang tepat sesuai fungsinya.",
                 steps: [
-                  "Buka menu Users / Pengguna.",
-                  "Cari akun yang ingin diubah (gunakan pencarian di header bila perlu).",
-                  "Buka aksi Edit / Detail pengguna.",
-                  "Ubah Role (Admin/Guru/Siswa) sesuai kebutuhan.",
-                  "Simpan perubahan.",
-                  "Minta pengguna logout-login agar role baru diterapkan sepenuhnya.",
+                  "Buka menu 'Users' dari sidebar utama.",
+                  "Gunakan kolom pencarian untuk menemukan pengguna berdasarkan nama atau email.",
+                  "Klik tombol 'Edit' (ikon pensil) pada baris pengguna.",
+                  "Pilih Role dari dropdown: ADMIN (kontrol penuh), GURU (pengelola kursus), atau SISWA (peserta belajar).",
+                  "Klik 'Simpan Perubahan' dan pastikan notifikasi sukses muncul.",
+                  "Rekomendasi: Informasikan pengguna untuk logout dan login kembali jika perubahan role tidak langsung terasa.",
                 ],
               },
               {
-                title: "Checklist keamanan",
+                title: "Monitoring Aktivitas",
+                description: "Memantau log sistem untuk keamanan dan audit.",
                 steps: [
-                  "Pastikan hanya user tertentu yang punya role ADMIN.",
-                  "Gunakan role GURU untuk pengelolaan course, bukan ADMIN (kecuali perlu).",
-                  "Audit perubahan role secara berkala (cek Activity/Stats jika tersedia).",
+                  "Masuk ke dashboard utama Admin.",
+                  "Lihat widget 'Aktivitas Terbaru' untuk melihat log login, pembuatan kursus, atau penghapusan data.",
+                  "Periksa statistik 'Total Pengguna' dan distribusinya per role untuk laporan berkala.",
                 ],
               },
             ],
           },
           {
-            value: "monitor",
-            label: "Monitoring",
+            value: "system-stats",
+            label: "Statistik Sistem",
             sections: [
               {
-                title: "Pantau aktivitas",
+                title: "Analisis Dashboard",
+                description: "Memahami performa platform melalui angka.",
                 steps: [
-                  "Buka halaman Activity untuk melihat aktivitas terbaru.",
-                  "Gunakan filter/pencarian untuk menelusuri tindakan pengguna tertentu.",
-                ],
-              },
-              {
-                title: "Pantau statistik",
-                steps: [
-                  "Buka Stats untuk melihat ringkasan penggunaan.",
-                  "Gunakan insight untuk perbaikan struktur kelas/course.",
+                  "Pantau 'Kursus Aktif' untuk melihat pertumbuhan konten.",
+                  "Cek 'Siswa Aktif' untuk melihat tingkat keterlibatan pengguna.",
+                  "Gunakan data ini untuk memberikan dukungan kepada Guru yang memiliki banyak kursus atau siswa.",
                 ],
               },
             ],
@@ -110,105 +106,84 @@ function getRoleGuide(role?: UserRole | null): RoleGuide {
         label: "Guru",
         icon: <BookOpen className="h-4 w-4" />,
         intro: "Panduan guru per halaman: tambah course, materi, kuis, pengumpulan, dan input nilai.",
-        tabs: [
+          tabs: [
           {
-            value: "course",
-            label: "Tambah Kursus",
+            value: "course-pbl",
+            label: "Kursus & PBL",
             sections: [
               {
-                title: "Membuat kursus baru",
+                title: "Membuat Kursus Baru",
+                description: "Langkah pertama sebelum menambahkan materi.",
                 steps: [
-                  "Buka halaman Courses.",
-                  "Klik tombol 'Kursus Baru'.",
-                  "Isi judul, kategori, deskripsi, dan pengaturan lain.",
-                  "Simpan untuk membuat course.",
-                  "Masuk ke course detail untuk menambah materi/asesmen.",
+                  "Buka menu 'Courses' lalu klik 'Buat Kursus' (ikon Plus).",
+                  "Upload cover kursus yang menarik, isi judul, kategori, dan deskripsi lengkap.",
+                  "Pilih 'Level' kursus (Mudah/Menengah/Sulit) untuk panduan siswa.",
+                  "Setelah disimpan, Anda akan diarahkan ke halaman Detail Kursus.",
                 ],
               },
               {
-                title: "Mengatur siswa",
+                title: "Integrasi Sintaks PBL",
+                description: "Aplikasi ini mendukung Project Based Learning (PBL) dengan 6 fase standar.",
                 steps: [
-                  "Buka course detail.",
-                  "Masuk tab/halaman Students.",
-                  "Tambahkan siswa (manual/import jika tersedia).",
+                  "Setiap materi dan tugas dapat dihubungkan ke salah satu Sintaks PBL (1 s/d 6).",
+                  "Fase 1: Pertanyaan Mendasar, Fase 2: Desain Proyek, dst.",
+                  "Gunakan tab 'PBL' di dashboard untuk memantau kemajuan proyek siswa secara terpusat.",
                 ],
               },
             ],
           },
           {
-            value: "materi",
-            label: "Tambah Materi",
+            value: "materi-upload",
+            label: "Materi & Media",
             sections: [
               {
-                title: "Menambahkan materi",
+                title: "Upload Materi",
+                description: "Mendukung berbagai format file dan media.",
                 steps: [
-                  "Buka course yang dituju.",
-                  "Klik 'Tambah Materi'.",
-                  "Isi judul materi dan konten/deskripsi.",
-                  "Upload lampiran bila diperlukan.",
-                  "Simpan, lalu cek materi tampil di daftar.",
-                ],
-              },
-              {
-                title: "Tips pengelolaan",
-                steps: [
-                  "Gunakan penamaan konsisten (mis. Minggu 1, Minggu 2).",
-                  "Sertakan tujuan belajar + sumber referensi singkat.",
+                  "Di dalam Kursus, klik 'Tambah Materi'.",
+                  "Isi judul dan deskripsi yang menjelaskan apa yang akan dipelajari.",
+                  "Anda bisa mengunggah file (PDF/Video) atau menyematkan Link (YouTube/Web).",
+                  "Gunakan fitur 'Preview' untuk melihat tampilan materi di sisi siswa.",
                 ],
               },
             ],
           },
           {
-            value: "kuis",
-            label: "Tambah Kuis",
+            value: "asesmen-quiz",
+            label: "Kuis & Impor Excel",
             sections: [
               {
-                title: "Membuat kuis/asesmen",
+                title: "Membuat Kuis",
                 steps: [
-                  "Buka course yang dituju.",
-                  "Klik 'Tambah Asesmen' / 'Kuis'.",
-                  "Isi judul, waktu, durasi (jika ada), dan aturan.",
-                  "Tambahkan soal (pilihan ganda/essay sesuai dukungan).",
-                  "Simpan dan lakukan uji coba singkat (preview) jika tersedia.",
+                  "Pilih 'Tambah Asesmen' di dalam kursus.",
+                  "Atur durasi (menit) dan jumlah soal yang akan ditampilkan.",
+                  "Anda bisa menambah soal satu per satu (Pilihan Ganda).",
+                ],
+              },
+              {
+                title: "Fitur Impor Excel",
+                description: "Cara cepat membuat banyak soal sekaligus.",
+                steps: [
+                  "Gunakan tombol 'Import Excel' di halaman kelola soal kuis.",
+                  "Download template Excel yang disediakan.",
+                  "Isi soal, pilihan A-E, dan kunci jawaban sesuai format.",
+                  "Upload kembali file Excel dan sistem akan memproses otomatis.",
                 ],
               },
             ],
           },
           {
-            value: "pengumpulan",
-            label: "Tugas/Pengumpulan",
+            value: "grading",
+            label: "Penilaian & Tugas",
             sections: [
               {
-                title: "Membuat tugas dengan pengumpulan file",
+                title: "Koreksi Tugas",
                 steps: [
-                  "Buka course yang dituju.",
-                  "Buat item pengumpulan/tugas.",
-                  "Tentukan instruksi, format file, dan deadline.",
-                  "Simpan lalu informasikan ke siswa (via schedule/announcement jika ada).",
-                ],
-              },
-              {
-                title: "Memantau pengumpulan",
-                steps: [
-                  "Masuk ke halaman pengumpulan pada item tugas.",
-                  "Lihat daftar submission siswa.",
-                  "Unduh/preview file untuk pemeriksaan.",
-                ],
-              },
-            ],
-          },
-          {
-            value: "nilai",
-            label: "Input Nilai",
-            sections: [
-              {
-                title: "Memberi nilai & feedback",
-                steps: [
-                  "Buka item kuis/tugas yang ingin dinilai.",
-                  "Pilih submission siswa.",
-                  "Isi nilai.",
-                  "Tambahkan catatan/feedback.",
-                  "Simpan lalu cek rekap nilai (jika ada).",
+                  "Buka menu 'Pengumpulan' pada setiap item tugas/proyek.",
+                  "Lihat daftar siswa yang sudah mengumpulkan.",
+                  "Klik 'Detail' untuk melihat file/tautan yang dikirim siswa.",
+                  "Berikan 'Nilai' (0-100) dan 'Feedback' (catatan saran/koreksi).",
+                  "Feedback sangat penting agar siswa tahu bagian mana yang perlu diperbaiki.",
                 ],
               },
             ],
@@ -220,86 +195,61 @@ function getRoleGuide(role?: UserRole | null): RoleGuide {
         label: "Siswa",
         icon: <GraduationCap className="h-4 w-4" />,
         intro: "Panduan siswa per halaman: akses kursus/materi/kuis dan cara pengumpulan tugas.",
-        tabs: [
+          tabs: [
           {
-            value: "akses-kursus",
-            label: "Akses Kursus",
+            value: "learning-flow",
+            label: "Alur Belajar",
             sections: [
               {
-                title: "Melihat kursus",
+                title: "Navigasi Kursus",
                 steps: [
-                  "Buka halaman Courses.",
-                  "Gunakan pencarian untuk menemukan kursus.",
-                  "Klik kartu kursus untuk masuk ke detail.",
+                  "Cari kursus di halaman 'Daftar Kursus'.",
+                  "Gunakan Progress Bar untuk melihat sejauh mana Anda telah belajar.",
+                  "Materi disusun secara sistematis, pastikan membaca instruksi guru di setiap item.",
                 ],
               },
               {
-                title: "Tips",
+                title: "Memahami Fase PBL",
+                description: "Proyek Anda dibagi menjadi beberapa tahap (Sintaks).",
                 steps: [
-                  "Periksa kategori/filter jika kursus tidak muncul.",
-                  "Cek Schedule untuk memastikan deadline.",
+                  "Gunakan tab Sintaks (1-6) untuk melihat tugas apa yang harus dikerjakan sekarang.",
+                  "Setiap fase memiliki materi pendukung dan pengumpulan tugas spesifik.",
                 ],
               },
             ],
           },
           {
-            value: "materi",
-            label: "Akses Materi",
+            value: "assignment",
+            label: "Tugas & Kuis",
             sections: [
               {
-                title: "Membuka materi",
+                title: "Mengerjakan Kuis",
                 steps: [
-                  "Masuk ke course yang diikuti.",
-                  "Pilih materi dari daftar.",
-                  "Baca instruksi dan unduh lampiran jika ada.",
+                  "Perhatikan 'Durasi' sebelum memulai kuis.",
+                  "Pilih jawaban dengan teliti, sistem akan menyimpan jawaban Anda secara otomatis.",
+                  "Klik 'Submit Akhir' hanya jika semua soal sudah terjawab.",
                 ],
               },
               {
-                title: "Catatan belajar",
+                title: "Mengirim Tugas",
                 steps: [
-                  "Simpan poin penting dan pertanyaan untuk diskusi.",
-                  "Gunakan fitur search untuk kembali ke halaman materi cepat.",
+                  "Buka halaman pengumpulan tugas.",
+                  "Pilih file (pastikan ukuran file tidak melebihi batas).",
+                  "Klik 'Kirim' dan pastikan status berubah menjadi 'Diserahkan'.",
                 ],
               },
             ],
           },
           {
-            value: "kuis",
-            label: "Akses Kuis",
+            value: "progress",
+            label: "Nilai & Portofolio",
             sections: [
               {
-                title: "Mengerjakan kuis",
+                title: "Melihat Hasil Belajar",
                 steps: [
-                  "Masuk ke course.",
-                  "Buka item kuis/asesmen.",
-                  "Baca aturan dan batas waktu.",
-                  "Isi jawaban lalu submit.",
-                  "Pastikan muncul notifikasi berhasil.",
-                ],
-              },
-            ],
-          },
-          {
-            value: "pengumpulan",
-            label: "Pengumpulan Tugas",
-            sections: [
-              {
-                title: "Upload tugas",
-                steps: [
-                  "Masuk ke course.",
-                  "Buka item tugas/pengumpulan.",
-                  "Baca instruksi + format file yang diminta.",
-                  "Klik upload dan pilih file.",
-                  "Kirim/submit pengumpulan.",
-                  "Cek status pengumpulan (terkirim/tersimpan).",
-                ],
-              },
-              {
-                title: "Troubleshooting",
-                steps: [
-                  "Jika upload gagal, cek ukuran/format file.",
-                  "Coba refresh lalu upload ulang.",
-                  "Pastikan koneksi stabil sebelum submit.",
+                  "Cek nilai Anda di halaman detail kuis atau tugas setelah dinilai Guru.",
+                  "Baca 'Feedback' dari guru untuk bahan evaluasi.",
+                  "Proyek terbaik Anda akan muncul di halaman 'Profil' sebagai portofolio digital.",
                 ],
               },
             ],
@@ -369,13 +319,19 @@ export function RoleGuideDialog() {
         </DialogHeader>
 
         <Tabs value={safeActiveTab} onValueChange={(v) => setActiveTab(v)} className="mt-4">
-          <TabsList className="w-full">
+          <div className="w-full overflow-x-auto pb-2 mt-4 scrollbar-hide">
+          <TabsList className="flex w-max min-w-full gap-1 bg-transparent p-0">
             {guide.tabs.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value} className="text-xs sm:text-sm">
+              <TabsTrigger 
+                key={tab.value} 
+                value={tab.value} 
+                className="ios-tab-trigger whitespace-nowrap px-4 py-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary"
+              >
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
+        </div>
 
           {guide.tabs.map((tab) => (
             <TabsContent key={tab.value} value={tab.value} className="mt-3">

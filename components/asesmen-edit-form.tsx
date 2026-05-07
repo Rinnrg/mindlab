@@ -387,6 +387,18 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     setSoalList(newList)
   }
 
+  const handleAddOpsi = (soalIndex: number) => {
+    const newList = [...soalList]
+    newList[soalIndex].opsi.push({ teks: "", isBenar: false })
+    setSoalList(newList)
+  }
+
+  const handleRemoveOpsi = (soalIndex: number, opsiIndex: number) => {
+    const newList = [...soalList]
+    newList[soalIndex].opsi = newList[soalIndex].opsi.filter((_, i) => i !== opsiIndex)
+    setSoalList(newList)
+  }
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     
@@ -648,6 +660,22 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                         </div>
 
                         <div className="space-y-2">
+                          <Label>Tipe Jawaban *</Label>
+                          <Select
+                            value={soal.tipeJawaban || 'PILIHAN_GANDA'}
+                            onValueChange={(v) => handleSoalChange(index, 'tipeJawaban', v)}
+                          >
+                            <SelectTrigger className="max-w-[200px]">
+                              <SelectValue placeholder="Pilih tipe" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="PILIHAN_GANDA">Pilihan Ganda</SelectItem>
+                              <SelectItem value="ISIAN">Essay / Isian</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
                           <Label>Gambar Soal (opsional)</Label>
                           <Input
                             value={soal.gambar || ""}
@@ -705,40 +733,74 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                         <Separator />
 
                         <div className="space-y-3">
-                          <Label>Pilihan Jawaban *</Label>
-                          <p className="text-xs text-muted-foreground">
-                            Klik tombol centang untuk menandai jawaban yang benar.
-                          </p>
-                          {soal.opsi.map((opsi, opsiIndex) => (
-                            <div key={opsiIndex} className="flex items-center gap-2">
+                          {soal.tipeJawaban === 'ISIAN' ? (
+                            <div className="rounded-xl border p-4 bg-muted/30 border-dashed">
+                              <p className="text-sm font-medium">Tipe Essay</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Jawaban siswa akan berupa teks bebas. Penilaian dilakukan secara manual oleh guru setelah kuis dikumpulkan.
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              <Label>Pilihan Jawaban *</Label>
+                              <p className="text-xs text-muted-foreground">
+                                Klik tombol centang untuk menandai jawaban yang benar.
+                              </p>
+                              {soal.opsi.map((opsi, opsiIndex) => (
+                                <div key={opsiIndex} className="flex items-center gap-2 group">
+                                  <Button
+                                    type="button"
+                                    variant={opsi.isBenar ? "default" : "outline"}
+                                    size="sm"
+                                    className="shrink-0"
+                                    onClick={() => handleCorrectAnswerInList(index, opsiIndex)}
+                                    aria-label={`Tandai jawaban benar opsi ${opsiIndex + 1}`}
+                                  >
+                                    {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                                  </Button>
+                                  <Input
+                                    value={opsi.teks}
+                                    onChange={(e) => handleOpsiChangeInList(index, opsiIndex, e.target.value)}
+                                    placeholder={`Pilihan ${opsiIndex + 1}`}
+                                    className={opsi.isBenar ? "border-green-500" : ""}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveOpsi(index, opsiIndex)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                                    disabled={soal.opsi.length <= 2}
+                                    aria-label="Hapus pilihan"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
                               <Button
                                 type="button"
-                                variant={opsi.isBenar ? "default" : "outline"}
+                                variant="default"
                                 size="sm"
-                                className="shrink-0"
-                                onClick={() => handleCorrectAnswerInList(index, opsiIndex)}
-                                aria-label={`Tandai jawaban benar opsi ${opsiIndex + 1}`}
+                                className="w-fit mx-auto flex mt-2 px-6"
+                                onClick={() => handleAddOpsi(index)}
                               >
-                                {opsi.isBenar ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                                <Plus className="mr-2 h-4 w-4" />
+                                Tambah Pilihan
                               </Button>
-                              <Input
-                                value={opsi.teks}
-                                onChange={(e) => handleOpsiChangeInList(index, opsiIndex, e.target.value)}
-                                placeholder={`Pilihan ${opsiIndex + 1}`}
-                                className={opsi.isBenar ? "border-green-500" : ""}
-                              />
-                            </div>
-                          ))}
+                            </>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
                   </div>
                 ))}
 
-                <Button type="button" onClick={handleAddSoal} className="w-full" variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Tambah Soal
-                </Button>
+                <div className="flex justify-center py-2">
+                  <Button type="button" onClick={handleAddSoal} className="w-fit px-10" variant="outline">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Soal
+                  </Button>
+                </div>
 
                 {/* Import Excel Card */}
                 <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
@@ -954,16 +1016,18 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Menyimpan...
-            </>
-          ) : (
-            "Simpan Perubahan"
-          )}
-        </Button>
+        <div className="flex justify-end pt-4">
+          <Button type="submit" className="min-w-[200px]" disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Menyimpan...
+              </>
+            ) : (
+              "Simpan Perubahan"
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   )

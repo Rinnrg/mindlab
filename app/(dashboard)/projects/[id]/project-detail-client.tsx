@@ -148,8 +148,8 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
 
       <AnimateIn stagger={1}>
         <Tabs value={activeSintak} onValueChange={setActiveSintak} className="space-y-6">
-          <div className="overflow-visible pb-2 scrollbar-none">
-            <TabsList className="ios-tab-list">
+          <div className="w-full overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="ios-tab-list min-w-max">
               {SINTAKS_PHASES.map((phase) => (
                 <TabsTrigger
                   key={phase.id}
@@ -257,15 +257,13 @@ export default function ProjectDetailClient({ course, assessments }: ProjectDeta
                       <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
                         <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=INDIVIDU`}>
                           <Plus className="h-4 w-4" />
-                          <span className="hidden sm:inline">Individu</span>
-                          <span className="sm:hidden">Indv</span>
+                          <span className="inline">Individu</span>
                         </Link>
                       </Button>
                       <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
                         <Link href={`/projects/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=KELOMPOK`}>
                           <Plus className="h-4 w-4" />
-                          <span className="hidden sm:inline">Kelompok</span>
-                          <span className="sm:hidden">Kel</span>
+                          <span className="inline">Kelompok</span>
                         </Link>
                       </Button>
                     </div>

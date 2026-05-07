@@ -350,7 +350,7 @@ export async function PUT(
           }
           
           // Create soal with nested opsi
-          if (soalItem.tipeJawaban === 'PILIHAN_GANDA' && soalItem.opsi && soalItem.opsi.length > 0) {
+          if (soalItem.opsi && Array.isArray(soalItem.opsi) && soalItem.opsi.length > 0) {
             soalData.opsi = {
               create: soalItem.opsi.map((opsiItem: any) => ({
                 teks: opsiItem.teks,

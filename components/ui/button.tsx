@@ -55,10 +55,10 @@ const buttonVariants = cva(
           "shadow-[inset_0_0_8px_0_rgba(220,220,220,0.2),0_0_10px_0_rgba(220,220,220,0.5)]",
           "dark:shadow-[inset_0_0_8px_0_rgba(60,60,60,0.35),0_0_10px_0_rgba(0,0,0,0.5)]",
           /* Asymmetric border from api.scss */
-          "border-[0.5px] border-white/80 dark:border-white/15",
-          "text-foreground",
+          "border-[1px] border-primary/50 dark:border-primary/30",
+          "text-primary font-semibold",
           /* Hover: opacity 0.72 from ion-button :not(.ion-activated):hover */
-          "hover:bg-white/85 dark:hover:bg-white/12 hover:border-primary/30",
+          "hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/80 hover:shadow-lg",
           "active:shadow-[inset_0_0_8px_0_rgba(220,220,220,0.2),0_0_8px_-4px_rgba(220,220,220,0.92)]",
         ].join(" "),
         secondary: [
@@ -72,10 +72,10 @@ const buttonVariants = cva(
         ].join(" "),
         ghost: [
           /* Ghost — from glass-background-overlay-button: transition background 0.2s ease */
-          "hover:bg-white/50 dark:hover:bg-white/8",
+          "hover:bg-primary/5 dark:hover:bg-primary/10",
           "hover:backdrop-blur-[1px] hover:backdrop-saturate-[200%]",
           "hover:shadow-[inset_0_0_4px_0_rgba(220,220,220,0.1)]",
-          "hover:text-accent-foreground",
+          "hover:text-primary",
         ].join(" "),
         link: "text-primary underline-offset-4 hover:underline",
       },

@@ -472,7 +472,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
               )}
             >
               <ChevronLeft className="h-4.5 w-4.5 md:h-4 md:w-4" />
-              <span className="hidden md:inline text-sm font-medium">Kembali</span>
+              <span className="inline text-sm font-medium">Kembali</span>
             </button>
 
             {/* Logo & Title */}
@@ -517,7 +517,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
               )}
             >
               <PlayCircle className="h-4 w-4" />
-              <span className="hidden sm:inline">Jalankan semua</span>
+              <span className="inline">Jalankan semua</span>
             </button>
 
             {/* More Menu */}
@@ -716,7 +716,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                           "text-[11px] font-semibold uppercase tracking-wider"
                         )}>
                           <Code2 className="h-3 w-3" />
-                          <span className="hidden sm:inline">Python</span>
+                          <span className="inline">Python</span>
                         </div>
                       ) : (
                         <div className={cn(
@@ -725,7 +725,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                           "text-[11px] font-semibold uppercase tracking-wider"
                         )}>
                           <FileText className="h-3 w-3" />
-                          <span className="hidden sm:inline">Markdown</span>
+                          <span className="inline">Markdown</span>
                         </div>
                       )}
 
@@ -740,7 +740,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                       {cell.isRunning && (
                         <div className="flex items-center gap-1.5 text-[11px] text-amber-500 font-medium">
                           <Loader2 className="h-3 w-3 animate-spin" />
-                          <span className="hidden sm:inline">Running...</span>
+                          <span className="inline">Running...</span>
                         </div>
                       )}
                     </div>
@@ -764,7 +764,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                           )}
                         >
                           <Play className="h-3 w-3" fill="currentColor" />
-                          <span className="hidden sm:inline">Jalankan</span>
+                          <span className="inline">Jalankan</span>
                         </button>
                       )}
 
@@ -878,7 +878,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                             )}
                           >
                             <Copy className="h-3 w-3" />
-                            <span className="hidden sm:inline">{UI_TEXT.copyOutput}</span>
+                            <span className="inline">{UI_TEXT.copyOutput}</span>
                           </button>
                           <button
                             onClick={() => toggleOutputCollapse(cell.id)}
@@ -894,7 +894,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                             ) : (
                               <ChevronUp className="h-3 w-3" />
                             )}
-                            <span className="hidden sm:inline">
+                            <span className="inline">
                               {cell.isOutputCollapsed ? UI_TEXT.showOutput : UI_TEXT.hideOutput}
                             </span>
                           </button>

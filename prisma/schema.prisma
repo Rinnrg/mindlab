@@ -119,7 +119,7 @@ enum SubmissionComponent {
 model Soal {
   id           String         @id @default(uuid()) @db.Uuid
   pertanyaan   String         @db.VarChar(1000)
-  gambar       String?        @db.VarChar(255)
+  gambar       String?        @db.Text
   bobot        Int            @default(10)
   tipeJawaban  TipeJawaban    @default(PILIHAN_GANDA)
   asesmenId    String         @db.Uuid
@@ -132,7 +132,7 @@ model Soal {
 
 model Opsi {
   id      String  @id @default(uuid()) @db.Uuid
-  teks    String  @db.VarChar(1000)
+  teks    String  @db.Text
   isBenar Boolean @default(false)
   soalId  String  @db.Uuid
   soal    Soal    @relation(fields: [soalId], references: [id], onDelete: Cascade)

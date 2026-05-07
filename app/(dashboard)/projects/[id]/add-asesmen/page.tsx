@@ -737,15 +737,17 @@ export default function AddAsesmenPage() {
                   </div>
                 ))}
 
-                <Button
-                  type="button"
-                  onClick={addSoal}
-                  className="w-full"
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Tambah Soal
-                </Button>
+                <div className="flex justify-center py-2">
+                  <Button
+                    type="button"
+                    onClick={addSoal}
+                    className="w-fit px-10"
+                    variant="outline"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Tambah Soal
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -910,9 +912,11 @@ export default function AddAsesmenPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Menyimpan..." : "Simpan Asesmen"}
-        </Button>
+        <div className="flex justify-end pt-4">
+          <Button type="submit" className="min-w-[200px]" disabled={isSubmitting}>
+            {isSubmitting ? "Menyimpan..." : "Simpan Asesmen"}
+          </Button>
+        </div>
       </form>
     </div>
   )

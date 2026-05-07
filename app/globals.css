@@ -909,7 +909,7 @@
 }
 
 .ios-tab-text {
-  @apply hidden sm:inline;
+  @apply inline;
 }
 
 .ios-filter-select {
