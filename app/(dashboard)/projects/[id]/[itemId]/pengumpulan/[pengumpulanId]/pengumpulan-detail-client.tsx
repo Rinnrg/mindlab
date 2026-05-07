@@ -66,16 +66,24 @@ export default function PengumpulanDetailClient({
   const [showPdf, setShowPdf] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const isSintaks5 = pengumpulan.asesmen.sintak === '5'
+  const hasSintaks = !!pengumpulan.asesmen.sintak
+
+  // Helper to get grade predicate
+  const getPredicate = (n: number) => {
+    if (n >= 86) return { grade: "A", label: "Sangat Baik", color: "text-green-600 bg-green-50" }
+    if (n >= 71) return { grade: "B", label: "Baik", color: "text-blue-600 bg-blue-50" }
+    if (n >= 56) return { grade: "C", label: "Cukup", color: "text-yellow-600 bg-yellow-50" }
+    return { grade: "D", label: "Kurang", color: "text-red-600 bg-red-50" }
+  }
 
   // Auto calculate nilai when rubric scores change
   React.useEffect(() => {
-    if (isSintaks5 && (skorK1 > 0 || skorK2 > 0 || skorK3 > 0 || skorK4 > 0)) {
+    if (hasSintaks && (skorK1 > 0 || skorK2 > 0 || skorK3 > 0 || skorK4 > 0)) {
       const total = (skorK1 * 20) + (skorK2 * 40) + (skorK3 * 25) + (skorK4 * 15)
       const finalNilai = total / 4
-      setNilai(finalNilai.toFixed(2))
+      setNilai(finalNilai.toString()) // Keep as string for input
     }
-  }, [skorK1, skorK2, skorK3, skorK4, isSintaks5])
+  }, [skorK1, skorK2, skorK3, skorK4, hasSintaks])
 
   const dbFileHref = (pengumpulan as any)?.fileData
     ? `/api/pengumpulan/${pengumpulan.id}/file`
@@ -116,10 +124,10 @@ export default function PengumpulanDetailClient({
             feedback,
             status: isValidated ? "VALIDATED" : "DINILAI",
             validatedBy: user?.nama,
-            skorK1: isSintaks5 ? skorK1 : undefined,
-            skorK2: isSintaks5 ? skorK2 : undefined,
-            skorK3: isSintaks5 ? skorK3 : undefined,
-            skorK4: isSintaks5 ? skorK4 : undefined,
+            skorK1: hasSintaks ? skorK1 : undefined,
+            skorK2: hasSintaks ? skorK2 : undefined,
+            skorK3: hasSintaks ? skorK3 : undefined,
+            skorK4: hasSintaks ? skorK4 : undefined,
           })
         })
         if (!response.ok) throw new Error("Gagal menyimpan penilaian")
@@ -258,14 +266,14 @@ export default function PengumpulanDetailClient({
               <CardDescription>Berikan skor dan feedback untuk tugas ini.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {isSintaks5 && (
+              {hasSintaks && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-bold flex items-center gap-2">
                       <TableIcon className="h-4 w-4" />
                       Rubrik Penilaian
                     </Label>
-                    <Badge variant="outline" className="text-[10px]">PBL Sintaks 5</Badge>
+                    <Badge variant="outline" className="text-[10px]">PBL Sintaks {pengumpulan.asesmen.sintak}</Badge>
                   </div>
 
                   <div className="rounded-xl border border-border/50 overflow-hidden bg-background/50">
@@ -324,23 +332,43 @@ export default function PengumpulanDetailClient({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="nilai">Skor Akhir (0-100)</Label>
-                <div className="relative">
+              <div className="space-y-3">
+                <Label htmlFor="nilai" className="text-sm font-semibold">Skor Akhir (Terhitung Otomatis)</Label>
+                <div className="relative group">
                   <Input 
                     id="nilai" 
-                    type="number" 
-                    min={0} 
-                    max={100}
+                    type="text" 
+                    readOnly={hasSintaks}
                     value={nilai} 
-                    onChange={(e) => setNilai(e.target.value)}
-                    placeholder="Contoh: 85"
-                    className="text-2xl font-bold h-14 pl-4 pr-12 bg-primary/5 border-primary/20 rounded-xl"
+                    onChange={(e) => !hasSintaks && setNilai(e.target.value)}
+                    placeholder="Hasil hitung rubrik..."
+                    className={cn(
+                      "text-3xl font-bold h-16 pl-5 pr-14 rounded-2xl transition-all duration-300",
+                      hasSintaks 
+                        ? "bg-primary/5 border-primary/30 text-primary shadow-inner" 
+                        : "bg-background border-border"
+                    )}
                   />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground font-bold text-lg">
                     / 100
                   </div>
                 </div>
+                
+                {hasSintaks && nilai && parseFloat(nilai) > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={cn(
+                      "flex items-center justify-between p-3 rounded-xl border border-current/10",
+                      getPredicate(parseFloat(nilai)).color
+                    )}
+                  >
+                    <span className="text-xs font-bold uppercase tracking-wider">Predikat</span>
+                    <span className="font-bold">
+                      {getPredicate(parseFloat(nilai)).grade} ({getPredicate(parseFloat(nilai)).label})
+                    </span>
+                  </motion.div>
+                )}
               </div>
 
               <div className="space-y-2">

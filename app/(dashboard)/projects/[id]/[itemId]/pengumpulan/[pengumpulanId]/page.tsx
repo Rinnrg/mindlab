@@ -29,6 +29,7 @@ export default async function PengumpulanDetailPage({ params }: PageProps) {
           id: true,
           nama: true,
           tipe: true,
+          sintak: true,
           guru: {
             select: {
               id: true,
