@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
-import { Loader2, Plus, Trash2, Check, X, ImagePlus, Users, ArrowUp, ArrowDown } from "lucide-react"
+import { Loader2, Plus, Trash2, Check, X, ImagePlus, Users, ArrowUp, ArrowDown, FileUp, FileDown } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -75,6 +76,9 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const lastSoalRef = useRef<HTMLDivElement>(null)
   const [activeSoalIndex, setActiveSoalIndex] = useState(0)
   const dragFromIndexRef = useRef<number | null>(null)
+  const importExcelRef = useRef<HTMLInputElement>(null)
+  const [importExcelLoading, setImportExcelLoading] = useState(false)
+  const [importExcelResult, setImportExcelResult] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
   
   const [formData, setFormData] = useState({
     nama: "",
@@ -282,6 +286,46 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
 
   const handleRemoveSoal = (index: number) => {
     setSoalList(soalList.filter((_, i) => i !== index))
+  }
+
+  const handleImportExcel = async (file: File) => {
+    setImportExcelLoading(true)
+    setImportExcelResult(null)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/asesmen/${asesmenId}/soal/import-excel`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // Re-fetch soal list dari server agar data terupdate
+        const soalRes = await fetch(`/api/asesmen/${asesmenId}/soal`)
+        if (soalRes.ok) {
+          const soalData = await soalRes.json()
+          setSoalList(soalData.soal || [])
+        }
+        const hasWarnings = data.warnings && data.warnings.length > 0
+        setImportExcelResult({
+          message: `${data.message}${data.skipped > 0 ? ` (${data.skipped} baris dilewati)` : ''}${hasWarnings ? ` — ada ${data.warnings.length} peringatan` : ''}`,
+          type: hasWarnings ? 'warning' : 'success',
+        })
+        scrollToLastSoal()
+      } else {
+        const detailMsg = data.details && data.details.length > 0
+          ? `\n• ${data.details.slice(0, 5).join('\n• ')}${data.details.length > 5 ? `\n...dan ${data.details.length - 5} lainnya` : ''}`
+          : ''
+        setImportExcelResult({
+          message: (data.error || 'Gagal mengimport') + detailMsg,
+          type: 'error',
+        })
+      }
+    } catch {
+      setImportExcelResult({ message: 'Terjadi kesalahan jaringan', type: 'error' })
+    } finally {
+      setImportExcelLoading(false)
+    }
   }
 
   const handleSoalChange = (index: number, field: keyof Soal, value: any) => {
@@ -695,6 +739,87 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                   <Plus className="mr-2 h-4 w-4" />
                   Tambah Soal
                 </Button>
+
+                {/* Import Excel Card */}
+                <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <CardTitle className="text-sm">Import Soal dari Excel</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          Download template, isi soal &amp; jawaban, lalu import sekaligus
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {/* Download Template */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const a = document.createElement('a')
+                            a.href = `/api/asesmen/${asesmenId}/soal/template-excel`
+                            a.download = 'Template_Soal_Kuis.xlsx'
+                            document.body.appendChild(a)
+                            a.click()
+                            document.body.removeChild(a)
+                          }}
+                        >
+                          <FileDown className="mr-2 h-4 w-4" />
+                          Download Template
+                        </Button>
+
+                        {/* Import Excel */}
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          disabled={importExcelLoading}
+                          onClick={() => importExcelRef.current?.click()}
+                        >
+                          {importExcelLoading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileUp className="mr-2 h-4 w-4" />
+                          )}
+                          {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
+                        </Button>
+
+                        {/* Hidden file input */}
+                        <input
+                          ref={importExcelRef}
+                          type="file"
+                          accept=".xlsx,.xls"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            e.target.value = ''
+                            await handleImportExcel(file)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {importExcelResult && (
+                    <CardContent className="pt-0">
+                      <Alert
+                        variant={importExcelResult.type === 'error' ? 'destructive' : 'default'}
+                        className={
+                          importExcelResult.type === 'success'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                            : importExcelResult.type === 'warning'
+                            ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
+                            : ''
+                        }
+                      >
+                        <AlertDescription className="whitespace-pre-wrap text-sm">
+                          {importExcelResult.message}
+                        </AlertDescription>
+                      </Alert>
+                    </CardContent>
+                  )}
+                </Card>
               </div>
             )}
           </div>

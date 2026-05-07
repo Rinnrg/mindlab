@@ -322,11 +322,14 @@ export default function CoursesPage() {
                           </div>
                           {isTeacherOrAdmin && (
                             <div className="flex items-center gap-2">
-                              <Button asChild variant="ghost" size="sm" className="h-8 rounded-lg px-2">
-                                <Link href={`/courses/${course.id}/edit`}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
-                                </Link>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 rounded-lg px-2"
+                                onClick={() => router.push(`/courses/${course.id}/edit`)}
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
                               </Button>
                               <Button
                                 variant="ghost"
@@ -417,7 +420,18 @@ export default function CoursesPage() {
                   </Card>
                 ) : (
                   // Grid View (Default) - iOS Glass
-                  <Link href={`/courses/${course.id}`} className="block">
+                  <div
+                    className="block cursor-pointer"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => router.push(`/courses/${course.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        router.push(`/courses/${course.id}`)
+                      }
+                    }}
+                  >
                     <Card className="group overflow-hidden ios-glass-card border-border/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 cursor-pointer">
                       <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                         <img
@@ -430,24 +444,29 @@ export default function CoursesPage() {
                           {course.kategori}
                         </Badge>
                         {isTeacherOrAdmin && (
-                          <div onClick={(e) => e.preventDefault()}>
+                          <div onClick={(e) => e.stopPropagation()}>
                             <div className="absolute right-2 top-2 flex items-center gap-1 opacity-0 backdrop-blur-md transition-opacity group-hover:opacity-100 sm:right-3 sm:top-3">
                               <Button
-                                asChild
                                 variant="secondary"
                                 size="icon"
                                 className="h-7 w-7 bg-background/80 rounded-lg border-0 sm:h-8 sm:w-8"
+                                aria-label="Edit"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  router.push(`/courses/${course.id}/edit`)
+                                }}
                               >
-                                <Link href={`/courses/${course.id}/edit`} aria-label="Edit">
-                                  <Pencil className="h-4 w-4" />
-                                </Link>
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="secondary"
                                 size="icon"
                                 className="h-7 w-7 bg-background/80 rounded-lg border-0 text-destructive hover:text-destructive sm:h-8 sm:w-8"
                                 aria-label="Hapus"
-                                onClick={() => handleDeleteCourse(course.id, course.judul)}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleDeleteCourse(course.id, course.judul)
+                                }}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -480,7 +499,7 @@ export default function CoursesPage() {
                         </div>
                       </div>
                     </Card>
-                  </Link>
+                  </div>
                 )}
               </AnimateIn>
             ))}

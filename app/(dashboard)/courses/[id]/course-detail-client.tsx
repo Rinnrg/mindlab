@@ -596,8 +596,19 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
           {filteredAsesmen.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
-                <Link key={assessment.id} href={`/courses/${course.id}/${assessment.id}`} className="block">
-                  <Card className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl">
+                <div key={assessment.id} className="block">
+                  <Card 
+                    className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl"
+                    role="link"
+                    tabIndex={0}
+                    onClick={() => router.push(`/courses/${course.id}/${assessment.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        router.push(`/courses/${course.id}/${assessment.id}`)
+                      }
+                    }}
+                  >
                     <CardHeader className="pb-2 sm:pb-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -625,24 +636,28 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                           )}
                         </div>
                         {isTeacherOrAdmin && (
-                          <div className="flex items-center gap-1" onClick={(e) => e.preventDefault()}>
+                          <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 shrink-0"
-                              asChild
                               title="Edit Asesmen"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/courses/${course.id}/${assessment.id}/edit`)
+                              }}
                             >
-                              <Link href={`/courses/${course.id}/${assessment.id}/edit`}>
-                                <Pencil className="h-4 w-4" />
-                              </Link>
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
                               title="Hapus Asesmen"
-                              onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteAsesmen(assessment.id, assessment.nama)
+                              }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -667,7 +682,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                       </div>
                     </CardContent>
                   </Card>
-                </Link>
+                </div>
               ))}
             </div>
           ) : (

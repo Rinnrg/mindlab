@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import { useEffect, useState, useMemo, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
@@ -35,6 +35,8 @@ import {
   Eye,
   ClipboardList,
   BookOpen,
+  FileUp,
+  FileDown,
 } from "lucide-react"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
@@ -66,6 +68,11 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [rosterByKelas, setRosterByKelas] = useState<Record<string, any[]> | null>(null)
   const [rosterLoading, setRosterLoading] = useState(false)
   const [rosterError, setRosterError] = useState<string | null>(null)
+
+  // Import Excel state
+  const [importExcelLoading, setImportExcelLoading] = useState(false)
+  const [importExcelResult, setImportExcelResult] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const importExcelRef = useRef<HTMLInputElement>(null)
 
   // If these become empty at runtime, we want it to be visible via console errors rather than silently switching routes.
 
@@ -1006,6 +1013,126 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           </TabsList>
 
           <TabsContent value="info" key={`info-${tabKey}`} className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+            {/* Import Soal Excel — hanya untuk KUIS */}
+            {asesmen.tipe === 'KUIS' && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl">
+                <CardHeader>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <CardTitle className="text-base">Import Soal dari Excel</CardTitle>
+                      <CardDescription className="text-xs mt-1">
+                        Download template, isi soal &amp; jawaban, lalu import sekaligus
+                      </CardDescription>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {/* Download Template */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const a = document.createElement('a')
+                          a.href = `/api/asesmen/${asesmenId}/soal/template-excel`
+                          a.download = `Template_Soal_Kuis.xlsx`
+                          document.body.appendChild(a)
+                          a.click()
+                          document.body.removeChild(a)
+                        }}
+                      >
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Download Template
+                      </Button>
+
+                      {/* Import Excel */}
+                      <Button
+                        variant="default"
+                        size="sm"
+                        disabled={importExcelLoading}
+                        onClick={() => importExcelRef.current?.click()}
+                      >
+                        {importExcelLoading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileUp className="mr-2 h-4 w-4" />
+                        )}
+                        {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
+                      </Button>
+
+                      {/* Hidden file input */}
+                      <input
+                        ref={importExcelRef}
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          // Reset input so same file can be re-selected
+                          e.target.value = ''
+                          setImportExcelLoading(true)
+                          setImportExcelResult(null)
+                          try {
+                            const formData = new FormData()
+                            formData.append('file', file)
+                            const res = await fetch(`/api/asesmen/${asesmenId}/soal/import-excel`, {
+                              method: 'POST',
+                              body: formData,
+                            })
+                            const data = await res.json()
+                            if (res.ok) {
+                              const hasWarnings = data.warnings && data.warnings.length > 0
+                              setImportExcelResult({
+                                message: `${data.message}${data.skipped > 0 ? ` (${data.skipped} baris dilewati)` : ''}${hasWarnings ? ` — ada ${data.warnings.length} peringatan` : ''}`,
+                                type: hasWarnings ? 'warning' : 'success',
+                              })
+                              // Reload page to reflect new soal count
+                              setTimeout(() => window.location.reload(), 1500)
+                            } else {
+                              const detailMsg = data.details && data.details.length > 0
+                                ? `\n• ${data.details.slice(0, 5).join('\n• ')}${data.details.length > 5 ? `\n...dan ${data.details.length - 5} lainnya` : ''}`
+                                : ''
+                              setImportExcelResult({
+                                message: (data.error || 'Gagal mengimport') + detailMsg,
+                                type: 'error',
+                              })
+                            }
+                          } catch {
+                            setImportExcelResult({ message: 'Terjadi kesalahan jaringan', type: 'error' })
+                          } finally {
+                            setImportExcelLoading(false)
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                {importExcelResult && (
+                  <CardContent className="pt-0">
+                    <Alert
+                      variant={importExcelResult.type === 'error' ? 'destructive' : 'default'}
+                      className={
+                        importExcelResult.type === 'success'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                          : importExcelResult.type === 'warning'
+                          ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
+                          : ''
+                      }
+                    >
+                      {importExcelResult.type === 'success' ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      ) : importExcelResult.type === 'warning' ? (
+                        <AlertCircle className="h-4 w-4 text-yellow-600" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4" />
+                      )}
+                      <AlertDescription className="whitespace-pre-wrap text-sm">
+                        {importExcelResult.message}
+                      </AlertDescription>
+                    </Alert>
+                  </CardContent>
+                )}
+              </Card>
+            )}
+
             {/* Informasi (For KUIS) — Roster per kelas + status */}
             {asesmen.tipe === 'KUIS' && (
               <Card>

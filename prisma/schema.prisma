@@ -264,6 +264,10 @@ model PengumpulanProyek {
   feedback        String?           @db.VarChar(1000)
   validatedAt     DateTime?
   validatedBy     String?           @db.VarChar(255)
+  skorK1          Float?
+  skorK2          Float?
+  skorK3          Float?
+  skorK4          Float?
   kelompokId      String?           @db.Uuid
   siswaId         String?           @db.Uuid
   asesmenId       String?           @db.Uuid

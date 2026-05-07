@@ -99,7 +99,7 @@ export async function PUT(
   try {
   // Removed redundant extraction of id
     const body = await request.json()
-    const { nilai, catatan, feedback, status, validatedBy } = body
+    const { nilai, catatan, feedback, status, validatedBy, skorK1, skorK2, skorK3, skorK4 } = body
 
     // Validate
     if (nilai !== undefined && (nilai < 0 || nilai > 100)) {
@@ -112,6 +112,10 @@ export async function PUT(
     // Build update data
     const updateData: Record<string, unknown> = {}
     if (nilai !== undefined) updateData.nilai = parseFloat(nilai)
+    if (skorK1 !== undefined) updateData.skorK1 = parseFloat(skorK1)
+    if (skorK2 !== undefined) updateData.skorK2 = parseFloat(skorK2)
+    if (skorK3 !== undefined) updateData.skorK3 = parseFloat(skorK3)
+    if (skorK4 !== undefined) updateData.skorK4 = parseFloat(skorK4)
     if (catatan !== undefined) updateData.catatan = catatan
     if (feedback !== undefined) updateData.feedback = feedback
     if (status !== undefined) {

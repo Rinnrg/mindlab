@@ -23,8 +23,19 @@ import {
   Code,
   MessageSquare,
   Trophy,
-  Loader2
+  Loader2,
+  Table as TableIcon,
+  Info
 } from "lucide-react"
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
@@ -46,10 +57,25 @@ export default function PengumpulanDetailClient({
   const { execute, ActionFeedback } = useAsyncAction()
 
   const [nilai, setNilai] = React.useState<string>(pengumpulan.nilai?.toString() || "")
+  const [skorK1, setSkorK1] = React.useState<number>(pengumpulan.skorK1 || 0)
+  const [skorK2, setSkorK2] = React.useState<number>(pengumpulan.skorK2 || 0)
+  const [skorK3, setSkorK3] = React.useState<number>(pengumpulan.skorK3 || 0)
+  const [skorK4, setSkorK4] = React.useState<number>(pengumpulan.skorK4 || 0)
   const [catatan, setCatatan] = React.useState<string>(pengumpulan.catatan || "")
   const [feedback, setFeedback] = React.useState<string>(pengumpulan.feedback || "")
   const [showPdf, setShowPdf] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const isSintaks5 = pengumpulan.asesmen.sintak === '5'
+
+  // Auto calculate nilai when rubric scores change
+  React.useEffect(() => {
+    if (isSintaks5 && (skorK1 > 0 || skorK2 > 0 || skorK3 > 0 || skorK4 > 0)) {
+      const total = (skorK1 * 20) + (skorK2 * 40) + (skorK3 * 25) + (skorK4 * 15)
+      const finalNilai = total / 4
+      setNilai(finalNilai.toFixed(2))
+    }
+  }, [skorK1, skorK2, skorK3, skorK4, isSintaks5])
 
   const dbFileHref = (pengumpulan as any)?.fileData
     ? `/api/pengumpulan/${pengumpulan.id}/file`
@@ -89,7 +115,11 @@ export default function PengumpulanDetailClient({
             catatan,
             feedback,
             status: isValidated ? "VALIDATED" : "DINILAI",
-            validatedBy: user?.nama
+            validatedBy: user?.nama,
+            skorK1: isSintaks5 ? skorK1 : undefined,
+            skorK2: isSintaks5 ? skorK2 : undefined,
+            skorK3: isSintaks5 ? skorK3 : undefined,
+            skorK4: isSintaks5 ? skorK4 : undefined,
           })
         })
         if (!response.ok) throw new Error("Gagal menyimpan penilaian")
@@ -228,6 +258,72 @@ export default function PengumpulanDetailClient({
               <CardDescription>Berikan skor dan feedback untuk tugas ini.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {isSintaks5 && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-bold flex items-center gap-2">
+                      <TableIcon className="h-4 w-4" />
+                      Rubrik Penilaian
+                    </Label>
+                    <Badge variant="outline" className="text-[10px]">PBL Sintaks 5</Badge>
+                  </div>
+
+                  <div className="rounded-xl border border-border/50 overflow-hidden bg-background/50">
+                    <Table>
+                      <TableHeader className="bg-muted/30">
+                        <TableRow>
+                          <TableHead className="w-[50px] text-[10px] uppercase">No</TableHead>
+                          <TableHead className="text-[10px] uppercase">Kriteria</TableHead>
+                          <TableHead className="w-[80px] text-[10px] uppercase text-center">Skor</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {[
+                          { id: 'K1', label: 'Analisis Masalah & Logika', weight: '20%', value: skorK1, setter: setSkorK1, tooltip: 'Menilai output PBL Sintaks 1 & 2' },
+                          { id: 'K2', label: 'Sintaks & Fungsionalitas', weight: '40%', value: skorK2, setter: setSkorK2, tooltip: 'Menilai output PBL Sintaks 3' },
+                          { id: 'K3', label: 'Penerapan Konsep Materi', weight: '25%', value: skorK3, setter: setSkorK3, tooltip: 'Menilai output PBL Sintaks 3' },
+                          { id: 'K4', label: 'Dokumentasi & Refleksi', weight: '15%', value: skorK4, setter: setSkorK4, tooltip: 'Menilai output PBL Sintaks 4 & 5' },
+                        ].map((item, idx) => (
+                          <TableRow key={item.id} className="hover:bg-muted/20">
+                            <TableCell className="font-medium text-xs">{idx + 1}</TableCell>
+                            <TableCell className="p-2">
+                              <div className="space-y-0.5">
+                                <div className="text-xs font-semibold">{item.label}</div>
+                                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                  <Info className="h-2.5 w-2.5" />
+                                  {item.tooltip} ({item.weight})
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-2">
+                              <Select 
+                                value={item.value.toString()} 
+                                onValueChange={(val) => item.setter(parseInt(val))}
+                              >
+                                <SelectTrigger className="h-8 w-full text-xs bg-background/50 border-border/30">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="4">4 (SB)</SelectItem>
+                                  <SelectItem value="3">3 (B)</SelectItem>
+                                  <SelectItem value="2">2 (C)</SelectItem>
+                                  <SelectItem value="1">1 (K)</SelectItem>
+                                  <SelectItem value="0">-</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic px-1">
+                    Skala: 4=Sangat Baik, 3=Baik, 2=Cukup, 1=Kurang
+                  </p>
+                  <Separator />
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="nilai">Skor Akhir (0-100)</Label>
                 <div className="relative">
