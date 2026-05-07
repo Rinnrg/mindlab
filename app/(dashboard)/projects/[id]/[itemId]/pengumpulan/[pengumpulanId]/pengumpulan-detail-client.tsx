@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { cn } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -85,7 +86,7 @@ export default function PengumpulanDetailClient({
     }
   }, [skorK1, skorK2, skorK3, skorK4, hasSintaks])
 
-  const dbFileHref = (pengumpulan as any)?.fileData
+  const dbFileHref = (pengumpulan as any)?.hasFileData
     ? `/api/pengumpulan/${pengumpulan.id}/file`
     : null
   const fileHref = dbFileHref || pengumpulan.fileUrl

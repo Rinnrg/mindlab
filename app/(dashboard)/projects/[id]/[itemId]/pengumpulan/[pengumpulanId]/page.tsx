@@ -45,12 +45,20 @@ export default async function PengumpulanDetailPage({ params }: PageProps) {
     notFound()
   }
 
+  // Convert binary data to boolean/null before passing to Client Component
+  // to avoid "Uint8Array objects are not supported" error
+  const pengumpulanData = {
+    ...pengumpulan,
+    hasFileData: !!pengumpulan.fileData,
+    fileData: null // Remove binary data
+  }
+
   return (
     <div className="container mx-auto py-6 sm:py-10">
       <PengumpulanDetailClient 
         courseId={courseId} 
         asesmenId={asesmenId} 
-        pengumpulan={pengumpulan} 
+        pengumpulan={pengumpulanData} 
       />
     </div>
   )
