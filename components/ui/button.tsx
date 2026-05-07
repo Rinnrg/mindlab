@@ -5,22 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium",
-    "disabled:pointer-events-none disabled:opacity-50",
-    "[&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0",
-    "outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]",
-    "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-    /* Liquid Glass: rounded-[25px] pill from ion-button --border-radius: 24px + glass-background */
-    "rounded-[25px]",
-    /* Transition from tema ion-button.scss: transform + color with 140ms ease-out */
-    "transition-[transform,background,box-shadow,opacity,filter,color] duration-[140ms]",
-    "ease-[cubic-bezier(0.32,0.72,0,1)]",
-    /* Activated scale from ion-button.scss $scaleup-default = 1.25, we use subtle 1.06 for web */
-    "active:scale-[1.06]",
-    /* GPU compositing from api.scss glass-background mixin: translateZ(0) + backface-visibility */
-    "transform-gpu backface-hidden",
-  ].join(" "),
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive rounded-[25px] transition-[transform,background,box-shadow,opacity,filter,color] duration-[140ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[1.06] transform-gpu backface-hidden",
   {
     variants: {
       variant: {
@@ -109,7 +94,7 @@ function Button({
   }) {
   const Comp = asChild ? Slot : "button"
 
-  return <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />
+  return <Comp className={cn(buttonVariants({ variant, size, className }))} {...props} />
 }
 
 export { Button, buttonVariants }

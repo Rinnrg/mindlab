@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { ArrowRight, BookOpen, Users, Award, CheckCircle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 export default function LandingPage() {
   return (
@@ -17,9 +18,12 @@ export default function LandingPage() {
             <span className="text-base font-semibold tracking-tight">Mindlab</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Button size="sm" className="text-sm" asChild>
-              <Link href="/login">Masuk / Login</Link>
-            </Button>
+            <Link 
+              href="/login" 
+              className={cn(buttonVariants({ size: "sm" }), "text-sm")}
+            >
+              Masuk / Login
+            </Link>
           </div>
         </div>
       </header>
@@ -38,15 +42,19 @@ export default function LandingPage() {
             Sistem manajemen pembelajaran yang memudahkan guru mengajar dan siswa belajar dalam satu tempat.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button size="lg" className="w-full sm:w-auto gap-2" asChild>
-              <Link href="/login">
-                Mulai Sekarang
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto bg-transparent" asChild>
-              <Link href="#features">Pelajari Lebih Lanjut</Link>
-            </Button>
+            <Link 
+              href="/login"
+              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto gap-2")}
+            >
+              Mulai Sekarang
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link 
+              href="#features"
+              className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto bg-transparent")}
+            >
+              Pelajari Lebih Lanjut
+            </Link>
           </div>
         </div>
       </section>
@@ -121,9 +129,12 @@ export default function LandingPage() {
             Bergabung dengan ribuan siswa dan guru yang telah menggunakan Mindlab
           </p>
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Button size="lg" asChild>
-              <Link href="/login">Daftar Sekarang</Link>
-            </Button>
+            <Link 
+              href="/login"
+              className={buttonVariants({ size: "lg" })}
+            >
+              Daftar Sekarang
+            </Link>
           </div>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">

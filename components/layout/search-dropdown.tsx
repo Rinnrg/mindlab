@@ -187,11 +187,11 @@ export function SearchDropdown() {
   category: "Navigasi",
       },
       {
-        id: "projects",
+        id: "pbl",
   title: "PBL",
-  description: "Kelola project based learning",
+  description: "Kelola Problem Based Learning",
         icon: FolderOpen,
-        href: "/projects",
+        href: "/pbl",
   category: "Navigasi",
       },
       {
@@ -306,7 +306,7 @@ export function SearchDropdown() {
         title: schedule.judul,
         description: `${schedule.guru.nama} • ${schedule.deskripsi.substring(0, 50)}`,
         icon: Calendar,
-        href: `/projects/${schedule.id}`,
+        href: `/pbl/${schedule.id}`,
   category: "Jadwal",
         badge: new Date(schedule.tgl_selesai).toLocaleDateString('id-ID', {
           day: 'numeric',
@@ -340,7 +340,7 @@ export function SearchDropdown() {
     }
 
     // Filter items berdasarkan role ADMIN
-    const ADMIN_RESTRICTED_PATHS = ['/courses', '/compiler', '/projects']
+    const ADMIN_RESTRICTED_PATHS = ['/courses', '/compiler', '/pbl']
     const filteredByRole = user?.role === 'ADMIN'
       ? items.filter(item => !ADMIN_RESTRICTED_PATHS.some(path => item.href.startsWith(path)))
       : items

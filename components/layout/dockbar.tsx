@@ -1,4 +1,6 @@
 "use client"
+// Trigger HMR
+
 
 import { usePathname } from "next/navigation"
 import { useMemo, useState, useCallback } from "react"
@@ -30,7 +32,7 @@ export function Dockbar({ className }: DockbarProps) {
     { title: "Beranda", href: "/dashboard", icon: LayoutDashboard, roles: ["ADMIN", "GURU", "SISWA"] },
     { title: "Jadwal", href: "/schedule", icon: Calendar, roles: ["GURU", "SISWA"] },
     { title: "Kursus", href: "/courses", icon: BookOpen, roles: ["GURU", "SISWA"] },
-    { title: "PBL", href: "/projects", icon: FolderKanban, roles: ["GURU", "SISWA"] },
+    { title: "PBL", href: "/pbl", icon: FolderKanban, roles: ["GURU", "SISWA"] },
     { title: "Compiler", href: "/compiler", icon: Code, roles: ["GURU", "SISWA"] },
     { title: "Kelola", href: "/users", icon: Users, roles: ["ADMIN"] },
   ], [])

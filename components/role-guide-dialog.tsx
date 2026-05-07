@@ -123,10 +123,10 @@ function getRoleGuide(role?: UserRole | null): RoleGuide {
               },
               {
                 title: "Integrasi Sintaks PBL",
-                description: "Aplikasi ini mendukung Project Based Learning (PBL) dengan 6 fase standar.",
+                description: "Aplikasi ini mendukung Problem Based Learning (PBL) dengan 5 fase standar.",
                 steps: [
-                  "Setiap materi dan tugas dapat dihubungkan ke salah satu Sintaks PBL (1 s/d 6).",
-                  "Fase 1: Pertanyaan Mendasar, Fase 2: Desain Proyek, dst.",
+                  "Setiap materi dan tugas dapat dihubungkan ke salah satu Sintaks PBL (1 s/d 5).",
+                  "Fase 1: Orientasi pada Masalah, Fase 2: Mengorganisasi Siswa, dst.",
                   "Gunakan tab 'PBL' di dashboard untuk memantau kemajuan proyek siswa secara terpusat.",
                 ],
               },
@@ -212,7 +212,7 @@ function getRoleGuide(role?: UserRole | null): RoleGuide {
                 title: "Memahami Fase PBL",
                 description: "Proyek Anda dibagi menjadi beberapa tahap (Sintaks).",
                 steps: [
-                  "Gunakan tab Sintaks (1-6) untuk melihat tugas apa yang harus dikerjakan sekarang.",
+                  "Gunakan tab Sintaks (1-5) untuk melihat tugas apa yang harus dikerjakan sekarang.",
                   "Setiap fase memiliki materi pendukung dan pengumpulan tugas spesifik.",
                 ],
               },
@@ -305,7 +305,7 @@ export function RoleGuideDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-[92vw] sm:max-w-[520px] md:max-w-[640px]">
+      <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 sm:max-w-[520px] md:max-w-[640px]">
         <DialogHeader className="text-left">
           <DialogTitle className="flex items-center gap-2">
             <span className="inline-flex items-center gap-2">
@@ -319,7 +319,7 @@ export function RoleGuideDialog() {
         </DialogHeader>
 
         <Tabs value={safeActiveTab} onValueChange={(v) => setActiveTab(v)} className="mt-4">
-          <div className="w-full overflow-x-auto pb-2 mt-4 scrollbar-hide">
+          <div className="w-full max-w-full overflow-x-auto pb-2 mt-4 scrollbar-hide">
           <TabsList className="flex w-max min-w-full gap-1 bg-transparent p-0">
             {guide.tabs.map((tab) => (
               <TabsTrigger 
@@ -346,7 +346,7 @@ export function RoleGuideDialog() {
                     </div>
                     <ol className="list-decimal pl-5 space-y-1 text-sm text-muted-foreground">
                       {section.steps.map((step) => (
-                        <li key={step}>{step}</li>
+                        <li key={step} className="break-words">{step}</li>
                       ))}
                     </ol>
                   </section>

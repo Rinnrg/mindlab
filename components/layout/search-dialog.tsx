@@ -44,7 +44,7 @@ interface SearchDialogProps {
   onOpenChange?: (open: boolean) => void
 }
 
-export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialogProps = {}) {
+function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialogProps = {}) {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
@@ -109,10 +109,10 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
         category: "Navigasi",
       },
       {
-        id: "projects",
+        id: "pbl",
         title: "PBL",
-        description: "Kelola project based learning",
-        url: "/projects",
+        description: "Kelola Problem Based Learning",
+        url: "/pbl",
         icon: <FolderOpen className="h-4 w-4 text-muted-foreground" />,
         category: "Navigasi",
       },
@@ -267,3 +267,5 @@ export function SearchDialog({ open: controlledOpen, onOpenChange }: SearchDialo
     </CommandDialog>
   )
 }
+
+export { SearchDialog }

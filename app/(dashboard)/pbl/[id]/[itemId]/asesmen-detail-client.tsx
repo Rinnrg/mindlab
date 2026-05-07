@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState, useMemo, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,8 +35,6 @@ import {
   Eye,
   ClipboardList,
   BookOpen,
-  FileUp,
-  FileDown,
 } from "lucide-react"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
@@ -59,22 +57,9 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [tabKey, setTabKey] = useState(0) // For re-render animation
   const { confirm, AlertComponent } = useAdaptiveAlert()
 
-  const searchParams = useSearchParams()
-  const from = searchParams.get('from')
-  const baseUrl = from === 'pbl' ? `/pbl/${courseId}` : `/courses/${courseId}`
-  const breadcrumbBase = from === 'pbl' ? 'PBL' : 'Kursus'
-  const breadcrumbBaseUrl = from === 'pbl' ? '/pbl' : '/courses'
-
   const [rosterByKelas, setRosterByKelas] = useState<Record<string, any[]> | null>(null)
   const [rosterLoading, setRosterLoading] = useState(false)
   const [rosterError, setRosterError] = useState<string | null>(null)
-
-  // Import Excel state
-  const [importExcelLoading, setImportExcelLoading] = useState(false)
-  const [importExcelResult, setImportExcelResult] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
-  const importExcelRef = useRef<HTMLInputElement>(null)
-
-  // If these become empty at runtime, we want it to be visible via console errors rather than silently switching routes.
 
   useEffect(() => {
     if (authLoading) return
@@ -108,7 +93,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           // Check permission untuk guru - only for teachers
           if (user.role === 'GURU' && asesmenData.guruId !== user.id) {
             console.log('Teacher not authorized for this asesmen')
-            router.push(baseUrl)
+            router.push(`/pbl/${courseId}`)
             return
           }
           
@@ -144,12 +129,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
             alert('Gagal mengambil data asesmen')
           }
           
-          router.push(baseUrl)
+          router.push(`/pbl/${courseId}`)
         }
       } catch (error) {
         console.error('Error fetching asesmen:', error)
         alert('Terjadi kesalahan saat mengambil data asesmen')
-        router.push(baseUrl)
+        router.push(`/pbl/${courseId}`)
       } finally {
         setLoading(false)
       }
@@ -189,13 +174,13 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
 
     return [
       {
-        label: breadcrumbBase,
-        href: breadcrumbBaseUrl,
+        label: 'PBL',
+        href: '/pbl',
         icon: <BookOpen className="h-4 w-4" />,
       },
       {
-        label: asesmen.course.judul,
-        href: baseUrl,
+        label: `Pembelajaran ${asesmen.course.judul}`,
+        href: `/pbl/${courseId}`,
         icon: <BookOpen className="h-4 w-4" />,
       },
       {
@@ -203,7 +188,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         icon: <FileText className="h-4 w-4" />,
       },
     ]
-  }, [asesmen, courseId, breadcrumbBase, breadcrumbBaseUrl, baseUrl])
+  }, [asesmen, courseId])
 
   useBreadcrumbPage(asesmen?.nama || 'Asesmen', breadcrumbItems)
 
@@ -308,7 +293,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                   </Button>
                 ) : (
                   <Button asChild>
-                    <Link href={`/courses/${courseId}/${asesmenId}/submit${from === 'pbl' ? '?from=pbl' : ''}`}>
+                    <Link href={`/pbl/${courseId}/${asesmenId}/submit`}>
                       <Upload className="mr-2 h-4 w-4" />
                       Kumpulkan Tugas
                     </Link>
@@ -358,7 +343,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       }
                     )
                     if (confirmed) {
-                      router.push(`/courses/${courseId}/${asesmenId}/kuis${from === 'pbl' ? '?from=pbl' : ''}`)
+                      router.push(`/pbl/${courseId}/${asesmenId}/kuis`)
                     }
                   }}>
                     <FileText className="mr-2 h-4 w-4" />
@@ -369,7 +354,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
             )}
             {isTeacherOrAdmin && (
               <Button variant="outline" asChild>
-                <Link href={`/courses/${courseId}/${asesmenId}/edit${from === 'pbl' ? '?from=pbl' : ''}`}>
+                <Link href={`/pbl/${courseId}/${asesmenId}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </Link>
@@ -952,7 +937,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                         <div className="flex items-center gap-2">
                           <Clock className="h-5 w-5 text-blue-500" />
                           <div>
-                            <p className="font-medium text-blue-700">Belum Dinilai</p>
+                            <p className="font-medium text-blue-700">Sedang di review</p>
                             <p className="text-sm text-muted-foreground">
                               Tugas Anda sedang dalam proses penilaian oleh guru
                             </p>
@@ -1013,126 +998,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           </TabsList>
 
           <TabsContent value="info" key={`info-${tabKey}`} className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
-            {/* Import Soal Excel — hanya untuk KUIS */}
-            {asesmen.tipe === 'KUIS' && (
-              <Card className="ios-glass-card border-border/30 rounded-2xl">
-                <CardHeader>
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <CardTitle className="text-base">Import Soal dari Excel</CardTitle>
-                      <CardDescription className="text-xs mt-1">
-                        Download template, isi soal &amp; jawaban, lalu import sekaligus
-                      </CardDescription>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {/* Download Template */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const a = document.createElement('a')
-                          a.href = `/api/asesmen/${asesmenId}/soal/template-excel`
-                          a.download = `Template_Soal_Kuis.xlsx`
-                          document.body.appendChild(a)
-                          a.click()
-                          document.body.removeChild(a)
-                        }}
-                      >
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Download Template
-                      </Button>
-
-                      {/* Import Excel */}
-                      <Button
-                        variant="default"
-                        size="sm"
-                        disabled={importExcelLoading}
-                        onClick={() => importExcelRef.current?.click()}
-                      >
-                        {importExcelLoading ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <FileUp className="mr-2 h-4 w-4" />
-                        )}
-                        {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
-                      </Button>
-
-                      {/* Hidden file input */}
-                      <input
-                        ref={importExcelRef}
-                        type="file"
-                        accept=".xlsx,.xls"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0]
-                          if (!file) return
-                          // Reset input so same file can be re-selected
-                          e.target.value = ''
-                          setImportExcelLoading(true)
-                          setImportExcelResult(null)
-                          try {
-                            const formData = new FormData()
-                            formData.append('file', file)
-                            const res = await fetch(`/api/asesmen/${asesmenId}/soal/import-excel`, {
-                              method: 'POST',
-                              body: formData,
-                            })
-                            const data = await res.json()
-                            if (res.ok) {
-                              const hasWarnings = data.warnings && data.warnings.length > 0
-                              setImportExcelResult({
-                                message: `${data.message}${data.skipped > 0 ? ` (${data.skipped} baris dilewati)` : ''}${hasWarnings ? ` — ada ${data.warnings.length} peringatan` : ''}`,
-                                type: hasWarnings ? 'warning' : 'success',
-                              })
-                              // Reload page to reflect new soal count
-                              setTimeout(() => window.location.reload(), 1500)
-                            } else {
-                              const detailMsg = data.details && data.details.length > 0
-                                ? `\n• ${data.details.slice(0, 5).join('\n• ')}${data.details.length > 5 ? `\n...dan ${data.details.length - 5} lainnya` : ''}`
-                                : ''
-                              setImportExcelResult({
-                                message: (data.error || 'Gagal mengimport') + detailMsg,
-                                type: 'error',
-                              })
-                            }
-                          } catch {
-                            setImportExcelResult({ message: 'Terjadi kesalahan jaringan', type: 'error' })
-                          } finally {
-                            setImportExcelLoading(false)
-                          }
-                        }}
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                {importExcelResult && (
-                  <CardContent className="pt-0">
-                    <Alert
-                      variant={importExcelResult.type === 'error' ? 'destructive' : 'default'}
-                      className={
-                        importExcelResult.type === 'success'
-                          ? 'border-green-500 bg-green-50 dark:bg-green-950'
-                          : importExcelResult.type === 'warning'
-                          ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
-                          : ''
-                      }
-                    >
-                      {importExcelResult.type === 'success' ? (
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      ) : importExcelResult.type === 'warning' ? (
-                        <AlertCircle className="h-4 w-4 text-yellow-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4" />
-                      )}
-                      <AlertDescription className="whitespace-pre-wrap text-sm">
-                        {importExcelResult.message}
-                      </AlertDescription>
-                    </Alert>
-                  </CardContent>
-                )}
-              </Card>
-            )}
-
             {/* Informasi (For KUIS) — Roster per kelas + status */}
             {asesmen.tipe === 'KUIS' && (
               <Card>
@@ -1367,12 +1232,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   {pengumpulan.nilai}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline">Belum dinilai</Badge>
+                                <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Sedang di review</Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
                               <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
+                                <Link href={`/pbl/${courseId}/${asesmen.id}/pengumpulan/${pengumpulan.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   Lihat Detail
                                 </Link>

@@ -424,7 +424,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
         setActiveTab(value)
         setTabKey(prev => prev + 1)
       }} className="space-y-4 sm:space-y-6">
-        <div className="w-full overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="w-[calc(100%+2rem)] sm:w-full overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="ios-tab-list min-w-max">
             <TabsTrigger value="materials" className="ios-tab-trigger">
               <BookOpen className="ios-tab-icon" />

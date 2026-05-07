@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes yang tidak boleh diakses oleh ADMIN
-const ADMIN_RESTRICTED_ROUTES = ['/projects', '/courses', '/compiler']
+const ADMIN_RESTRICTED_ROUTES = ['/pbl', '/courses', '/compiler']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -44,7 +44,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Run middleware on all pages that might need redirect or role checking
   matcher: [
-    '/projects/:path*',
+    '/pbl/:path*',
     '/courses/:path*',
     '/compiler/:path*',
   ],

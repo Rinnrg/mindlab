@@ -157,7 +157,7 @@ export default function SchedulePage() {
     if (event.type === 'project') {
       // Extract proyekId from event.id (format: "proyek-{id}")
       const proyekId = event.id.replace('proyek-', '')
-      return `/projects/${proyekId}`
+      return `/pbl/${proyekId}`
     }
     return null
   }
