@@ -196,7 +196,19 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                   ) : (
                     <div className="space-y-3">
                       {filteredMateri.map((material, index) => (
-                        <div key={material.id} className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm">
+                        <div
+                          key={material.id}
+                          className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm cursor-pointer"
+                          onClick={() => router.push(`/pbl/${course.id}/${material.id}`)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              router.push(`/pbl/${course.id}/${material.id}`);
+                            }
+                          }}
+                        >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
                             {index + 1}
                           </div>
@@ -204,25 +216,29 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                             <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base mb-1">{material.judul}</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{material.deskripsi}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/pbl/${course.id}/${material.id}`}>
-                                Buka
-                              </Link>
-                            </Button>
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             {isTeacherOrAdmin && (
                               <div className="flex items-center gap-2">
-                                <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3">
-                                  <Link href={`/pbl/${course.id}/${material.id}/edit`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 rounded-lg px-3"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/pbl/${course.id}/${material.id}/edit`)
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteMateri(material.id, material.judul)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteMateri(material.id, material.judul)
+                                  }}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Hapus
@@ -277,7 +293,19 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                   ) : (
                     <div className="space-y-3">
                       {filteredAsesmen.map((assessment, index) => (
-                        <div key={assessment.id} className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm">
+                        <div
+                          key={assessment.id}
+                          className="group relative w-full border border-border/50 rounded-xl p-4 flex items-start gap-4 hover:border-primary/50 transition-colors bg-background/50 backdrop-blur-sm cursor-pointer"
+                          onClick={() => router.push(`/pbl/${course.id}/${assessment.id}`)}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              router.push(`/pbl/${course.id}/${assessment.id}`);
+                            }
+                          }}
+                        >
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary font-bold">
                             {index + 1}
                           </div>
@@ -296,25 +324,29 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button asChild variant="secondary" size="sm" className="rounded-lg">
-                              <Link href={`/pbl/${course.id}/${assessment.id}`}>
-                                Buka
-                              </Link>
-                            </Button>
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             {isTeacherOrAdmin && (
                               <div className="flex items-center gap-2">
-                                <Button asChild variant="ghost" size="sm" className="h-9 rounded-lg px-3">
-                                  <Link href={`/pbl/${course.id}/${assessment.id}/edit`}>
-                                    <Pencil className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </Link>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-9 rounded-lg px-3"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/pbl/${course.id}/${assessment.id}/edit`)
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
-                                  onClick={() => handleDeleteAsesmen(assessment.id, assessment.nama)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleDeleteAsesmen(assessment.id, assessment.nama)
+                                  }}
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Hapus

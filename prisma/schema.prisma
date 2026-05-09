@@ -43,7 +43,7 @@ model Course {
   kategori    String       @db.VarChar(255)
   guruId      String       @db.Uuid
   asesmen     Asesmen[]
-  guru        User         @relation(fields: [guruId], references: [id])
+  guru        User         @relation(fields: [guruId], references: [id], onDelete: Cascade)
   enrollments Enrollment[]
   materi      Materi[]
 
@@ -95,7 +95,7 @@ model Asesmen {
   acakJawaban       Boolean             @default(false)
   acakSoal          Boolean             @default(false)
   course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  guru              User                @relation(fields: [guruId], references: [id])
+  guru              User                @relation(fields: [guruId], references: [id], onDelete: Cascade)
   forumDiskusi      ForumDiskusi[]
   nilai             Nilai[]
   kuisAttempts      KuisAttempt[]
@@ -150,7 +150,7 @@ model JawabanSiswa {
   soalId       String   @db.Uuid
   nilaiId      String?  @db.Uuid
   nilai        Nilai?   @relation(fields: [nilaiId], references: [id], onDelete: Cascade)
-  siswa        User     @relation(fields: [siswaId], references: [id])
+  siswa        User     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   soal         Soal     @relation(fields: [soalId], references: [id], onDelete: Cascade)
 
   @@unique([siswaId, soalId], name: "siswaId_soalId")
@@ -167,8 +167,8 @@ model Nilai {
   asesmenId    String         @db.Uuid
   attemptId    String?        @db.Uuid
   jawabanSiswa JawabanSiswa[]
-  asesmen      Asesmen        @relation(fields: [asesmenId], references: [id])
-  siswa        User           @relation(fields: [siswaId], references: [id])
+  asesmen      Asesmen        @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
+  siswa        User           @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   attempt      KuisAttempt?   @relation(fields: [attemptId], references: [id], onDelete: SetNull)
 
   @@unique([siswaId, asesmenId], name: "siswaId_asesmenId")
@@ -211,7 +211,7 @@ model PBL {
   fileSize    Int?
   guruId      String     @db.Uuid
   kelompok    Kelompok[]
-  guru        User       @relation("PBLDibuat", fields: [guruId], references: [id])
+  guru        User       @relation("PBLDibuat", fields: [guruId], references: [id], onDelete: Cascade)
 
   @@index([guruId])
   @@index([tgl_mulai])
@@ -225,8 +225,8 @@ model Kelompok {
   pblId       String?             @db.Uuid
   asesmenId   String?             @db.Uuid
   anggota     AnggotaKelompok[]
-  pbl         PBL?                @relation(fields: [pblId], references: [id])
-  asesmen     Asesmen?            @relation("AsesmenKelompok", fields: [asesmenId], references: [id])
+  pbl         PBL?                @relation(fields: [pblId], references: [id], onDelete: Cascade)
+  asesmen     Asesmen?            @relation("AsesmenKelompok", fields: [asesmenId], references: [id], onDelete: Cascade)
   pengumpulan PengumpulanProyek[]
 
   @@index([pblId])
@@ -237,8 +237,8 @@ model AnggotaKelompok {
   id         String   @id @default(uuid()) @db.Uuid
   kelompokId String   @db.Uuid
   siswaId    String   @db.Uuid
-  kelompok   Kelompok @relation(fields: [kelompokId], references: [id])
-  siswa      User     @relation(fields: [siswaId], references: [id])
+  kelompok   Kelompok @relation(fields: [kelompokId], references: [id], onDelete: Cascade)
+  siswa      User     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
 
   @@index([kelompokId])
   @@index([siswaId])
@@ -272,8 +272,8 @@ model PengumpulanProyek {
   siswaId         String?           @db.Uuid
   asesmenId       String?           @db.Uuid
   asesmen         Asesmen?          @relation(fields: [asesmenId], references: [id], onDelete: Cascade)
-  kelompok        Kelompok?         @relation(fields: [kelompokId], references: [id])
-  siswa           User?             @relation(fields: [siswaId], references: [id])
+  kelompok        Kelompok?         @relation(fields: [kelompokId], references: [id], onDelete: Cascade)
+  siswa           User?             @relation(fields: [siswaId], references: [id], onDelete: Cascade)
   profileShowcase ProfileShowcase?
 
   @@index([kelompokId])
