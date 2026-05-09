@@ -885,6 +885,93 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       </div>
                     )}
                     
+                    {/* Konten Pengumpulan */}
+                    <Card className="border-border/30 bg-muted/20 overflow-hidden rounded-xl">
+                      <CardHeader className="py-3 bg-muted/40 border-b border-border/30">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          Hasil Pekerjaan Anda
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        {(studentPengumpulan.fileUrl || studentPengumpulan.hasFileData || studentPengumpulan.sourceCode || studentPengumpulan.textContent) ? (
+                          <Tabs defaultValue={(studentPengumpulan.fileUrl || studentPengumpulan.hasFileData) ? "file" : studentPengumpulan.sourceCode ? "code" : "text"} className="w-full">
+                            <TabsList className="w-full justify-start rounded-none border-b border-border/30 bg-transparent px-4">
+                              {(studentPengumpulan.fileUrl || studentPengumpulan.hasFileData) && (
+                                <TabsTrigger value="file" className="data-[state=active]:bg-background">File</TabsTrigger>
+                              )}
+                              {studentPengumpulan.sourceCode && (
+                                <TabsTrigger value="code" className="data-[state=active]:bg-background">Source Code</TabsTrigger>
+                              )}
+                              {studentPengumpulan.textContent && (
+                                <TabsTrigger value="text" className="data-[state=active]:bg-background">Ketikan Teks</TabsTrigger>
+                              )}
+                            </TabsList>
+                            
+                            {(studentPengumpulan.fileUrl || studentPengumpulan.hasFileData) && (
+                              <TabsContent value="file" className="p-4 m-0">
+                                <div className="flex items-center justify-between p-3 rounded-lg bg-background border border-border/50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                      <FileText className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium">{studentPengumpulan.fileName || "File Tugas"}</p>
+                                      <p className="text-xs text-muted-foreground">Tersimpan di sistem</p>
+                                    </div>
+                                  </div>
+                                  <Button size="sm" variant="outline" asChild>
+                                    <a 
+                                      href={studentPengumpulan.hasFileData ? `/api/pengumpulan/${studentPengumpulan.id}/file` : studentPengumpulan.fileUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                    >
+                                      <Download className="h-4 w-4 mr-2" />
+                                      Buka / Unduh
+                                    </a>
+                                  </Button>
+                                </div>
+                              </TabsContent>
+                            )}
+
+                            {studentPengumpulan.sourceCode && (
+                              <TabsContent value="code" className="p-4 m-0">
+                                <div className="space-y-4">
+                                  <div className="bg-background p-4 rounded-lg border border-border/50 overflow-x-auto">
+                                    <pre className="text-xs font-mono leading-relaxed whitespace-pre-wrap">
+                                      {studentPengumpulan.sourceCode}
+                                    </pre>
+                                  </div>
+                                  {studentPengumpulan.output && (
+                                    <div className="space-y-2">
+                                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Output:</p>
+                                      <div className="bg-zinc-950 text-emerald-400 p-3 rounded-lg font-mono text-xs border border-emerald-500/20">
+                                        {studentPengumpulan.output}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </TabsContent>
+                            )}
+
+                            {studentPengumpulan.textContent && (
+                              <TabsContent value="text" className="p-4 m-0">
+                                <div className="bg-background p-5 rounded-xl border border-border/50 ios-glass-inset min-h-[150px]">
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                                    {studentPengumpulan.textContent}
+                                  </p>
+                                </div>
+                              </TabsContent>
+                            )}
+                          </Tabs>
+                        ) : (
+                          <div className="p-6 text-center text-sm text-muted-foreground">
+                            Detail konten tidak tersedia.
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                    
                     <Separator />
                     
                     <div className="p-4 bg-muted rounded-lg">

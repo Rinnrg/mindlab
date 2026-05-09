@@ -114,6 +114,7 @@ model Asesmen {
 enum SubmissionComponent {
   UPLOAD_FILE
   COMPILER
+  TEXT
 }
 
 model Soal {

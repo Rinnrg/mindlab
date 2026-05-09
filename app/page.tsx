@@ -13,7 +13,7 @@ export default function LandingPage() {
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg">
-              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
+              <img src="/logo%20mindlab.svg" alt="Mindlab Logo" className="h-8 w-8 object-contain" />
             </div>
             <span className="text-base font-semibold tracking-tight">Mindlab</span>
           </Link>
@@ -21,9 +21,8 @@ export default function LandingPage() {
             <Link 
               href="/login" 
               className={cn(buttonVariants({ size: "sm" }), "text-sm")}
-            >
-              Masuk / Login
-            </Link>
+              suppressHydrationWarning
+            >Masuk / Login</Link>
           </div>
         </div>
       </header>
@@ -45,16 +44,13 @@ export default function LandingPage() {
             <Link 
               href="/login"
               className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto gap-2")}
-            >
-              Mulai Sekarang
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              suppressHydrationWarning
+            >Mulai Sekarang<ArrowRight className="h-4 w-4" /></Link>
             <Link 
               href="#features"
               className={cn(buttonVariants({ variant: "outline", size: "lg" }), "w-full sm:w-auto bg-transparent")}
-            >
-              Pelajari Lebih Lanjut
-            </Link>
+              suppressHydrationWarning
+            >Pelajari Lebih Lanjut</Link>
           </div>
         </div>
       </section>
@@ -132,9 +128,8 @@ export default function LandingPage() {
             <Link 
               href="/login"
               className={buttonVariants({ size: "lg" })}
-            >
-              Daftar Sekarang
-            </Link>
+              suppressHydrationWarning
+            >Daftar Sekarang</Link>
           </div>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
@@ -152,7 +147,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded">
-              <img src="/logo mindlab.svg" alt="Mindlab Logo" className="h-6 w-6 object-contain" />
+              <img src="/logo%20mindlab.svg" alt="Mindlab Logo" className="h-6 w-6 object-contain" />
             </div>
             <span className="text-sm font-medium">Mindlab</span>
           </div>

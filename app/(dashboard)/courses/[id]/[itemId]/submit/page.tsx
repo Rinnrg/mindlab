@@ -73,10 +73,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   // Compiler state
-  const [submitMode, setSubmitMode] = useState<"file" | "compiler">("file")
   const [sourceCode, setSourceCode] = useState("# Tulis kode Python kamu di sini\nprint('Hello, World!')\n")
   const [compilerOutput, setCompilerOutput] = useState("")
   const [isRunning, setIsRunning] = useState(false)
+
+  // Text state
+  const [textContent, setTextContent] = useState("")
+
+  const [activeTab, setActiveTab] = useState<string>("file")
 
   // Students for group selection
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
@@ -158,21 +162,27 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             setCatatan(submission.catatan || "")
             if (submission.sourceCode) {
               setSourceCode(submission.sourceCode)
-              setSubmitMode("compiler")
             }
             if (submission.output) {
               setCompilerOutput(submission.output)
             }
+            if (submission.textContent) {
+              setTextContent(submission.textContent)
+            }
           }
 
-          // Enforce allowed submit modes based on asesmen.submissionComponents
-          const comps = Array.isArray(asesmenData.submissionComponents)
-            ? asesmenData.submissionComponents
-            : null
-          const allowFile = !comps || comps.includes('UPLOAD_FILE')
-          const allowCompiler = !comps || comps.includes('COMPILER')
-          if (!allowCompiler && allowFile) setSubmitMode('file')
-          if (!allowFile && allowCompiler) setSubmitMode('compiler')
+          // Determine initial active tab based on components
+          const components = Array.isArray(asesmenData.submissionComponents) 
+            ? asesmenData.submissionComponents 
+            : ['UPLOAD_FILE']
+          
+          if (components.length > 0) {
+            if (components.includes('UPLOAD_FILE')) setActiveTab('file')
+            else if (components.includes('COMPILER')) setActiveTab('code')
+            else if (components.includes('TEXT')) setActiveTab('text')
+          }
+
+
 
           // Fetch enrolled students for group selection
           if (asesmenData.tipePengerjaan === 'KELOMPOK') {
@@ -237,13 +247,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-  const hasFile = submitMode === "file" && (fileUrl || uploadedFile)
-    const hasCode = submitMode === "compiler" && sourceCode.trim()
+    const hasFile = (fileUrl || uploadedFile)
+    const hasCode = sourceCode.trim()
+    const hasText = textContent.trim()
 
-    if (!hasFile && !hasCode) {
-      showError("Error", submitMode === "file"
-        ? "Silakan upload file tugas terlebih dahulu"
-        : "Silakan tulis kode terlebih dahulu")
+    if (!hasFile && !hasCode && !hasText) {
+      showError("Error", "Silakan isi salah satu komponen pengumpulan (File, Code, atau Teks)")
       return
     }
 
@@ -287,24 +296,26 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         const endpoint = `/api/asesmen/${asesmenId}/submit`
 
         const response = await (async () => {
-          if (submitMode === 'file' && uploadedFile) {
-            const form = new FormData()
-            form.append('siswaId', user?.id || '')
-            if (isKelompok) {
-              form.append('namaKelompok', finalNamaKelompok || '')
-              form.append('ketua', finalKetua || '')
-              form.append('anggota', finalAnggota || '')
-            }
-            if (catatan) form.append('catatan', catatan)
-            // if user also filled a link manually, keep it too
-            if (fileUrl) form.append('fileUrl', fileUrl)
-            form.append('file', uploadedFile)
+            if (uploadedFile) {
+              const form = new FormData()
+              form.append('siswaId', user?.id || '')
+              if (isKelompok) {
+                form.append('namaKelompok', finalNamaKelompok || '')
+                form.append('ketua', finalKetua || '')
+                form.append('anggota', finalAnggota || '')
+              }
+              if (catatan) form.append('catatan', catatan)
+              if (fileUrl) form.append('fileUrl', fileUrl)
+              if (sourceCode) form.append('sourceCode', sourceCode)
+              if (compilerOutput) form.append('output', compilerOutput)
+              if (textContent) form.append('textContent', textContent)
+              form.append('file', uploadedFile)
 
-            return fetch(endpoint, {
-              method: 'POST',
-              body: form,
-            })
-          }
+              return fetch(endpoint, {
+                method: 'POST',
+                body: form,
+              })
+            }
 
           const payload: Record<string, any> = {
             siswaId: user?.id,
@@ -312,13 +323,10 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             ketua: isKelompok ? finalKetua : null,
             anggota: isKelompok ? finalAnggota : null,
             catatan,
-          }
-
-          if (submitMode === 'file') {
-            payload.fileUrl = fileUrl
-          } else {
-            payload.sourceCode = sourceCode
-            payload.output = compilerOutput
+            fileUrl,
+            sourceCode,
+            output: compilerOutput,
+            textContent,
           }
 
           return fetch(endpoint, {
@@ -402,6 +410,16 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           <p className="text-muted-foreground mt-2">{asesmen.nama}</p>
         </div>
       </div>
+
+      {!submissionComponents || submissionComponents.length === 0 ? (
+        <Alert variant="destructive" className="bg-destructive/10 border-destructive/20">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <span className="font-semibold">Perhatian:</span> Guru belum mengatur komponen pengumpulan untuk asesmen ini. 
+            Silakan hubungi guru pengampu untuk mengkonfigurasi metode pengumpulan (File, Code, atau Teks).
+          </AlertDescription>
+        </Alert>
+      ) : null}
 
       {/* Deadline Warning */}
       {isDeadlinePassed && (
@@ -610,131 +628,159 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <Tabs
-              value={submitMode}
-              onValueChange={(v) => {
-                const next = v as "file" | "compiler"
-                setSubmitMode(next)
-                if (next !== 'file') setUploadedFile(null)
-              }}
-            >
-              <TabsList className="ios-tab-list">
-                {allowFile && (
-                  <TabsTrigger value="file" className="ios-tab-trigger">
-                    <FileText className="ios-tab-icon" />
-                    <span className="ios-tab-text">Upload File</span>
-                  </TabsTrigger>
-                )}
-                {allowCompiler && (
-                  <TabsTrigger value="compiler" className="ios-tab-trigger">
-                    <Code className="ios-tab-icon" />
-                    <span className="ios-tab-text">Python Compiler</span>
-                  </TabsTrigger>
-                )}
-              </TabsList>
-
-              {allowFile && (
-                <TabsContent value="file" className="mt-4 space-y-4">
-                {existingSubmissionFileHref && (
-                  <Alert>
-                    <AlertDescription>
-                      File tersimpan di sistem:{' '}
-                      <a
-                        className="underline"
-                        href={existingSubmissionFileHref}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Download / Lihat
-                      </a>
-                    </AlertDescription>
-                  </Alert>
-                )}
-                <FileUploadField
-                  label="File Tugas"
-                  value={fileUrl}
-                  onChange={setFileUrl}
-                  description={
-                    isDeadlinePassed
-                      ? "Deadline sudah lewat"
-                      : "Upload file tugas atau berikan link ke file (Google Drive, OneDrive, dll)"
-                  }
-                />
-
-                <div className="space-y-2">
-                  <Label>Upload langsung (tersimpan ke database)</Label>
-                  <Input
-                    type="file"
-                    accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
-                    onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
-                    disabled={isDeadlinePassed}
-                  />
-                  {uploadedFile && (
-                    <p className="text-xs text-muted-foreground">
-                      File dipilih:{' '}
-                      <span className="font-medium">{uploadedFile.name}</span>
-                      {' '}({Math.round(uploadedFile.size / 1024)} KB)
-                    </p>
+            {submissionComponents && submissionComponents.length > 0 && (
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
+                <TabsList className="ios-tab-list mb-4">
+                  {submissionComponents.includes('UPLOAD_FILE') && (
+                    <TabsTrigger value="file" className="ios-tab-trigger">
+                      <FileUp className="ios-tab-icon" />
+                      <span className="ios-tab-text">Upload File</span>
+                    </TabsTrigger>
                   )}
-                  <p className="text-xs text-muted-foreground">
-                    Ini dipakai untuk production (Vercel) agar upload tetap jalan.
-                  </p>
-                </div>
-                </TabsContent>
-              )}
+                  {submissionComponents.includes('COMPILER') && (
+                    <TabsTrigger value="code" className="ios-tab-trigger">
+                      <Code className="ios-tab-icon" />
+                      <span className="ios-tab-text">Python Code</span>
+                    </TabsTrigger>
+                  )}
+                  {submissionComponents.includes('TEXT') && (
+                    <TabsTrigger value="text" className="ios-tab-trigger">
+                      <FileText className="ios-tab-icon" />
+                      <span className="ios-tab-text">Ketikan Teks</span>
+                    </TabsTrigger>
+                  )}
+                </TabsList>
 
-              {allowCompiler && (
-                <TabsContent value="compiler" className="mt-4 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Kode Python</Label>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={handleRunCode}
-                      disabled={isRunning || !sourceCode.trim()}
-                      className="gap-2"
-                    >
-                      {isRunning ? (
-                        <><Loader2 className="h-3.5 w-3.5 animate-spin" />Running...</>
-                      ) : (
-                        <><Play className="h-3.5 w-3.5" />Run Code</>
+                {submissionComponents.includes('UPLOAD_FILE') && (
+                  <TabsContent value="file" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-4">
+                      {existingSubmissionFileHref && (
+                        <Alert className="bg-primary/5 border-primary/20">
+                          <AlertDescription className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                            File tersimpan di sistem:{' '}
+                            <a
+                              className="font-medium underline hover:text-primary transition-colors"
+                              href={existingSubmissionFileHref}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Download / Lihat File
+                            </a>
+                          </AlertDescription>
+                        </Alert>
                       )}
-                    </Button>
-                  </div>
-                  <div className="border rounded-lg overflow-hidden">
-                    <Editor
-                      height="300px"
-                      language="python"
-                      value={sourceCode}
-                      onChange={(val) => setSourceCode(val || "")}
-                      theme="vs-dark"
-                      options={{
-                        minimap: { enabled: false },
-                        fontSize: 13,
-                        lineNumbers: "on",
-                        scrollBeyondLastLine: false,
-                        automaticLayout: true,
-                        padding: { top: 8, bottom: 8 },
-                        readOnly: isDeadlinePassed,
-                      }}
-                    />
-                  </div>
-                </div>
+                      
+                      <FileUploadField
+                        label="Link Tugas (Optional)"
+                        value={fileUrl}
+                        onChange={setFileUrl}
+                        description={
+                          isDeadlinePassed
+                            ? "Deadline sudah lewat"
+                            : "Berikan link ke file (Google Drive, OneDrive, dll)"
+                        }
+                      />
 
-                {compilerOutput && (
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Terminal className="h-4 w-4" />Output
-                    </Label>
-                    <div className="bg-zinc-900 text-zinc-100 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap max-h-[200px] overflow-y-auto">
-                      {compilerOutput}
+                      <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
+                        <Label className="text-sm font-semibold">Upload File Langsung</Label>
+                        <Input
+                          type="file"
+                          className="bg-background"
+                          accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                          onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
+                          disabled={isDeadlinePassed}
+                        />
+                        {uploadedFile && (
+                          <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 p-2 rounded-lg">
+                            <FileUp className="h-3 w-3" />
+                            <span>File dipilih: <strong>{uploadedFile.name}</strong> ({Math.round(uploadedFile.size / 1024)} KB)</span>
+                          </div>
+                        )}
+                        <p className="text-[10px] text-muted-foreground italic">
+                          * Mendukung berbagai format file umum (PDF, Docx, PPT, Zip, dll). Maksimal 10MB.
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  </TabsContent>
                 )}
-                </TabsContent>
-              )}
-            </Tabs>
+
+                {submissionComponents.includes('COMPILER') && (
+                  <TabsContent value="code" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-semibold">Python Compiler</Label>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={handleRunCode}
+                          disabled={isRunning || !sourceCode.trim()}
+                          className="gap-2 h-8"
+                        >
+                          {isRunning ? (
+                            <><Loader2 className="h-3 w-3 animate-spin" />Running...</>
+                          ) : (
+                            <><Play className="h-3 w-3" />Run Code</>
+                          )}
+                        </Button>
+                      </div>
+                      <div className="border rounded-xl overflow-hidden shadow-inner bg-[#1e1e1e]">
+                        <Editor
+                          height="350px"
+                          language="python"
+                          value={sourceCode}
+                          onChange={(val) => setSourceCode(val || "")}
+                          theme="vs-dark"
+                          options={{
+                            minimap: { enabled: false },
+                            fontSize: 14,
+                            lineNumbers: "on",
+                            scrollBeyondLastLine: false,
+                            automaticLayout: true,
+                            padding: { top: 12, bottom: 12 },
+                            readOnly: isDeadlinePassed,
+                            fontFamily: "JetBrains Mono, Menlo, Monaco, 'Courier New', monospace",
+                          }}
+                        />
+                      </div>
+                      {compilerOutput && (
+                        <div className="space-y-2 animate-in zoom-in-95 duration-200">
+                          <Label className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            <Terminal className="h-3 w-3" />Output Console
+                          </Label>
+                          <div className="bg-zinc-950 text-emerald-400 p-4 rounded-xl font-mono text-sm whitespace-pre-wrap border border-emerald-500/20 shadow-lg">
+                            {compilerOutput}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+                )}
+
+                {submissionComponents.includes('TEXT') && (
+                  <TabsContent value="text" className="space-y-4 animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold">Jawaban Ketikan</Label>
+                      <Textarea
+                        value={textContent}
+                        onChange={(e) => setTextContent(e.target.value)}
+                        placeholder="Tuliskan jawaban atau laporan Anda di sini..."
+                        className="min-h-[300px] text-sm leading-relaxed rounded-xl focus-visible:ring-primary/20 transition-all border-border/50 bg-background/50"
+                        disabled={isDeadlinePassed}
+                      />
+                      <div className="flex justify-between items-center text-[10px] text-muted-foreground italic px-1">
+                        <p>* Jawaban Anda akan tersimpan secara otomatis saat menekan tombol kumpulkan.</p>
+                        <p>{textContent.length} karakter</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+                )}
+              </Tabs>
+            )}
 
             {/* Actions */}
             <div className="flex gap-3">

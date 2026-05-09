@@ -26,6 +26,7 @@ import {
   ArrowDown,
   Upload,
   Code as CodeIcon,
+  Type,
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 
@@ -67,7 +68,7 @@ type Kelas = { id: string; nama: string }
 
 type TipeAsesmen = "KUIS" | "TUGAS"
 
-type SubmissionComponentType = "UPLOAD_FILE" | "COMPILER"
+type SubmissionComponentType = "UPLOAD_FILE" | "COMPILER" | "TEXT"
 
 type EnrolledStudent = {
   id: string
@@ -556,6 +557,16 @@ export default function AddAsesmenPage() {
                     <CodeIcon className="h-4 w-4" />
                     Compiler
                   </button>
+                  <button
+                    type="button"
+                    draggable
+                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "TEXT")}
+                    onClick={() => addSubmissionComponent("TEXT")}
+                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
+                  >
+                    <Type className="h-4 w-4" />
+                    Input Teks
+                  </button>
 
                   <Separator className="my-2" />
                   <div className="text-xs text-muted-foreground">
@@ -891,7 +902,7 @@ export default function AddAsesmenPage() {
                   setIsCanvasDragOver(false)
                   const raw = e.dataTransfer.getData("text/plain") as SubmissionComponentType
                   if (!raw) return
-                  if (raw !== "UPLOAD_FILE" && raw !== "COMPILER") return
+                  if (raw !== "UPLOAD_FILE" && raw !== "COMPILER" && raw !== "TEXT") return
                   setSubmissionComponents((prev) => (prev.includes(raw) ? prev : [...prev, raw]))
                 }}
               >
@@ -948,6 +959,29 @@ export default function AddAsesmenPage() {
                           </div>
                           <p className="mt-2 text-xs text-muted-foreground">
                             Siswa akan melihat editor kode dan hasil output (jika dijalankan).
+                          </p>
+                        </div>
+                      )}
+
+                      {submissionComponents.includes("TEXT") && (
+                        <div className="rounded-xl border p-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 font-medium">
+                              <Type className="h-4 w-4" /> Input Teks
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                setSubmissionComponents((prev) => prev.filter((c) => c !== "TEXT"))
+                              }
+                            >
+                              Hapus
+                            </Button>
+                          </div>
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Siswa akan melihat area teks (textarea) untuk jawaban tertulis.
                           </p>
                         </div>
                       )}

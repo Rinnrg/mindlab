@@ -74,10 +74,11 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   // Compiler state
-  const [submitMode, setSubmitMode] = useState<"file" | "compiler">("file")
+  const [submitMode, setSubmitMode] = useState<"file" | "compiler" | "text">("file")
   const [sourceCode, setSourceCode] = useState("# Tulis kode Python kamu di sini\nprint('Hello, World!')\n")
   const [compilerOutput, setCompilerOutput] = useState("")
   const [isRunning, setIsRunning] = useState(false)
+  const [textContent, setTextContent] = useState("")
 
   // Students for group selection
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
@@ -149,10 +150,20 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             setFileUrl(submission.fileUrl || "")
             if (submission.sourceCode) {
               setSourceCode(submission.sourceCode)
-              setSubmitMode("compiler")
             }
             if (submission.output) {
               setCompilerOutput(submission.output)
+            }
+            if (submission.textContent) {
+              setTextContent(submission.textContent)
+            }
+            
+            // Set initial tab based on submissionComponents
+            const comps = asesmenData.submissionComponents || []
+            if (comps.length > 0) {
+              if (comps.includes('UPLOAD_FILE')) setSubmitMode('file')
+              else if (comps.includes('COMPILER')) setSubmitMode('compiler')
+              else if (comps.includes('TEXT')) setSubmitMode('text')
             }
           }
 
@@ -230,13 +241,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-  const hasFile = submitMode === "file" && (fileUrl || uploadedFile)
-    const hasCode = submitMode === "compiler" && sourceCode.trim()
+    const hasFile = fileUrl || uploadedFile
+    const hasCode = sourceCode.trim() && sourceCode !== "# Tulis kode Python kamu di sini\nprint('Hello, World!')\n"
+    const hasText = textContent.trim()
 
-    if (!hasFile && !hasCode) {
-      showError("Error", submitMode === "file"
-        ? "Silakan upload file tugas terlebih dahulu"
-        : "Silakan tulis kode terlebih dahulu")
+    if (!hasFile && !hasCode && !hasText) {
+      showError("Error", "Silakan isi setidaknya satu komponen pengumpulan")
       return
     }
 
@@ -280,18 +290,26 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         const endpoint = `/api/asesmen/${asesmenId}/submit`
 
         const response = await (async () => {
-          if (submitMode === 'file' && uploadedFile) {
+          if (uploadedFile) {
             const form = new FormData()
-            form.append('siswaId', user?.id || '')
+            form.append("siswaId", user?.id || "")
             if (isKelompok) {
-              form.append('namaKelompok', finalNamaKelompok || '')
-              form.append('ketua', finalKetua || '')
-              form.append('anggota', finalAnggota || '')
+              form.append("namaKelompok", finalNamaKelompok || "")
+              form.append("ketua", finalKetua || "")
+              form.append("anggota", finalAnggota || "")
             }
-            if (fileUrl) form.append('fileUrl', fileUrl)
-            form.append('file', uploadedFile)
+            if (fileUrl) form.append("fileUrl", fileUrl)
+            form.append("file", uploadedFile)
 
-            return fetch(endpoint, { method: 'POST', body: form })
+            if (hasCode) {
+              form.append("sourceCode", sourceCode)
+              if (compilerOutput) form.append("output", compilerOutput)
+            }
+            if (hasText) {
+              form.append("textContent", textContent)
+            }
+
+            return fetch(endpoint, { method: "POST", body: form })
           }
 
           const payload: Record<string, any> = {
@@ -301,11 +319,15 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             anggota: isKelompok ? finalAnggota : null,
           }
 
-          if (submitMode === 'file') {
+          if (hasFile) {
             payload.fileUrl = fileUrl
-          } else {
+          }
+          if (hasCode) {
             payload.sourceCode = sourceCode
             payload.output = compilerOutput
+          }
+          if (hasText) {
+            payload.textContent = textContent
           }
 
           return fetch(endpoint, {
@@ -426,29 +448,51 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
               </div>
             </CardHeader>
             <CardContent className="p-6">
+              {!asesmen.submissionComponents || asesmen.submissionComponents.length === 0 ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                    <AlertCircle className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-bold">Komponen Pengumpulan Belum Diatur</h3>
+                    <p className="text-sm text-muted-foreground">Guru belum menentukan metode pengumpulan untuk tugas ini.</p>
+                  </div>
+                </div>
+              ) : (
               <form onSubmit={handleSubmit} className="space-y-8">
                 <Tabs
                   value={submitMode}
                   onValueChange={(v) => {
-                    const next = v as "file" | "compiler"
+                    const next = v as "file" | "compiler" | "text"
                     setSubmitMode(next)
-                    if (next !== 'file') setUploadedFile(null)
+                    // No longer clearing state here to allow BOTH submissions
                   }}
                   className="w-full"
                 >
-                  <TabsList className="ios-tab-list w-full max-w-md mx-auto mb-8">
-                    <TabsTrigger value="file" className="ios-tab-trigger">
-                      <FileText className="ios-tab-icon" />
-                      <span className="ios-tab-text">Upload File</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="compiler" className="ios-tab-trigger">
-                      <Code className="ios-tab-icon" />
-                      <span className="ios-tab-text">Compiler</span>
-                    </TabsTrigger>
+                  <TabsList className="ios-tab-list w-full max-w-xl mx-auto mb-8 overflow-x-auto flex-nowrap">
+                    {asesmen.submissionComponents.includes("UPLOAD_FILE") && (
+                      <TabsTrigger value="file" className="ios-tab-trigger">
+                        <FileText className="ios-tab-icon" />
+                        <span className="ios-tab-text">Upload File</span>
+                      </TabsTrigger>
+                    )}
+                    {asesmen.submissionComponents.includes("COMPILER") && (
+                      <TabsTrigger value="compiler" className="ios-tab-trigger">
+                        <Code className="ios-tab-icon" />
+                        <span className="ios-tab-text">Compiler / Code</span>
+                      </TabsTrigger>
+                    )}
+                    {asesmen.submissionComponents.includes("TEXT") && (
+                      <TabsTrigger value="text" className="ios-tab-trigger">
+                        <FileText className="ios-tab-icon" />
+                        <span className="ios-tab-text">Ketikan Teks</span>
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   <AnimatePresence mode="wait">
-                    <TabsContent value="file" key="file-tab" className="mt-0 focus-visible:outline-none">
+                    {asesmen.submissionComponents.includes("UPLOAD_FILE") && (
+                      <TabsContent value="file" key="file-tab" className="mt-0 focus-visible:outline-none">
                       <motion.div
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -504,7 +548,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         </div>
                       </motion.div>
                     </TabsContent>
+                    )}
 
+                    {asesmen.submissionComponents.includes("COMPILER") && (
                     <TabsContent value="compiler" key="compiler-tab" className="mt-0 focus-visible:outline-none">
                       <motion.div
                         initial={{ opacity: 0, x: 10 }}
@@ -568,6 +614,35 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         )}
                       </motion.div>
                     </TabsContent>
+                    )}
+
+                    {asesmen.submissionComponents.includes("TEXT") && (
+                      <TabsContent value="text" key="text-tab" className="mt-0 focus-visible:outline-none">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="space-y-4"
+                        >
+                          <div className="space-y-2">
+                            <Label className="font-bold flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              Ketikan Jawaban Teks
+                            </Label>
+                            <Textarea
+                              placeholder="Tuliskan jawaban Anda di sini..."
+                              className="min-h-[300px] rounded-2xl p-4 ios-glass-inset focus:ring-primary/20 transition-all border-border/30"
+                              value={textContent}
+                              onChange={(e) => setTextContent(e.target.value)}
+                              disabled={isDeadlinePassed}
+                            />
+                            <p className="text-xs text-muted-foreground ml-1">
+                              Gunakan area ini untuk jawaban dalam bentuk narasi atau penjelasan.
+                            </p>
+                          </div>
+                        </motion.div>
+                      </TabsContent>
+                    )}
                   </AnimatePresence>
                 </Tabs>
 
@@ -606,6 +681,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </Button>
                 </div>
               </form>
+              )}
             </CardContent>
           </Card>
         </div>

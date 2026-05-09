@@ -40,6 +40,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface PengumpulanDetailClientProps {
   courseId: string
@@ -203,60 +204,112 @@ export default function PengumpulanDetailClient({
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <AnimatePresence mode="wait">
-    {showPdf && fileHref ? (
-                  <motion.div 
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="aspect-[3/4] sm:aspect-[4/5] w-full bg-muted/50">
-                      <iframe 
-      src={`${fileHref}#toolbar=0`}
-                        className="w-full h-full border-0"
-                        title="Submission Preview"
-                      />
+              <Tabs defaultValue={fileHref ? "file" : pengumpulan.sourceCode ? "code" : "text"} className="w-full">
+                <div className="px-6 py-2 border-b border-border/30 bg-muted/20">
+                  <TabsList className="ios-tab-list w-full max-w-md mx-auto mb-6">
+                  {fileHref && (
+                    <TabsTrigger value="file" className="ios-tab-trigger">
+                      <FileText className="ios-tab-icon" />
+                      <span className="ios-tab-text">File Tugas</span>
+                    </TabsTrigger>
+                  )}
+                  {pengumpulan.sourceCode && (
+                    <TabsTrigger value="code" className="ios-tab-trigger">
+                      <Code className="ios-tab-icon" />
+                      <span className="ios-tab-text">Source Code</span>
+                    </TabsTrigger>
+                  )}
+                  {pengumpulan.textContent && (
+                    <TabsTrigger value="text" className="ios-tab-trigger">
+                      <FileText className="ios-tab-icon" />
+                      <span className="ios-tab-text">Ketikan Teks</span>
+                    </TabsTrigger>
+                  )}
+                </TabsList>
+
+                <TabsContent value="file" className="m-0 focus-visible:outline-none">
+                  <AnimatePresence mode="wait">
+                    {showPdf && fileHref ? (
+                      <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="aspect-[3/4] sm:aspect-[4/5] w-full bg-muted/50">
+                          <iframe 
+                            src={`${fileHref}#toolbar=0`}
+                            className="w-full h-full border-0"
+                            title="Submission Preview"
+                          />
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <div className="p-12 text-center">
+                        <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+                          <FileText className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground">
+                          {fileHref ? "Preview dinonaktifkan. Klik 'Lihat' untuk menampilkan." : "Tidak ada file yang diunggah."}
+                        </p>
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </TabsContent>
+
+                <TabsContent value="code" className="m-0 focus-visible:outline-none">
+                  {pengumpulan.sourceCode ? (
+                    <div className="p-6 space-y-6">
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Code className="h-4 w-4 text-primary" />
+                          <h4 className="font-semibold text-sm">Teks Jawaban / Source Code</h4>
+                        </div>
+                        <pre className="p-4 rounded-xl bg-background border border-border/50 overflow-x-auto text-sm font-mono leading-relaxed">
+                          <code>{pengumpulan.sourceCode}</code>
+                        </pre>
+                      </div>
+
+                      {pengumpulan.output && (
+                        <div className="pt-4 border-t border-border/30">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Eye className="h-4 w-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Output / Hasil</h4>
+                          </div>
+                          <div className="p-4 rounded-xl bg-background border border-border/50 text-sm whitespace-pre-wrap leading-relaxed">
+                            {pengumpulan.output}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </motion.div>
-                ) : (
-                  <div className="p-8 text-center">
-                    <div className="inline-flex p-4 rounded-full bg-muted mb-4">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
+                  ) : (
+                    <div className="p-12 text-center">
+                      <div className="inline-flex p-4 rounded-full bg-muted mb-4">
+                        <Code className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <p className="text-muted-foreground">Tidak ada jawaban teks.</p>
                     </div>
-                    <p className="text-muted-foreground">Preview dinonaktifkan atau file tidak tersedia.</p>
-                  </div>
+                  )}
+                </TabsContent>
+
+                {pengumpulan.textContent && (
+                  <TabsContent value="text" className="mt-0 focus-visible:outline-none">
+                    <div className="ios-glass-inset rounded-2xl p-6 min-h-[400px]">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-4 flex items-center gap-2">
+                        <FileText className="h-4 w-4" />
+                        Jawaban Teks Siswa
+                      </h3>
+                      <div className="whitespace-pre-wrap leading-relaxed text-sm sm:text-base">
+                        {pengumpulan.textContent}
+                      </div>
+                    </div>
+                  </TabsContent>
                 )}
-              </AnimatePresence>
-
-              {pengumpulan.sourceCode && (
-                <div className="p-6 border-t border-border/30 bg-black/5 dark:bg-white/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Code className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold text-sm">Source Code / Teks Jawaban</h4>
-                  </div>
-                  <pre className="p-4 rounded-xl bg-background border border-border/50 overflow-x-auto text-sm font-mono leading-relaxed">
-                    <code>{pengumpulan.sourceCode}</code>
-                  </pre>
-                </div>
-              )}
-
-              {pengumpulan.output && (
-                <div className="p-6 border-t border-border/30 bg-primary/5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Eye className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold text-sm">Output / Hasil</h4>
-                  </div>
-                  <div className="p-4 rounded-xl bg-background border border-border/50 text-sm whitespace-pre-wrap leading-relaxed">
-                    {pengumpulan.output}
-                  </div>
-                </div>
-              )}
+              </Tabs>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right: Grading Form */}
         <div className="space-y-6">
           <Card className="ios-glass-card border-border/30 rounded-2xl sticky top-24">
             <CardHeader>
