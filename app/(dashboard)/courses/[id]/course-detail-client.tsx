@@ -37,6 +37,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import AddStudentDialog from "./add-student-dialog"
 import EditTeacherDialog from "./edit-teacher-dialog"
 import { useAsyncAction } from "@/hooks/use-async-action"
+import { getSintaksInfo } from "@/lib/constants/pbl"
 
 interface CourseDetailClientProps {
   course: Course
@@ -481,8 +482,12 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
                         <h4 className="text-sm font-medium truncate group-hover:text-primary transition-colors sm:text-base">{material.judul}</h4>
-                        {/* Show enrollment badges */}
-                        {material.kelasTarget && material.kelasTarget.length > 0 ? (
+                        {/* Show sintaks or enrollment badges */}
+                        {material.sintak && getSintaksInfo(material.sintak) ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {getSintaksInfo(material.sintak)?.title}
+                          </Badge>
+                        ) : material.kelasTarget && material.kelasTarget.length > 0 ? (
                           <Badge variant="secondary" className="text-xs">
                             {material.kelasTarget.length} kelas enrolled
                           </Badge>
@@ -614,16 +619,22 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap sm:gap-2 mb-1">
                             <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
-                            {/* Show enrollment badges */}
-                            {assessment.kelasTarget && assessment.kelasTarget.length > 0 ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {assessment.kelasTarget.length} kelas enrolled
+                            {/* Show sintaks and category badges */}
+                            <div className="flex gap-1.5 flex-wrap">
+                              {assessment.sintak && getSintaksInfo(assessment.sintak) && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {getSintaksInfo(assessment.sintak)?.title}
+                                </Badge>
+                              )}
+                              <Badge variant="default" className="text-xs">
+                                {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
                               </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-xs">
-                                Semua siswa
-                              </Badge>
-                            )}
+                              {(!assessment.sintak || !getSintaksInfo(assessment.sintak)) && assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {assessment.kelasTarget.length} kelas enrolled
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                           <CardDescription className="line-clamp-2 text-xs sm:text-sm">
                             {assessment.deskripsi}
@@ -667,8 +678,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <Badge variant={assessment.tipe === 'KUIS' ? 'default' : 'secondary'}>
-                          {assessment.tipe === 'KUIS' ? 'Kuis' : 'Tugas'}
+                        <Badge variant="default">
+                          {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
                         </Badge>
                         {assessment.tgl_selesai && (
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">

@@ -312,8 +312,8 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base">{assessment.nama}</h4>
-                              <Badge variant={assessment.tipe === 'KUIS' ? 'default' : 'secondary'} className="text-[10px] h-5">
-                                {assessment.tipe === 'KUIS' ? 'Kuis' : 'Tugas'}
+                              <Badge variant="default" className="text-[10px] h-5">
+                                {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
                               </Badge>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{assessment.deskripsi}</p>

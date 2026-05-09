@@ -41,6 +41,7 @@ import {
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { ForumDiskusiAsesmen } from "@/components/forum-diskusi-asesmen"
+import { getSintaksInfo } from "@/lib/constants/pbl"
 
 interface AsesmenDetailClientProps {
   courseId: string
@@ -259,11 +260,16 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           <div className="space-y-2 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">{asesmen.nama}</h1>
-              <Badge variant={asesmen.tipe === 'KUIS' ? 'default' : 'secondary'} className="rounded-lg">
+              {asesmen.sintak && getSintaksInfo(asesmen.sintak) && (
+                <Badge variant="secondary" className="rounded-lg">
+                  {getSintaksInfo(asesmen.sintak)?.title}
+                </Badge>
+              )}
+              <Badge variant="default" className="rounded-lg">
                 {asesmen.tipe === 'KUIS' ? (
                   <><FileText className="mr-1 h-3 w-3" /> Kuis</>
                 ) : (
-                  <><Upload className="mr-1 h-3 w-3" /> Tugas</>
+                  <><Upload className="mr-1 h-3 w-3" /> Pengumpulan</>
                 )}
               </Badge>
               {isDeadlinePassed && (
@@ -384,7 +390,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950">
           <Clock className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
           <AlertDescription className="text-yellow-800 dark:text-yellow-200">
-            <strong>Belum Dimulai:</strong> {asesmen.tipe === 'KUIS' ? 'Kuis' : 'Tugas'} ini akan dimulai pada{' '}
+            <strong>Belum Dimulai:</strong> {asesmen.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'} ini akan dimulai pada{' '}
             {new Date(asesmen.tgl_mulai).toLocaleString('id-ID', {
               weekday: 'long',
               year: 'numeric',
