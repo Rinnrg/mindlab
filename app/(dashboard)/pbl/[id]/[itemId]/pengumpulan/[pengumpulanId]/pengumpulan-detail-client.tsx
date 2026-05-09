@@ -226,6 +226,7 @@ export default function PengumpulanDetailClient({
                     </TabsTrigger>
                   )}
                 </TabsList>
+                </div>
 
                 <TabsContent value="file" className="m-0 focus-visible:outline-none">
                   <AnimatePresence mode="wait">
