@@ -400,6 +400,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             router.push(`/courses/${courseId}/${asesmenId}`)
           }, 1500)
         },
+      }
     ).finally(() => {
       setSubmitting(false)
     })
