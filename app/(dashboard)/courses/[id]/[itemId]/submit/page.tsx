@@ -40,7 +40,6 @@ import {
   Crown,
   CheckCircle2,
   X,
-  X,
   BookOpen,
   CalendarClock,
 } from "lucide-react"
