@@ -19,6 +19,7 @@ export async function POST(
     let siswaId: unknown
     let sourceCode: unknown
     let output: unknown
+    let scheduledAt: unknown
     let uploadedFile: File | null = null
 
     if (isMultipart) {
@@ -31,11 +32,12 @@ export async function POST(
       siswaId = form.get('siswaId')
       sourceCode = form.get('sourceCode')
       output = form.get('output')
+      scheduledAt = form.get('scheduledAt')
       const f = form.get('file')
       uploadedFile = f instanceof File ? f : null
     } else {
       const body = await request.json()
-      ;({ namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output } = body || {})
+      ;({ namaKelompok, ketua, anggota, fileUrl, catatan, siswaId, sourceCode, output, scheduledAt } = body || {})
     }
 
   if (!siswaId || typeof siswaId !== 'string' || !siswaId.trim()) {
@@ -66,11 +68,27 @@ export async function POST(
     }
 
     // Check deadline
-    if (asesmen.tgl_selesai && new Date(asesmen.tgl_selesai) < new Date()) {
+    const now = new Date()
+    if (asesmen.tgl_selesai && new Date(asesmen.tgl_selesai) < now) {
       return NextResponse.json(
         { error: 'Deadline pengumpulan sudah lewat' },
         { status: 400 }
       )
+    }
+
+    // Parse and validate scheduled time
+    let targetDate = now
+    if (typeof scheduledAt === 'string' && scheduledAt.trim()) {
+      const parsedDate = new Date(scheduledAt)
+      if (!isNaN(parsedDate.getTime())) {
+        if (asesmen.tgl_selesai && parsedDate > new Date(asesmen.tgl_selesai)) {
+          return NextResponse.json(
+            { error: 'Jadwal pengumpulan tidak boleh melebihi deadline' },
+            { status: 400 }
+          )
+        }
+        targetDate = parsedDate
+      }
     }
 
     // Normalize anggota to string[] because Prisma schema expects String[]
@@ -226,6 +244,7 @@ export async function POST(
           output: outputStr || existingSubmission.output,
           kelompokId: existingSubmission.kelompokId || kelompokId,
           status: 'PENDING', // Reset status when re-submitted
+          tgl_unggah: targetDate,
         },
       })
     } else {
@@ -251,6 +270,7 @@ export async function POST(
           asesmenId: id,
           kelompokId,
           status: 'PENDING',
+          tgl_unggah: targetDate,
         },
       })
     }

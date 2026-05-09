@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
     const proyekId = searchParams.get('proyekId')
 
     const where: any = {}
-    if (siswaId) where.siswaId = siswaId
+    if (siswaId) {
+      where.siswaId = siswaId
+    } else {
+      where.tgl_unggah = { lte: new Date() }
+    }
     if (asesmenId) where.asesmenId = asesmenId
     if (proyekId) where.proyekId = proyekId
 

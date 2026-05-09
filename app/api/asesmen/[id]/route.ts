@@ -163,6 +163,11 @@ export async function GET(
         }
       }
       includeOptions.pengumpulanProyek = {
+        where: {
+          tgl_unggah: {
+            lte: new Date(),
+          },
+        },
         include: {
           siswa: {
             select: {

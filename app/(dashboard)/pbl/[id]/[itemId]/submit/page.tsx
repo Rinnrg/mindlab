@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { FileUploadField } from "@/components/file-upload-field"
@@ -41,7 +42,7 @@ import {
   CheckCircle2,
   X,
   BookOpen,
-  Clock,
+  CalendarClock,
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -72,6 +73,10 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [fileUrl, setFileUrl] = useState("")
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
+
+  // Scheduled upload state
+  const [isScheduled, setIsScheduled] = useState(false)
+  const [scheduledDate, setScheduledDate] = useState("")
 
   // Compiler state
   const [submitMode, setSubmitMode] = useState<"file" | "compiler" | "text">("file")
@@ -156,6 +161,13 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             }
             if (submission.textContent) {
               setTextContent(submission.textContent)
+            }
+            if (submission.tgl_unggah && new Date(submission.tgl_unggah) > new Date()) {
+              setIsScheduled(true)
+              const d = new Date(submission.tgl_unggah)
+              const tzOffset = d.getTimezoneOffset() * 60000
+              const localISOTime = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16)
+              setScheduledDate(localISOTime)
             }
             
             // Set initial tab based on submissionComponents
@@ -271,13 +283,31 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
       }
     }
 
+    if (isScheduled && !scheduledDate) {
+      showError("Gagal", "Silakan pilih tanggal dan waktu untuk upload terjadwal.")
+      return
+    }
+
+    if (isScheduled && scheduledDate) {
+      const selected = new Date(scheduledDate)
+      const now = new Date()
+      if (selected <= now) {
+        showError("Waktu Tidak Valid", "Waktu terjadwal harus di masa depan.")
+        return
+      }
+      if (asesmen?.tgl_selesai && selected > new Date(asesmen.tgl_selesai)) {
+        showError("Waktu Tidak Valid", "Waktu terjadwal tidak boleh melewati deadline.")
+        return
+      }
+    }
+
     const confirmed = await confirm(
-      existingSubmission ? "Perbarui Pengumpulan?" : "Kumpulkan Tugas?",
+      existingSubmission ? "Perbarui Pengumpulan?" : (isScheduled ? "Jadwalkan Pengumpulan?" : "Kumpulkan Tugas?"),
       {
         description: existingSubmission
           ? "Apakah Anda yakin ingin memperbarui pengumpulan tugas ini?"
-          : "Apakah Anda yakin ingin mengumpulkan tugas ini?",
-        confirmText: existingSubmission ? "Perbarui" : "Kumpulkan",
+          : (isScheduled ? "Tugas akan otomatis terkumpul pada jadwal yang ditentukan." : "Apakah Anda yakin ingin mengumpulkan tugas ini?"),
+        confirmText: existingSubmission ? "Perbarui" : (isScheduled ? "Jadwalkan" : "Kumpulkan"),
         cancelText: "Batal",
         type: "info",
       }
@@ -285,9 +315,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
     if (!confirmed) return
 
+    setSubmitting(true)
+
     await execute(
       async () => {
         const endpoint = `/api/asesmen/${asesmenId}/submit`
+        const scheduledAtISO = isScheduled && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
 
         const response = await (async () => {
           if (uploadedFile) {
@@ -308,6 +341,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             if (hasText) {
               form.append("textContent", textContent)
             }
+            if (scheduledAtISO) {
+              form.append("scheduledAt", scheduledAtISO)
+            }
 
             return fetch(endpoint, { method: "POST", body: form })
           }
@@ -317,6 +353,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             namaKelompok: isKelompok ? finalNamaKelompok : null,
             ketua: isKelompok ? finalKetua : null,
             anggota: isKelompok ? finalAnggota : null,
+            scheduledAt: scheduledAtISO,
           }
 
           if (hasFile) {
@@ -365,7 +402,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           }, 1500)
         },
       }
-    )
+    ).finally(() => {
+      setSubmitting(false)
+    })
   }
 
   if (authLoading || loading) {
