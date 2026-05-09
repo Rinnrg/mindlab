@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      const allowed = new Set(['UPLOAD_FILE', 'COMPILER'])
+      const allowed = new Set(['UPLOAD_FILE', 'COMPILER', 'TEXT'])
       const invalid = submissionComponents.find((c: any) => !allowed.has(String(c)))
       if (invalid) {
         return NextResponse.json(
