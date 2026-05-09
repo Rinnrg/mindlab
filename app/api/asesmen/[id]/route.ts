@@ -252,6 +252,7 @@ export async function PUT(
       lampiran,
       courseId,
       antiCurang,
+      submissionComponents,
       soal // Array of questions for KUIS
     } = body
 
@@ -296,6 +297,9 @@ export async function PUT(
     if (tipe !== undefined) updateData.tipe = tipe
     if (tipe === 'TUGAS' && tipePengerjaan !== undefined) {
       updateData.tipePengerjaan = tipePengerjaan || 'INDIVIDU'
+      if (submissionComponents && Array.isArray(submissionComponents)) {
+        updateData.submissionComponents = submissionComponents
+      }
     } else if (tipe === 'KUIS') {
       updateData.tipePengerjaan = null
     }
