@@ -31,6 +31,7 @@ model User {
   pengumpulanProyek PengumpulanProyek[]
   profileShowcase   ProfileShowcase[]
   masalahDibuat     PBL[]               @relation("PBLDibuat")
+  ketuaKelompok     Kelompok[]          @relation("KetuaKelompok")
 }
 
 model Course {
@@ -225,13 +226,16 @@ model Kelompok {
   nama        String              @db.VarChar(255)
   pblId       String?             @db.Uuid
   asesmenId   String?             @db.Uuid
+  ketuaId     String?             @db.Uuid
   anggota     AnggotaKelompok[]
   pbl         PBL?                @relation(fields: [pblId], references: [id], onDelete: Cascade)
   asesmen     Asesmen?            @relation("AsesmenKelompok", fields: [asesmenId], references: [id], onDelete: Cascade)
+  ketua       User?               @relation("KetuaKelompok", fields: [ketuaId], references: [id], onDelete: SetNull)
   pengumpulan PengumpulanProyek[]
 
   @@index([pblId])
   @@index([asesmenId])
+  @@index([ketuaId])
 }
 
 model AnggotaKelompok {

@@ -299,6 +299,7 @@ export async function POST(request: NextRequest) {
       if (tipe === 'TUGAS' && tipePengerjaan === 'KELOMPOK' && groups) {
         const groupCount = Number((groups as any).groupCount)
         const membersByGroup = (groups as any).membersByGroup as Record<string, string[]> | undefined
+        const ketuaByGroup = (groups as any).ketuaByGroup as Record<string, string> | undefined
 
         if (!Number.isFinite(groupCount) || groupCount < 1) {
           throw new Error('groups.groupCount tidak valid')
@@ -308,6 +309,7 @@ export async function POST(request: NextRequest) {
         const payload = Array.from({ length: groupCount }).map((_, i) => {
           const groupNo = String(i + 1)
           const members = (membersByGroup && membersByGroup[groupNo]) || []
+          const ketuaId = (ketuaByGroup && ketuaByGroup[groupNo]) || null
           const uniqueMembers = Array.from(new Set(members.map(String)))
           for (const m of uniqueMembers) {
             if (used.has(m)) {
@@ -315,7 +317,7 @@ export async function POST(request: NextRequest) {
             }
             used.add(m)
           }
-          return { groupNo, members: uniqueMembers }
+          return { groupNo, members: uniqueMembers, ketuaId }
         })
 
         // Create only groups that have members (avoid empty groups)
@@ -328,6 +330,7 @@ export async function POST(request: NextRequest) {
                 data: {
                   nama: `Kelompok ${g.groupNo}`,
                   asesmenId: newAsesmen.id,
+                  ketuaId: g.ketuaId,
                   anggota: {
                     create: g.members.map((siswaId) => ({ siswaId })),
                   },

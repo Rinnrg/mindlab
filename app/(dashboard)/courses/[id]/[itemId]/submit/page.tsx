@@ -144,16 +144,26 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
           setAsesmen(asesmenData)
 
-          // Check if student already submitted
-          // - Individu: by siswaId
-          // - Kelompok: by kelompok membership (any member's submission should count)
+          // Check if student already submitted or is assigned to a group
           let submission: any = null
           if (asesmenData.tipePengerjaan === 'KELOMPOK') {
-            const myKelompokId = asesmenData.kelompok?.find((k: any) =>
-              (k.anggota || []).some((a: any) => a.siswaId === user.id || a.siswa?.id === user.id)
-            )?.id
-            if (myKelompokId) {
-              submission = asesmenData.pengumpulanProyek?.find((p: any) => p.kelompokId === myKelompokId) || null
+            const myKelompok = asesmenData.kelompok?.find((k: any) =>
+              (k.anggota || []).some((a: any) => a.siswaId === user.id)
+            )
+            
+            if (myKelompok) {
+              setNamaKelompok(myKelompok.nama || "")
+              // Check if we have a ketuaId from the new system
+              if (myKelompok.ketuaId) {
+                setSelectedKetua(myKelompok.ketuaId)
+              }
+              // Set members
+              const memberIds = (myKelompok.anggota || []).map((a: any) => a.siswaId)
+              setSelectedAnggota(memberIds.filter((id: string) => id !== (myKelompok.ketuaId || "")))
+              
+              submission = asesmenData.pengumpulanProyek?.find((p: any) => p.kelompokId === myKelompok.id) || null
+            } else {
+              submission = asesmenData.pengumpulanProyek?.find((p: any) => p.siswaId === user.id) || null
             }
           } else {
             submission = asesmenData.pengumpulanProyek?.find((p: any) => p.siswaId === user.id) || null

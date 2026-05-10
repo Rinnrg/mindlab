@@ -27,7 +27,14 @@ import {
   Upload,
   Code as CodeIcon,
   Type,
+  Wand2,
+  Crown,
+  Users,
+  User as UserIcon,
+  X,
+  Loader2,
 } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth-context"
 
 async function uploadPublicFile(file: File): Promise<string> {
@@ -131,6 +138,39 @@ export default function AddAsesmenPage() {
   const [selectedKelas, setSelectedKelas] = React.useState<string[]>([])
   const [loadingKelas, setLoadingKelas] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const [selectedKetuaByGroup, setSelectedKetuaByGroup] = React.useState<Record<number, string>>({})
+
+  const autoGenerateGroups = React.useCallback(() => {
+    if (enrolledStudents.length === 0) return
+
+    const students = [...enrolledStudents]
+    // Shuffle students randomly
+    for (let i = students.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [students[i], students[j]] = [students[j], students[i]]
+    }
+
+    const nextMembers: Record<number, string[]> = {}
+    const baseSize = Math.floor(students.length / groupCount)
+    const remainder = students.length % groupCount
+
+    let studentIndex = 0
+    for (let i = 1; i <= groupCount; i++) {
+      // Distribution: add 1 from remainder to each group until remainder is exhausted
+      // This is slightly better than putting all remainder in the last group,
+      // but the user specifically mentioned putting remainder in the last group.
+      // Let's stick to the user's specific request: "masukkan ke kelompok 4 jadi 5"
+      const currentSize = i === groupCount ? baseSize + remainder : baseSize
+      const members = students.slice(studentIndex, studentIndex + currentSize).map(s => s.id)
+      nextMembers[i] = members
+      studentIndex += currentSize
+    }
+
+    setSelectedGroupMembersByGroup(nextMembers)
+    // Clear ketua selection on auto-generate
+    setSelectedKetuaByGroup({})
+  }, [enrolledStudents, groupCount])
 
   // Google-Form-like builder state (hanya untuk KUIS)
   const [soalList, setSoalList] = React.useState<Soal[]>([
@@ -296,13 +336,33 @@ export default function AddAsesmenPage() {
       if (current.has(studentId)) {
         current.delete(studentId)
         next[groupNo] = Array.from(current)
+        
+        // Clear ketua selection if they were the ketua of this group
+        if (selectedKetuaByGroup[groupNo] === studentId) {
+          setSelectedKetuaByGroup(pk => {
+            const nk = { ...pk }
+            delete nk[groupNo]
+            return nk
+          })
+        }
+        
         return next
       }
 
       // Remove student from any other group first (one student only in one group)
       for (const [k, v] of Object.entries(next)) {
-        const g = Number(k)
-        next[g] = (v || []).filter((id) => id !== studentId)
+        const gn = Number(k)
+        if (v?.includes(studentId)) {
+          next[gn] = (v || []).filter((id) => id !== studentId)
+          // Also clear as ketua of that other group
+          if (selectedKetuaByGroup[gn] === studentId) {
+            setSelectedKetuaByGroup(pk => {
+              const nk = { ...pk }
+              delete nk[gn]
+              return nk
+            })
+          }
+        }
       }
 
       current.add(studentId)
@@ -415,6 +475,7 @@ export default function AddAsesmenPage() {
             payload.groups = {
               groupCount,
               membersByGroup: selectedGroupMembersByGroup,
+              ketuaByGroup: selectedKetuaByGroup,
             }
           }
           payload.lampiran = fileName
@@ -1119,110 +1180,239 @@ export default function AddAsesmenPage() {
         </div>
 
         <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
-          <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden">
-            <DialogHeader>
-              <DialogTitle>Atur Kelompok</DialogTitle>
-              <DialogDescription>
-                Pilih anggota untuk tiap kelompok. Satu siswa hanya boleh ada di satu kelompok.
-              </DialogDescription>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogHeader className="px-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <DialogTitle className="text-xl flex items-center gap-2">
+                    <Users className="h-5 w-5 text-primary" /> Atur Kelompok
+                  </DialogTitle>
+                  <DialogDescription>
+                    Tentukan jumlah kelompok, bagi siswa secara otomatis, dan pilih ketua kelompok.
+                  </DialogDescription>
+                </div>
+              </div>
             </DialogHeader>
 
-            <div className="space-y-4 overflow-auto pr-1">
-              <div className="flex items-center gap-3">
-                <Label htmlFor="groupCount">Jumlah Kelompok</Label>
-                <Input
-                  id="groupCount"
-                  type="number"
-                  min={1}
-                  value={groupCount}
-                  onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
-                  className="w-28"
-                />
+            <div className="flex-1 overflow-hidden flex flex-col gap-6 py-4">
+              {/* Toolbar */}
+              <div className="flex flex-col sm:flex-row items-end gap-4 p-4 rounded-2xl bg-muted/30 border border-border/50">
+                <div className="space-y-2 w-full sm:w-auto">
+                  <Label htmlFor="groupCount" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Jumlah Kelompok</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="groupCount"
+                      type="number"
+                      min={1}
+                      max={enrolledStudents.length || 1}
+                      value={groupCount}
+                      onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
+                      className="w-24 h-10 rounded-xl"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="secondary"
+                      onClick={autoGenerateGroups}
+                      disabled={loadingStudents || enrolledStudents.length === 0}
+                      className="h-10 rounded-xl gap-2 font-semibold"
+                    >
+                      <Wand2 className="h-4 w-4" />
+                      Generate Otomatis
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex-1 text-xs text-muted-foreground italic pb-2">
+                  * Total {enrolledStudents.length} siswa akan dibagi ke dalam {groupCount} kelompok.
+                </div>
               </div>
 
-              <div className="rounded-xl border p-3 space-y-3">
-                <p className="text-sm font-medium">Daftar Siswa</p>
-                {loadingStudents ? (
-                  <div className="text-sm text-muted-foreground">Memuat daftar siswa...</div>
-                ) : enrolledStudents.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">
-                    Tidak ada siswa terdaftar di course ini, atau endpoint students belum mengembalikan data.
+              <div className="flex-1 overflow-hidden grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6">
+                {/* Siswa List (Unassigned or Changeable) */}
+                <div className="flex flex-col gap-3 overflow-hidden">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Daftar Siswa</h3>
+                    <Badge variant="outline" className="rounded-md">
+                      {enrolledStudents.length} Total
+                    </Badge>
                   </div>
-                ) : (
-                  <div className="max-h-[280px] overflow-auto rounded-lg border border-border/30">
-                    <table className="w-full text-sm">
-                      <thead className="sticky top-0 bg-background/80 backdrop-blur border-b">
-                        <tr>
-                          <th className="text-left font-medium p-2">Siswa</th>
-                          <th className="text-left font-medium p-2 w-[120px]">Kelompok</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {enrolledStudents.map((s) => {
-                          const currentGroup = memberGroupIndex.get(s.id) || 0
-                          return (
-                            <tr key={s.id} className="border-b last:border-b-0">
-                              <td className="p-2">
-                                <div className="font-medium">{s.nama}</div>
-                                {s.email ? <div className="text-xs text-muted-foreground">{s.email}</div> : null}
-                              </td>
-                              <td className="p-2">
+                  <div className="flex-1 overflow-auto border rounded-2xl bg-background/50 divide-y divide-border/30">
+                    {loadingStudents ? (
+                      <div className="p-8 text-center text-sm text-muted-foreground">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                        Memuat daftar siswa...
+                      </div>
+                    ) : enrolledStudents.length === 0 ? (
+                      <div className="p-8 text-center text-sm text-muted-foreground">
+                        Belum ada siswa terdaftar.
+                      </div>
+                    ) : (
+                      enrolledStudents.map((s) => {
+                        const currentGroup = memberGroupIndex.get(s.id) || 0
+                        const isKetua = selectedKetuaByGroup[currentGroup] === s.id
+                        
+                        return (
+                          <div key={s.id} className="p-3 flex items-center gap-3 group hover:bg-muted/30 transition-colors">
+                            <Avatar className="h-8 w-8 shrink-0">
+                              <AvatarImage src={s.foto || ""} />
+                              <AvatarFallback className="text-[10px]">
+                                {s.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold truncate flex items-center gap-1">
+                                {s.nama}
+                                {isKetua && <Crown className="h-3 w-3 text-yellow-500 shrink-0" />}
+                              </div>
+                              <div className="text-[10px] text-muted-foreground truncate">{s.email}</div>
+                            </div>
+                            <Select
+                              value={String(currentGroup)}
+                              onValueChange={(v) => {
+                                const g = Number(v)
+                                if (g === 0) {
+                                  setSelectedGroupMembersByGroup((prev) => {
+                                    const next = { ...prev }
+                                    Object.keys(next).forEach(key => {
+                                      next[Number(key)] = next[Number(key)].filter(id => id !== s.id)
+                                    })
+                                    return next
+                                  })
+                                  setSelectedKetuaByGroup(prev => {
+                                    const next = { ...prev }
+                                    Object.keys(next).forEach(key => {
+                                      if (next[Number(key)] === s.id) delete next[Number(key)]
+                                    })
+                                    return next
+                                  })
+                                } else {
+                                  toggleStudentInGroup(g, s.id)
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[80px] h-8 text-[10px] rounded-lg">
+                                <SelectValue placeholder="-" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">-</SelectItem>
+                                {Array.from({ length: groupCount }).map((_, idx) => (
+                                  <SelectItem key={idx} value={String(idx + 1)}>
+                                    G {idx + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* Groups Preview */}
+                <div className="flex flex-col gap-3 overflow-hidden">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground px-1">Visualisasi Kelompok</h3>
+                  <div className="flex-1 overflow-auto pr-2 custom-scrollbar">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {Array.from({ length: groupCount }).map((_, idx) => {
+                        const groupNo = idx + 1
+                        const members = selectedGroupMembersByGroup[groupNo] || []
+                        const ketuaId = selectedKetuaByGroup[groupNo]
+                        
+                        return (
+                          <Card key={idx} className="overflow-hidden border-border/50 shadow-sm hover:shadow-md transition-all rounded-2xl">
+                            <div className="bg-primary/5 px-4 py-3 border-b border-border/30 flex items-center justify-between">
+                              <span className="font-bold text-sm">Kelompok {groupNo}</span>
+                              <Badge variant="secondary" className="text-[10px] rounded-full">
+                                {members.length} Siswa
+                              </Badge>
+                            </div>
+                            <CardContent className="p-4 space-y-4">
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                                  <Crown className="h-3 w-3 text-yellow-500" /> Ketua Kelompok
+                                </Label>
                                 <Select
-                                  value={currentGroup ? String(currentGroup) : "0"}
-                                  onValueChange={(v) => {
-                                    const g = Number(v)
-                                    if (!g) {
-                                      // remove from all groups
-                                      setSelectedGroupMembersByGroup((prev) => {
-                                        const next: Record<number, string[]> = { ...prev }
-                                        for (const [k, members] of Object.entries(next)) {
-                                          const gn = Number(k)
-                                          next[gn] = (members || []).filter((id) => id !== s.id)
-                                        }
-                                        return next
-                                      })
-                                      return
-                                    }
-                                    toggleStudentInGroup(g, s.id)
-                                  }}
+                                  value={ketuaId || ""}
+                                  onValueChange={(v) => setSelectedKetuaByGroup(prev => ({ ...prev, [groupNo]: v }))}
+                                  disabled={members.length === 0}
                                 >
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="-" />
+                                  <SelectTrigger className="h-9 rounded-xl text-xs">
+                                    <SelectValue placeholder="Pilih Ketua..." />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="0">-</SelectItem>
-                                    {Array.from({ length: groupCount }).map((_, idx) => (
-                                      <SelectItem key={idx} value={String(idx + 1)}>
-                                        {`Kelompok ${idx + 1}`}
-                                      </SelectItem>
-                                    ))}
+                                    {members.map(id => {
+                                      const s = enrolledStudents.find(st => st.id === id)
+                                      return (
+                                        <SelectItem key={id} value={id}>
+                                          {s?.nama || "Unknown"}
+                                        </SelectItem>
+                                      )
+                                    })}
                                   </SelectContent>
                                 </Select>
-                              </td>
-                            </tr>
-                          )
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+                              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {Array.from({ length: groupCount }).map((_, idx) => (
-                  <div key={idx} className="rounded-xl border p-3">
-                    <div className="font-medium">Kelompok {idx + 1}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Anggota dipilih: {(selectedGroupMembersByGroup[idx + 1] || []).length}
+                              <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                                  <UserIcon className="h-3 w-3" /> Anggota
+                                </Label>
+                                <div className="space-y-2 max-h-[150px] overflow-auto pr-1">
+                                  {members.length === 0 ? (
+                                    <div className="text-[10px] text-muted-foreground italic p-2 text-center border border-dashed rounded-lg">
+                                      Belum ada anggota
+                                    </div>
+                                  ) : (
+                                    members.map(id => {
+                                      const s = enrolledStudents.find(st => st.id === id)
+                                      return (
+                                        <div key={id} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-muted/20 border border-border/30">
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <Avatar className="h-5 w-5">
+                                              <AvatarImage src={s?.foto || ""} />
+                                              <AvatarFallback className="text-[8px]">
+                                                {s?.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <span className="text-xs truncate font-medium">{s?.nama}</span>
+                                          </div>
+                                          <button 
+                                            type="button"
+                                            onClick={() => {
+                                              setSelectedGroupMembersByGroup(prev => ({
+                                                ...prev,
+                                                [groupNo]: prev[groupNo].filter(mid => mid !== id)
+                                              }))
+                                              if (selectedKetuaByGroup[groupNo] === id) {
+                                                setSelectedKetuaByGroup(prev => {
+                                                  const next = { ...prev }
+                                                  delete next[groupNo]
+                                                  return next
+                                                })
+                                              }
+                                            }}
+                                            className="text-muted-foreground hover:text-destructive transition-colors"
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </button>
+                                        </div>
+                                      )
+                                    })
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setKelompokDialogOpen(false)}>
-                Tutup
+            <DialogFooter className="px-1 border-t pt-4">
+              <Button type="button" variant="default" onClick={() => setKelompokDialogOpen(false)} className="rounded-xl px-8 font-bold">
+                Selesai
               </Button>
             </DialogFooter>
           </DialogContent>
