@@ -1505,7 +1505,7 @@ export default function AddAsesmenPage() {
               </div>
             </DialogFooter>
           </DialogContent>
-        </Dialog>g>
+        </Dialog>
 
         <div className="flex justify-end pt-4">
           <Button type="submit" className="min-w-[200px]" disabled={isSubmitting}>
