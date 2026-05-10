@@ -1180,23 +1180,6 @@ export default function AddAsesmenPage() {
         </div>
         <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
           <DialogContent className="max-w-[98vw] sm:max-w-[95vw] lg:max-w-7xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-0 border-none rounded-none sm:rounded-[32px] bg-background/95 sm:bg-background/80 backdrop-blur-2xl shadow-2xl transition-all duration-500">
-            {/* Header - Fixed */}
-            <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-3 border-b border-border/10 bg-background/50 shrink-0">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="p-2.5 sm:p-3 rounded-2xl bg-primary/10 text-primary shadow-sm">
-                    <Users className="h-5 w-5 sm:h-6 sm:w-6" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <DialogTitle className="text-lg sm:text-2xl font-black tracking-tight leading-none">Manajemen Kelompok</DialogTitle>
-                    <DialogDescription className="text-[10px] sm:text-xs font-medium text-muted-foreground/70">
-                      Atur distribusi siswa dan tentukan pemimpin tim.
-                    </DialogDescription>
-                  </div>
-                </div>
-              </div>
-            </DialogHeader>
-
             {/* Main Content Area */}
             <div className="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col min-h-0">
               {/* Compact Toolbar */}
