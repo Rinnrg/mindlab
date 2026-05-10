@@ -96,7 +96,7 @@ function DialogContent({
         )}
         {...props}
       >
-        <div className="px-4 py-5 sm:px-6 sm:py-6">
+        <div className={cn("flex flex-col h-full", !className?.includes('p-0') && "px-4 py-5 sm:px-6 sm:py-6")}>
           {children}
         </div>
         {showCloseButton && (
