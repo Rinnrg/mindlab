@@ -1179,33 +1179,33 @@ export default function AddAsesmenPage() {
           </div>
         </div>
         <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
-          <DialogContent className="max-w-[98vw] sm:max-w-[95vw] lg:max-w-7xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-0 border-none rounded-none sm:rounded-[40px] bg-background/95 sm:bg-background/80 backdrop-blur-2xl shadow-2xl transition-all duration-500">
+          <DialogContent className="max-w-[98vw] sm:max-w-[95vw] lg:max-w-7xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-0 border-none rounded-none sm:rounded-[32px] bg-background/95 sm:bg-background/80 backdrop-blur-2xl shadow-2xl transition-all duration-500">
             {/* Header - Fixed */}
-            <DialogHeader className="p-4 sm:p-8 pb-3 sm:pb-6 border-b border-border/10 bg-background/50 shrink-0">
+            <DialogHeader className="p-4 sm:p-6 pb-2 sm:pb-3 border-b border-border/10 bg-background/50 shrink-0">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="p-3 sm:p-4 rounded-2xl sm:rounded-3xl bg-primary/10 text-primary shadow-inner">
-                    <Users className="h-6 w-6 sm:h-8 sm:w-8" />
+                  <div className="p-2.5 sm:p-3 rounded-2xl bg-primary/10 text-primary shadow-sm">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
-                  <div className="space-y-0.5 sm:space-y-1">
-                    <DialogTitle className="text-xl sm:text-3xl font-black tracking-tight leading-none">Konfigurasi Kelompok</DialogTitle>
-                    <DialogDescription className="text-[10px] sm:text-base font-medium text-muted-foreground/80">
-                      Kelola pembagian tim dan tentukan pemimpin tim secara efisien.
+                  <div className="space-y-0.5">
+                    <DialogTitle className="text-lg sm:text-2xl font-black tracking-tight leading-none">Manajemen Kelompok</DialogTitle>
+                    <DialogDescription className="text-[10px] sm:text-xs font-medium text-muted-foreground/70">
+                      Atur distribusi siswa dan tentukan pemimpin tim.
                     </DialogDescription>
                   </div>
                 </div>
               </div>
             </DialogHeader>
 
-            {/* Main Content Area - Scrollable on mobile, Grid on desktop */}
+            {/* Main Content Area */}
             <div className="flex-1 overflow-y-auto lg:overflow-hidden flex flex-col min-h-0">
-              {/* Toolbar - Stays at top of content */}
-              <div className="px-4 sm:px-8 py-4 bg-muted/5 border-b border-border/5 shrink-0">
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] bg-muted/20 border border-border/40 shadow-inner">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="groupCount" className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/70 ml-1">Jumlah Kelompok</Label>
-                      <div className="flex items-center gap-3">
+              {/* Compact Toolbar */}
+              <div className="px-4 sm:px-6 py-3 bg-muted/5 border-b border-border/5 shrink-0">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 p-3 sm:p-4 rounded-[20px] sm:rounded-[24px] bg-muted/20 border border-border/40 shadow-inner">
+                  <div className="flex items-center gap-3">
+                    <div className="space-y-1">
+                      <Label htmlFor="groupCount" className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">Jumlah Kelompok</Label>
+                      <div className="flex items-center gap-2">
                         <Input
                           id="groupCount"
                           type="number"
@@ -1213,59 +1213,52 @@ export default function AddAsesmenPage() {
                           max={enrolledStudents.length || 1}
                           value={groupCount}
                           onChange={(e) => setGroupCount(Math.max(1, Number(e.target.value) || 1))}
-                          className="w-24 h-12 sm:h-14 rounded-2xl border-border/40 bg-background/80 focus:ring-primary/20 text-center font-black text-xl shadow-sm"
+                          className="w-16 h-10 rounded-xl border-border/40 bg-background/80 focus:ring-primary/20 text-center font-black text-lg shadow-sm"
                         />
                         <Button 
                           type="button" 
                           variant="default"
+                          size="sm"
                           onClick={autoGenerateGroups}
                           disabled={loadingStudents || enrolledStudents.length === 0}
-                          className="h-12 sm:h-14 px-4 sm:px-8 rounded-2xl gap-2 font-black text-[10px] sm:text-sm shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:-translate-y-1 active:translate-y-0"
+                          className="h-10 px-5 rounded-xl gap-2 font-black text-[10px] sm:text-xs shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all active:scale-95"
                         >
-                          <Wand2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                          GENERATE OTOMATIS
+                          <Wand2 className="h-3.5 w-3.5" />
+                          AUTO-GENERATE
                         </Button>
                       </div>
                     </div>
                   </div>
                   
-                  <Separator orientation="vertical" className="h-12 hidden md:block opacity-30 mx-2" />
+                  <Separator orientation="vertical" className="h-10 hidden md:block opacity-20 mx-1" />
                   
                   <div className="flex-1">
-                    <div className="flex items-center gap-4 p-3 sm:p-4 rounded-2xl bg-primary/5 border border-primary/10">
-                      <div className="hidden sm:flex p-2.5 rounded-xl bg-primary/10 shadow-sm">
-                        <Users className="h-5 w-5 text-primary" />
-                      </div>
-                      <p className="text-[10px] sm:text-sm text-primary/80 font-bold leading-relaxed">
-                        Membagi <span className="text-primary font-black underline underline-offset-4">{enrolledStudents.length} siswa</span> ke dalam <span className="text-primary font-black underline underline-offset-4">{groupCount} tim</span>.
-                        <span className="block sm:inline ml-0 sm:ml-1 text-[9px] sm:text-xs opacity-70 font-medium italic">Sisa otomatis masuk ke kelompok terakhir.</span>
+                    <div className="flex items-center gap-3 p-2.5 rounded-xl bg-primary/5 border border-primary/10">
+                      <p className="text-[10px] sm:text-xs text-primary/70 font-bold leading-relaxed">
+                        <span className="text-primary font-black">{enrolledStudents.length} siswa</span> akan dibagi ke <span className="text-primary font-black">{groupCount} tim</span>.
+                        <span className="hidden sm:inline ml-1 opacity-70 font-medium">Sisa masuk ke kelompok terakhir.</span>
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Columns Container */}
-              <div className="flex-1 lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[420px_1fr] min-h-0">
-                {/* Left: Student List */}
-                <div className="flex flex-col gap-4 p-4 sm:p-8 bg-muted/5 border-b lg:border-b-0 lg:border-r border-border/10 lg:overflow-hidden min-h-0">
-                  <div className="flex items-center justify-between px-2">
-                    <h3 className="text-xs sm:text-[13px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Daftar Siswa</h3>
-                    <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-black px-3 py-1 text-[10px] sm:text-xs">
-                      {enrolledStudents.length} TOTAL
+              {/* Responsive Grid - Priority to Right Column */}
+              <div className="flex-1 lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[320px_1fr] min-h-0">
+                {/* Left: Student List (Narrower) */}
+                <div className="flex flex-col gap-3 p-4 sm:p-6 bg-muted/5 border-b lg:border-b-0 lg:border-r border-border/10 lg:overflow-hidden min-h-0">
+                  <div className="flex items-center justify-between px-1">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Daftar Siswa</h3>
+                    <Badge variant="outline" className="text-[9px] font-black px-2 py-0 border-border/40">
+                      {enrolledStudents.length}
                     </Badge>
                   </div>
                   
-                  <div className="flex-1 lg:overflow-y-auto pr-1 sm:pr-2 lg:custom-scrollbar space-y-3 min-h-0">
+                  <div className="flex-1 lg:overflow-y-auto pr-1 lg:custom-scrollbar space-y-2 min-h-0">
                     {loadingStudents ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                        <Loader2 className="h-10 w-10 animate-spin mb-4 opacity-30 text-primary" />
-                        <p className="text-[10px] sm:text-sm font-black uppercase tracking-widest opacity-50">Sinkronisasi Data...</p>
-                      </div>
-                    ) : enrolledStudents.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/50 italic border-2 border-dashed border-border/20 rounded-3xl">
-                        <Users className="h-12 w-12 mb-3 opacity-20" />
-                        <p className="text-sm font-bold">Belum ada siswa terdaftar.</p>
+                      <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                        <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                        <p className="text-[10px] font-bold uppercase tracking-widest">Loading...</p>
                       </div>
                     ) : (
                       enrolledStudents.map((s) => {
@@ -1275,29 +1268,29 @@ export default function AddAsesmenPage() {
                         return (
                           <div 
                             key={s.id} 
-                            className={`group flex items-center gap-4 p-3 sm:p-4 rounded-[24px] border transition-all duration-500 ${
+                            className={`group flex items-center gap-3 p-2.5 rounded-2xl border transition-all duration-300 ${
                               currentGroup > 0 
-                                ? 'bg-background border-primary/30 shadow-lg shadow-primary/5' 
-                                : 'bg-background/40 border-border/40 hover:border-border/80 hover:bg-background/60'
+                                ? 'bg-background border-primary/20 shadow-sm' 
+                                : 'bg-background/40 border-border/40 hover:bg-background/60'
                             }`}
                           >
                             <div className="relative shrink-0">
-                              <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-4 ring-offset-4 ring-transparent group-hover:ring-primary/10 transition-all duration-500">
+                              <Avatar className="h-8 w-8 ring-2 ring-offset-2 ring-transparent group-hover:ring-primary/10 transition-all">
                                 <AvatarImage src={s.foto || ""} />
-                                <AvatarFallback className="bg-primary/5 text-primary text-[10px] sm:text-sm font-black">
+                                <AvatarFallback className="bg-primary/5 text-primary text-[9px] font-black">
                                   {s.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               {isKetua && (
-                                <div className="absolute -top-1 -right-1 p-1 rounded-full bg-yellow-500 shadow-xl border-2 border-background animate-bounce-subtle">
-                                  <Crown className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                                <div className="absolute -top-1 -right-1 p-0.5 rounded-full bg-yellow-500 shadow-sm border border-background">
+                                  <Crown className="h-2 w-2 text-white" />
                                 </div>
                               )}
                             </div>
                             
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs sm:text-base font-black truncate tracking-tight text-foreground/90">{s.nama}</p>
-                              <p className="text-[9px] sm:text-xs font-medium text-muted-foreground/70 truncate">{s.email}</p>
+                              <p className="text-[11px] font-black truncate text-foreground/80">{s.nama}</p>
+                              <p className="text-[9px] text-muted-foreground/60 truncate uppercase">{currentGroup > 0 ? `Team ${currentGroup}` : 'Unassigned'}</p>
                             </div>
 
                             <Select
@@ -1324,18 +1317,18 @@ export default function AddAsesmenPage() {
                                 }
                               }}
                             >
-                              <SelectTrigger className={`w-[70px] sm:w-[90px] h-10 sm:h-11 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black border-none transition-all duration-300 ${
+                              <SelectTrigger className={`w-14 h-8 rounded-lg text-[9px] font-black border-none transition-all ${
                                 currentGroup > 0 
-                                  ? 'bg-primary/10 text-primary hover:bg-primary/20 ring-1 ring-primary/20' 
-                                  : 'bg-muted hover:bg-muted/80'
+                                  ? 'bg-primary/10 text-primary' 
+                                  : 'bg-muted/50 hover:bg-muted'
                               }`}>
                                 <SelectValue placeholder="-" />
                               </SelectTrigger>
-                              <SelectContent className="rounded-3xl border-border/40 backdrop-blur-2xl shadow-2xl">
-                                <SelectItem value="0" className="text-xs font-bold py-3">Unassigned</SelectItem>
+                              <SelectContent className="rounded-2xl border-border/40 backdrop-blur-2xl shadow-2xl">
+                                <SelectItem value="0" className="text-[10px] font-bold py-2">Lepas</SelectItem>
                                 {Array.from({ length: groupCount }).map((_, idx) => (
-                                  <SelectItem key={idx} value={String(idx + 1)} className="text-xs font-black py-3">
-                                    GROUP {idx + 1}
+                                  <SelectItem key={idx} value={String(idx + 1)} className="text-[10px] font-black py-2">
+                                    T{idx + 1}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -1347,20 +1340,18 @@ export default function AddAsesmenPage() {
                   </div>
                 </div>
 
-                {/* Right: Groups Preview */}
-                <div className="flex flex-col gap-6 p-4 sm:p-8 lg:overflow-hidden bg-background min-h-0">
-                  <div className="flex items-center justify-between px-2 shrink-0">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xs sm:text-[13px] font-black uppercase tracking-[0.3em] text-muted-foreground/60">Preview Pembagian Tim</h3>
-                      <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                        <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[9px] font-black text-green-600 uppercase tracking-widest">Update Seketika</span>
-                      </div>
+                {/* Right: Group Distribution (Wider) */}
+                <div className="flex flex-col gap-4 p-4 sm:p-6 lg:overflow-hidden bg-background min-h-0">
+                  <div className="flex items-center justify-between px-1 shrink-0">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">Preview Distribusi Tim</h3>
+                    <div className="flex items-center gap-1">
+                      <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                      <span className="text-[9px] font-black text-muted-foreground/70 uppercase">Aktif</span>
                     </div>
                   </div>
                   
-                  <div className="flex-1 lg:overflow-y-auto pr-1 sm:pr-2 lg:custom-scrollbar min-h-0">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 pb-20">
+                  <div className="flex-1 lg:overflow-y-auto pr-1 lg:custom-scrollbar min-h-0">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 pb-20">
                       {Array.from({ length: groupCount }).map((_, idx) => {
                         const groupNo = idx + 1
                         const members = selectedGroupMembersByGroup[groupNo] || []
@@ -1369,42 +1360,41 @@ export default function AddAsesmenPage() {
                         return (
                           <div 
                             key={idx} 
-                            className="group flex flex-col bg-muted/5 border border-border/40 hover:border-primary/40 rounded-[40px] overflow-hidden transition-all duration-700 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+                            className="group flex flex-col bg-muted/5 border border-border/40 hover:border-primary/30 rounded-[32px] overflow-hidden transition-all duration-500 hover:shadow-lg hover:shadow-primary/5"
                           >
-                            <div className="p-5 sm:p-6 flex items-center justify-between bg-gradient-to-br from-primary/5 via-transparent to-transparent border-b border-border/30 shrink-0">
-                              <div className="flex items-center gap-3 sm:gap-4">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl sm:rounded-3xl bg-primary shadow-lg shadow-primary/30 flex items-center justify-center text-white font-black text-lg sm:text-xl italic">
+                            <div className="p-4 flex items-center justify-between bg-gradient-to-br from-primary/5 to-transparent border-b border-border/20">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white font-black text-sm italic shadow-md shadow-primary/20">
                                   {groupNo}
                                 </div>
-                                <span className="font-black text-base sm:text-xl tracking-tight text-foreground/90 uppercase italic">Team {groupNo}</span>
+                                <span className="font-black text-xs sm:text-sm tracking-tight uppercase italic">Team {groupNo}</span>
                               </div>
-                              <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[10px] font-black rounded-xl h-7 sm:h-8 px-3 sm:px-4">
-                                {members.length} ANGGOTA
+                              <Badge variant="secondary" className="bg-primary/10 text-primary border-none text-[9px] font-black rounded-lg h-5 px-2">
+                                {members.length}
                               </Badge>
                             </div>
                             
-                            <div className="p-6 sm:p-8 space-y-6 sm:space-y-8">
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2 mb-2 px-1">
-                                  <div className="p-1.5 rounded-lg bg-yellow-500/10">
-                                    <Crown className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-yellow-600" />
-                                  </div>
-                                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/80">Pemimpin Tim</span>
+                            <div className="p-5 space-y-5">
+                              {/* Ketua Selection */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center gap-1.5 px-1 opacity-60">
+                                  <Crown className="h-3 w-3 text-yellow-600" />
+                                  <span className="text-[9px] font-black uppercase tracking-wider">Pemimpin Tim</span>
                                 </div>
                                 <Select
                                   value={ketuaId || ""}
                                   onValueChange={(v) => setSelectedKetuaByGroup(prev => ({ ...prev, [groupNo]: v }))}
                                   disabled={members.length === 0}
                                 >
-                                  <SelectTrigger className="h-14 sm:h-16 rounded-[24px] border-border/40 bg-background/50 hover:bg-background transition-all duration-300 text-xs sm:text-sm font-black shadow-inner focus:ring-primary/10">
-                                    <SelectValue placeholder="Tunjuk Leader..." />
+                                  <SelectTrigger className="h-10 rounded-xl border-border/40 bg-background/50 hover:bg-background transition-all text-[10px] font-black shadow-inner">
+                                    <SelectValue placeholder="Pilih Leader..." />
                                   </SelectTrigger>
-                                  <SelectContent className="rounded-3xl border-border/40 backdrop-blur-2xl shadow-2xl">
+                                  <SelectContent className="rounded-2xl border-border/40 backdrop-blur-2xl shadow-2xl">
                                     {members.map(id => {
                                       const s = enrolledStudents.find(st => st.id === id)
                                       return (
-                                        <SelectItem key={id} value={id} className="text-xs sm:text-sm font-bold py-4">
-                                          {s?.nama || "Siswa"}
+                                        <SelectItem key={id} value={id} className="text-[10px] font-bold py-2">
+                                          {s?.nama}
                                         </SelectItem>
                                       )
                                     })}
@@ -1412,18 +1402,17 @@ export default function AddAsesmenPage() {
                                 </Select>
                               </div>
 
-                              <div className="space-y-4">
-                                <div className="flex items-center gap-2 px-1">
-                                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
-                                    <UserIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                                  </div>
-                                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/80">Anggota Tim</span>
+                              {/* Members List */}
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-1.5 px-1 opacity-60">
+                                  <UserIcon className="h-3 w-3 text-primary" />
+                                  <span className="text-[9px] font-black uppercase tracking-wider">Anggota</span>
                                 </div>
                                 
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-2 min-h-[80px]">
                                   {members.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-10 border-4 border-dashed border-border/20 rounded-[32px] bg-muted/10 opacity-40">
-                                      <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center px-4 leading-relaxed">Belum ada anggota</p>
+                                    <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-border/20 rounded-2xl bg-muted/5 opacity-40">
+                                      <p className="text-[9px] font-black text-muted-foreground uppercase">Kosong</p>
                                     </div>
                                   ) : (
                                     members.map(id => {
@@ -1432,24 +1421,22 @@ export default function AddAsesmenPage() {
                                       return (
                                         <div 
                                           key={id} 
-                                          className={`flex items-center justify-between gap-4 p-3 sm:p-4 rounded-[28px] border transition-all duration-500 hover:scale-[1.03] ${
+                                          className={`flex items-center justify-between gap-3 p-2 rounded-xl border transition-all duration-300 ${
                                             isSelfKetua 
-                                              ? 'bg-gradient-to-br from-yellow-50 to-white border-yellow-200 shadow-xl shadow-yellow-500/5' 
-                                              : 'bg-background border-border/30 hover:border-primary/20 shadow-sm'
+                                              ? 'bg-yellow-50/30 border-yellow-200/50' 
+                                              : 'bg-background border-border/30 hover:border-primary/20'
                                           }`}
                                         >
-                                          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                                            <Avatar className={`h-8 w-8 sm:h-10 sm:w-10 border-4 border-background shadow-lg ${isSelfKetua ? 'scale-110' : ''}`}>
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <Avatar className="h-6 w-6 border-2 border-background shadow-sm">
                                               <AvatarImage src={s?.foto || ""} />
-                                              <AvatarFallback className="text-[9px] sm:text-xs font-black">
+                                              <AvatarFallback className="text-[8px] font-black">
                                                 {s?.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                               </AvatarFallback>
                                             </Avatar>
-                                            <div className="flex flex-col min-w-0">
-                                              <span className={`text-[11px] sm:text-sm font-black truncate leading-none ${isSelfKetua ? 'text-yellow-700' : 'text-foreground/80'}`}>
-                                                {s?.nama}
-                                              </span>
-                                            </div>
+                                            <span className={`text-[10px] font-black truncate tracking-tight ${isSelfKetua ? 'text-yellow-700' : 'text-foreground/80'}`}>
+                                              {s?.nama}
+                                            </span>
                                           </div>
                                           <button 
                                             type="button"
@@ -1466,9 +1453,9 @@ export default function AddAsesmenPage() {
                                                 })
                                               }
                                             }}
-                                            className="p-2 rounded-xl text-muted-foreground/30 hover:text-white hover:bg-destructive shadow-sm transition-all duration-300"
+                                            className="p-1.5 rounded-lg text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all"
                                           >
-                                            <X className="h-4 w-4" />
+                                            <X className="h-3 w-3" />
                                           </button>
                                         </div>
                                       )
@@ -1486,19 +1473,20 @@ export default function AddAsesmenPage() {
               </div>
             </div>
 
-            <DialogFooter className="p-6 sm:p-10 border-t border-border/40 bg-muted/5 sm:bg-muted/10 backdrop-blur-3xl shrink-0">
-              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="hidden sm:flex items-center gap-3">
-                  <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
-                  <p className="text-[10px] sm:text-xs font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed">
-                    Sinkronisasi otomatis aktif. Simpan untuk menerapkan perubahan.
+            {/* Compact Footer */}
+            <DialogFooter className="p-4 sm:p-6 border-t border-border/40 bg-muted/5 sm:bg-muted/10 backdrop-blur-3xl shrink-0">
+              <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="hidden sm:flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <p className="text-[9px] font-black text-muted-foreground/70 uppercase tracking-widest">
+                    Penerapan konfigurasi kelompok dilakukan secara lokal.
                   </p>
                 </div>
                 <Button 
                   type="button" 
                   variant="default" 
                   onClick={() => setKelompokDialogOpen(false)} 
-                  className="w-full sm:w-auto rounded-[24px] px-12 sm:px-20 h-14 sm:h-16 font-black text-sm sm:text-lg tracking-[0.1em] shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:-translate-y-2 hover:scale-105 active:scale-95"
+                  className="w-full sm:w-auto rounded-xl px-12 h-10 sm:h-12 font-black text-xs sm:text-sm tracking-[0.1em] shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.02] active:scale-95"
                 >
                   SIMPAN & TERAPKAN
                 </Button>
