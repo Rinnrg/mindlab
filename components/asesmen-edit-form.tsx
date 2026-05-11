@@ -935,16 +935,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                           </p>
                         </div>
 
-                        <div className="space-y-2">
-                          <Label>Poin *</Label>
-                          <Input
-                            type="number"
-                            value={soal.bobot}
-                            onChange={(e) => handleSoalChange(index, 'bobot', parseInt(e.target.value) || 10)}
-                            min={1}
-                            className="max-w-[140px]"
-                          />
-                        </div>
+                        {/* Poin dihitung otomatis */}
 
                         <Separator />
 

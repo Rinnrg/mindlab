@@ -13,7 +13,6 @@ export async function GET(request: NextRequest) {
         'Opsi C': 'Surabaya',
         'Opsi D': 'Medan',
         'Jawaban Benar (A/B/C/D)': 'A',
-        'Bobot': 10,
       },
       {
         'No': 2,
@@ -23,7 +22,6 @@ export async function GET(request: NextRequest) {
         'Opsi C': '9',
         'Opsi D': '',
         'Jawaban Benar (A/B/C/D)': 'B',
-        'Bobot': 10,
       },
     ]
 
@@ -39,7 +37,6 @@ export async function GET(request: NextRequest) {
       { wch: 20 }, // Opsi C
       { wch: 20 }, // Opsi D
       { wch: 25 }, // Jawaban Benar
-      { wch: 8 },  // Bobot
     ]
 
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Template Soal')
@@ -51,8 +48,7 @@ export async function GET(request: NextRequest) {
       { 'Panduan Pengisian Template Soal Kuis': '2. Kolom "Opsi A" dan "Opsi B" wajib diisi (minimal 2 pilihan).' },
       { 'Panduan Pengisian Template Soal Kuis': '3. Kolom "Opsi C" dan "Opsi D" boleh dikosongkan.' },
       { 'Panduan Pengisian Template Soal Kuis': '4. Kolom "Jawaban Benar" diisi huruf: A, B, C, atau D.' },
-      { 'Panduan Pengisian Template Soal Kuis': '5. Kolom "Bobot" diisi angka (default 10 jika dikosongkan).' },
-      { 'Panduan Pengisian Template Soal Kuis': '6. Hapus baris contoh sebelum diimport, atau biarkan sistem mengabaikannya.' },
+      { 'Panduan Pengisian Template Soal Kuis': '5. Hapus baris contoh sebelum diimport, atau biarkan sistem mengabaikannya.' },
       { 'Panduan Pengisian Template Soal Kuis': '7. Simpan file dalam format .xlsx sebelum diimport.' },
     ]
     const instructionSheet = XLSX.utils.json_to_sheet(instructions)

@@ -132,7 +132,7 @@ export async function POST(
       // Update nilai record
       await tx.nilai.update({
         where: { id: nilaiRecord.id },
-        data: { skor: finalSkor }
+        data: { skor: Math.round(finalSkor * 100) / 100 }
       })
 
       // Mark attempt submitted

@@ -584,7 +584,7 @@ export default function AddAsesmenPage() {
 
                                   return {
                                     pertanyaan: String(pertanyaan),
-                                    bobot: parseInt(getValue('bobot', 'poin')) || 10,
+                                    bobot: 10, // Fixed weight as requested
                                     tipeJawaban: 'PILIHAN_GANDA',
                                     opsi
                                   }

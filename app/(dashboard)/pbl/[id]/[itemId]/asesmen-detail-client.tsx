@@ -1568,6 +1568,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                             <TableHead>Nilai</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Tanggal</TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -1598,6 +1599,18 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   month: 'short',
                                   year: 'numeric',
                                 })}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                {nilai.attemptId ? (
+                                  <Button variant="ghost" size="sm" asChild>
+                                    <Link href={`/pbl/${courseId}/${asesmenId}/kuis-attempts/${nilai.attemptId}`}>
+                                      <Eye className="mr-2 h-4 w-4" />
+                                      Detail & Nilai
+                                    </Link>
+                                  </Button>
+                                ) : (
+                                  <span className="text-xs text-muted-foreground italic">Legacy data</span>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}

@@ -101,8 +101,7 @@ export async function POST(
         'kunci jawaban',
         'kunci'
       ).toUpperCase()
-      const bobotRaw = getValue('bobot')
-      const bobot = bobotRaw ? parseInt(bobotRaw) : 10
+      const bobot = 10 // Fixed weight for all questions as requested
 
       // Skip empty rows
       if (!pertanyaan && !opsiA && !opsiB) continue
@@ -126,10 +125,7 @@ export async function POST(
         continue
       }
 
-      if (isNaN(bobot) || bobot <= 0) {
-        errors.push(`Baris ${rowNum}: "Bobot" harus berupa angka positif`)
-        continue
-      }
+      // Validation for weight removed as it is now fixed at 10
 
       // Build opsi array (only include non-empty options)
       const opsiMap: Record<string, string> = {
