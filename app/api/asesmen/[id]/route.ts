@@ -69,21 +69,6 @@ export async function GET(
           kategori: true,
         },
       },
-      kelompok: {
-        include: {
-          anggota: {
-            include: {
-              siswa: {
-                select: {
-                  id: true,
-                  nama: true,
-                  foto: true,
-                }
-              }
-            }
-          }
-        }
-      }
     }
 
     // For students, only include their own submissions and scores
@@ -98,36 +83,24 @@ export async function GET(
           tanggal: true,
           siswaId: true,
         },
-        take: 1,
       }
+      
       includeOptions.pengumpulanProyek = {
         where: {
           siswaId: userId,
         },
-        select: {
-          id: true,
-          fileUrl: true,
-          tgl_unggah: true,
-          siswaId: true,
+        include: {
           siswa: {
             select: {
               id: true,
               nama: true,
-              foto: true,
-            },
-          },
-          nilai: true,
-          namaKelompok: true,
-          ketua: true,
-          anggota: true,
-          catatan: true,
-          kelompokId: true,
-          sourceCode: true,
-          output: true,
-        },
-        take: 1,
+              email: true,
+            }
+          }
+        }
       }
-      // For KUIS, if not yet submitted, include questions (but not correct answers)
+      
+      // For KUIS, if taking the quiz, we need the questions (without correct answers)
       includeOptions.soal = {
         select: {
           id: true,
@@ -139,53 +112,81 @@ export async function GET(
             select: {
               id: true,
               teks: true,
-              // Don't include isBenar for students
+              // isBenar is excluded for security
             }
           }
         }
       }
+
+      includeOptions._count = {
+        select: {
+          soal: true,
+        },
+      }
     } else {
-      // For teachers/admins - include full data
+      // For teachers/admins - include full data based on params
+      // Always include soal and opsi for teachers to see the quiz content
       includeOptions.soal = {
         include: {
           opsi: true,
         },
       }
-      includeOptions.nilai = {
-        include: {
-          siswa: {
-            select: {
-              id: true,
-              nama: true,
-              email: true,
+      
+      // Only include heavy stats/roster if explicitly requested
+      if (includeStats) {
+        includeOptions.nilai = {
+          include: {
+            siswa: {
+              select: {
+                id: true,
+                nama: true,
+                email: true,
+                foto: true,
+                kelas: true,
+              }
             }
           }
         }
-      }
-      includeOptions.pengumpulanProyek = {
-        where: {
-          tgl_unggah: {
-            lte: new Date(),
+
+        includeOptions.pengumpulanProyek = {
+          include: {
+            siswa: {
+              select: {
+                id: true,
+                nama: true,
+                email: true,
+              }
+            }
+          }
+        }
+        
+        includeOptions.kelompok = {
+          include: {
+            anggota: {
+              include: {
+                siswa: {
+                  select: {
+                    id: true,
+                    nama: true,
+                    foto: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      } else {
+        // Fast path: just counts
+        includeOptions._count = {
+          select: {
+            soal: true,
+            nilai: true,
+            pengumpulanProyek: true,
           },
-        },
-        include: {
-          siswa: {
-            select: {
-              id: true,
-              nama: true,
-              email: true,
-            }
-          }
         }
-      }
-      includeOptions._count = {
-        select: {
-          soal: true,
-          nilai: true,
-          pengumpulanProyek: true,
-        },
       }
     }
+
     const asesmen = await prisma.asesmen.findUnique({
       where: { id },
       include: includeOptions,
@@ -203,7 +204,13 @@ export async function GET(
     console.log(`  - Type: ${asesmen.tipe}`)
     
     // Safety check for large responses
-    const responseData = { asesmen }
+    const responseData = { 
+      asesmen,
+      _debug: {
+        timestamp: new Date().toISOString(),
+        v: "1.1.0-optimized"
+      }
+    }
     
     // Add cache headers for better performance
     return NextResponse.json(responseData, {

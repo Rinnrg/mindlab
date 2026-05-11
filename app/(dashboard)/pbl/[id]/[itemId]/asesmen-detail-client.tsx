@@ -133,7 +133,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
           } else if (response.status === 404) {
             alert('Asesmen tidak ditemukan')
           } else {
-            alert('Gagal mengambil data asesmen')
+            alert(`Gagal mengambil data asesmen: ${errorData.details || errorData.error || 'Terjadi kesalahan internal server'}`)
           }
           
           router.push(`/pbl/${courseId}`)
