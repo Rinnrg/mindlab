@@ -9,7 +9,7 @@ export async function POST(
     const { id: asesmenId } = await params
     const body = await request.json()
     
-    const { siswaId, jawaban, waktuMulai, waktuSelesai } = body
+    const { siswaId, jawaban, waktuMulai, waktuSelesai, scheduledAt } = body
 
     if (!siswaId || !jawaban || !Array.isArray(jawaban)) {
       return NextResponse.json(
@@ -81,7 +81,7 @@ export async function POST(
           siswaId,
           asesmenId,
           skor: 0, // Will update later
-          tanggal: new Date(),
+          tanggal: scheduledAt ? new Date(scheduledAt) : new Date(),
           attemptId: attempt.id,
         }
       })
@@ -138,7 +138,7 @@ export async function POST(
       // Mark attempt submitted
   await tx.kuisAttempt.update({
         where: { id: attempt.id },
-        data: { submittedAt: new Date() },
+        data: { submittedAt: scheduledAt ? new Date(scheduledAt) : new Date() },
       })
 
       return {

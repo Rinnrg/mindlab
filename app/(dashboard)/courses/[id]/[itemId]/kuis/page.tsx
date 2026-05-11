@@ -24,6 +24,9 @@ import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import { Switch } from "@/components/ui/switch"
+import { CalendarClock, FileUp } from "lucide-react"
+import { Input } from "@/components/ui/input"
 
 interface PageProps {
   params: Promise<{ 
@@ -111,6 +114,10 @@ export default function KuisPage({ params }: PageProps) {
   
   // Check if already submitted
   const [hasSubmitted, setHasSubmitted] = useState(false)
+
+  // Scheduled upload state
+  const [isScheduled, setIsScheduled] = useState(false)
+  const [scheduledDate, setScheduledDate] = useState("")
 
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
@@ -487,12 +494,28 @@ export default function KuisPage({ params }: PageProps) {
     setLeaveCountdown(null)
 
     const doSubmit = async () => {
+      if (isScheduled && !scheduledDate) {
+        throw new Error("Silakan pilih tanggal dan waktu untuk pengumpulan terjadwal.")
+      }
+
+      if (isScheduled && scheduledDate) {
+        const selected = new Date(scheduledDate)
+        const now = new Date()
+        if (selected <= now) {
+          throw new Error("Waktu terjadwal harus di masa depan.")
+        }
+        if (asesmen?.tgl_selesai && selected > new Date(asesmen.tgl_selesai)) {
+          throw new Error("Waktu terjadwal tidak boleh melewati deadline.")
+        }
+      }
+
       try {
         const payload = {
           siswaId: user?.id,
           jawaban: jawaban,
           waktuMulai: startTime,
           waktuSelesai: new Date(),
+          scheduledAt: isScheduled && scheduledDate ? new Date(scheduledDate).toISOString() : undefined,
         }
         
         const response = await fetch(`/api/asesmen/${asesmenId}/submit-kuis`, {
@@ -798,6 +821,57 @@ export default function KuisPage({ params }: PageProps) {
               <div className="flex items-center gap-2">
                 <Button
                   className="flex-1"
+                  onClick={() => handleSubmit(false)}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Mengumpulkan...</>
+                  ) : isScheduled ? (
+                    <><CalendarClock className="mr-2 h-4 w-4" />Jadwalkan Kuis</>
+                  ) : (
+                    "Kumpulkan Kuis"
+                  )}
+                </Button>
+              </div>
+
+              {/* Scheduled Upload Toggle */}
+              <div className="bg-muted/30 border border-border/50 rounded-xl p-4 space-y-4 mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm flex items-center gap-2">
+                      <CalendarClock className="h-4 w-4 text-primary" />
+                      Pengumpulan Terjadwal
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground">
+                      Kuis akan otomatis tersimpan pada waktu yang ditentukan.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isScheduled}
+                    onCheckedChange={setIsScheduled}
+                  />
+                </div>
+                
+                {isScheduled && (
+                  <div className="pt-2 animate-in slide-in-from-top-2">
+                    <Label className="mb-2 block text-xs">Pilih Tanggal & Waktu</Label>
+                    <Input
+                      type="datetime-local"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="h-8 text-xs"
+                    />
+                    {asesmen?.tgl_selesai && (
+                      <p className="text-[10px] text-muted-foreground mt-2">
+                        Maksimal: {new Date(asesmen.tgl_selesai).toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Navigation Actions */}
+              <div className="flex items-center gap-2 mt-6">
+                <Button
                   variant="outline"
                   onClick={handlePrevious}
                   disabled={currentSoalIndex === 0}
@@ -814,16 +888,54 @@ export default function KuisPage({ params }: PageProps) {
                     {submitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Mengumpulkan...
+                        {isScheduled ? 'Menjadwalkan...' : 'Mengumpulkan...'}
                       </>
+                    ) : isScheduled ? (
+                      <><CalendarClock className="mr-2 h-4 w-4" />Jadwalkan Kuis</>
                     ) : (
-                      'Kumpulkan'
+                      'Kumpulkan Kuis'
                     )}
                   </Button>
                 ) : (
                   <Button className="flex-1" onClick={handleNext}>
                     Selanjutnya
                   </Button>
+                )}
+              </div>
+
+              {/* Scheduled Upload Toggle - Informative Section */}
+              <div className="bg-muted/30 border border-border/50 rounded-xl p-3 space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs flex items-center gap-2">
+                      <CalendarClock className="h-3 w-3 text-primary" />
+                      Jadwal Pengumpulan Otomatis
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground">
+                      Kuis akan tersimpan pada waktu yang ditentukan.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isScheduled}
+                    onCheckedChange={setIsScheduled}
+                    size="sm"
+                  />
+                </div>
+                
+                {isScheduled && (
+                  <div className="pt-1 animate-in slide-in-from-top-2">
+                    <Input
+                      type="datetime-local"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="h-8 text-[10px]"
+                    />
+                    {asesmen?.tgl_selesai && (
+                      <p className="text-[9px] text-muted-foreground mt-1">
+                        Batas akhir: {new Date(asesmen.tgl_selesai).toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </CardContent>
