@@ -438,10 +438,11 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                   accept=".xlsx,.xls"
                   className="hidden"
                   onChange={async (e) => {
-                    const file = e.target.files?.[0]
+                    const target = e.target
+                    const file = target.files?.[0]
                     if (!file) return
                     // Reset input
-                    e.target.value = ''
+                    target.value = ''
                     
                     setImportExcelLoading(true)
                     setImportExcelResult(null)

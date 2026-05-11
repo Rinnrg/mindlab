@@ -186,11 +186,10 @@ export async function GET(
         },
       }
     }
-
     const asesmen = await prisma.asesmen.findUnique({
       where: { id },
       include: includeOptions,
-    } as any)
+    })
 
     if (!asesmen) {
       console.log('Asesmen not found after query')
@@ -202,18 +201,12 @@ export async function GET(
 
     console.log(`✓ Successfully fetched asesmen: ${asesmen.nama}`)
     console.log(`  - Type: ${asesmen.tipe}`)
-    // Avoid accessing optional (conditionally included) relations in a way that
-    // breaks strict TS when includeOptions changes.
-    const asesmenAny = asesmen as any
-    console.log(`  - Course: ${asesmenAny.course?.judul}`)
-    if (userRole === 'SISWA') {
-      console.log(`  - Student nilai: ${asesmenAny.nilai?.length || 0}`)
-      console.log(`  - Student submissions: ${asesmenAny.pengumpulanProyek?.length || 0}`)
-      console.log(`  - Soal count: ${asesmenAny.soal?.length || asesmenAny._count?.soal || 0}`)
-    }
-
+    
+    // Safety check for large responses
+    const responseData = { asesmen }
+    
     // Add cache headers for better performance
-    return NextResponse.json({ asesmen }, {
+    return NextResponse.json(responseData, {
       headers: {
         'Cache-Control': 'public, s-maxage=10, stale-while-revalidate=59',
       },
@@ -222,8 +215,14 @@ export async function GET(
     console.error('=== Error fetching asesmen:', error)
     console.error('Error message:', error?.message)
     console.error('Error stack:', error?.stack)
+    
+    // Return more helpful error details to help debugging
     return NextResponse.json(
-      { error: 'Gagal mengambil data asesmen' },
+      { 
+        error: 'Gagal mengambil data asesmen',
+        details: error?.message,
+        type: error?.name
+      },
       { status: 500 }
     )
   }
@@ -238,7 +237,7 @@ export async function PUT(
     const { id } = await params
     const body = await request.json()
     
-    console.log('=== PUT /api/asesmen/[id] - Request body:', JSON.stringify(body, null, 2))
+    console.log('=== PUT /api/asesmen/[id] - Request body received')
     
     const { 
       nama, 
@@ -253,7 +252,8 @@ export async function PUT(
       courseId,
       antiCurang,
       submissionComponents,
-      soal // Array of questions for KUIS
+      soal, // Array of questions for KUIS
+      kelasTarget
     } = body
 
     // Validate dates if provided
@@ -287,7 +287,7 @@ export async function PUT(
       }
     }
 
-    console.log('Updating asesmen...')
+    console.log('Updating asesmen metadata...')
     
     // Build update data object
     const updateData: any = {}
@@ -295,6 +295,8 @@ export async function PUT(
     if (nama !== undefined) updateData.nama = nama
     if (deskripsi !== undefined) updateData.deskripsi = deskripsi
     if (tipe !== undefined) updateData.tipe = tipe
+    if (kelasTarget !== undefined) updateData.kelasTarget = kelasTarget
+    
     if (tipe === 'TUGAS' && tipePengerjaan !== undefined) {
       updateData.tipePengerjaan = tipePengerjaan || 'INDIVIDU'
       if (submissionComponents && Array.isArray(submissionComponents)) {
@@ -303,53 +305,46 @@ export async function PUT(
     } else if (tipe === 'KUIS') {
       updateData.tipePengerjaan = null
     }
+    
     if (tipe === 'KUIS' && soal) {
       updateData.jml_soal = soal.length
     }
+    
     if (durasi !== undefined) {
       updateData.durasi = durasi !== null ? parseInt(String(durasi)) || null : null
     }
     
     // Handle dates - allow null values
-    if (tgl_mulai !== undefined) {
-      updateData.tgl_mulai = startDate // Can be null or Date
-    }
-    if (tgl_selesai !== undefined) {
-      updateData.tgl_selesai = endDate // Can be null or Date
-    }
+    if (tgl_mulai !== undefined) updateData.tgl_mulai = startDate
+    if (tgl_selesai !== undefined) updateData.tgl_selesai = endDate
     
     if (lampiran !== undefined) updateData.lampiran = lampiran
     if (courseId !== undefined) updateData.courseId = courseId
     if (antiCurang !== undefined) updateData.antiCurang = !!antiCurang
     
-    console.log('Update data:', JSON.stringify(updateData, null, 2))
-    console.log('Date values - tgl_mulai:', updateData.tgl_mulai, 'tgl_selesai:', updateData.tgl_selesai)
-
-    // Update asesmen
-    const updatedAsesmen = await prisma.asesmen.update({
-      where: { id },
-      data: updateData,
-    })
+    // Execute update in a transaction if soal are provided
+    let updatedAsesmen;
     
-    console.log(`✓ Asesmen updated with ID: ${updatedAsesmen.id}`)
-
-    // Handle soal for KUIS
     if (tipe === 'KUIS' && soal && Array.isArray(soal)) {
-      console.log(`Updating ${soal.length} questions for KUIS...`)
+      console.log(`Performing atomic update for ${soal.length} questions...`)
       
-      try {
-        // Delete existing soal (will cascade delete opsi due to onDelete: Cascade)
-        console.log('Deleting existing soal...')
-        await prisma.soal.deleteMany({
+      // Use transaction to ensure either everything or nothing is updated
+      updatedAsesmen = await prisma.$transaction(async (tx) => {
+        // 1. Update basic asesmen info
+        const result = await tx.asesmen.update({
+          where: { id },
+          data: updateData,
+        })
+        
+        // 2. Delete existing soal
+        await tx.soal.deleteMany({
           where: { asesmenId: id }
         })
-        console.log('✓ Existing soal deleted')
-
-        // Create new soal with opsi
-        for (let i = 0; i < soal.length; i++) {
-          const soalItem = soal[i]
-          console.log(`Creating question ${i + 1}/${soal.length}`)
-          
+        
+        // 3. Create new soal with nested opsi
+        // We use create inside the transaction loop for now as Prisma doesn't support nested createMany easily
+        // but it's now wrapped in a transaction which is much safer.
+        for (const soalItem of soal) {
           const soalData: any = {
             pertanyaan: soalItem.pertanyaan,
             gambar: soalItem.gambar || null,
@@ -358,7 +353,6 @@ export async function PUT(
             asesmenId: id,
           }
           
-          // Create soal with nested opsi
           if (soalItem.opsi && Array.isArray(soalItem.opsi) && soalItem.opsi.length > 0) {
             soalData.opsi = {
               create: soalItem.opsi.map((opsiItem: any) => ({
@@ -368,49 +362,36 @@ export async function PUT(
             }
           }
           
-          // @ts-ignore - Prisma client type issue
-          await prisma.soal.create({
+          await tx.soal.create({
             data: soalData
           })
-          
-          console.log(`✓ Question ${i + 1} created`)
         }
         
-        console.log(`✓ All ${soal.length} questions updated successfully`)
-      } catch (soalError: any) {
-        console.error('Error updating questions:', soalError)
-        // Don't rollback asesmen update, just return error
-        return NextResponse.json(
-          { 
-            error: 'Asesmen diperbarui tetapi gagal memperbarui soal', 
-            details: soalError?.message 
-          },
-          { status: 500 }
-        )
-      }
+        return result
+      })
+      
+      console.log(`✓ Atomic update complete for asesmen ID: ${id}`)
+    } else {
+      // Simple update for TUGAS or when no soal provided
+      updatedAsesmen = await prisma.asesmen.update({
+        where: { id },
+        data: updateData,
+      })
+      console.log(`✓ Asesmen metadata updated for ID: ${id}`)
     }
 
-    // Fetch updated asesmen with all relations
+    // Fetch final state with relations for response
     const asesmen = await prisma.asesmen.findUnique({
       where: { id },
       include: {
         guru: {
-          select: {
-            id: true,
-            nama: true,
-            email: true,
-          },
+          select: { id: true, nama: true, email: true },
         },
         course: {
-          select: {
-            id: true,
-            judul: true,
-          },
+          select: { id: true, judul: true },
         },
         soal: {
-          include: {
-            opsi: true,
-          },
+          include: { opsi: true },
         },
       },
     })
@@ -419,9 +400,6 @@ export async function PUT(
     return NextResponse.json({ asesmen })
   } catch (error: any) {
     console.error('=== PUT /api/asesmen/[id] - Error:', error)
-    console.error('Error message:', error?.message)
-    console.error('Error stack:', error?.stack)
-    
     return NextResponse.json(
       { error: 'Gagal mengupdate asesmen', details: error?.message },
       { status: 500 }

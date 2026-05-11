@@ -339,7 +339,8 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   }
 
   const handleSoalImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const target = e.target
+    const file = target.files?.[0]
     if (!file) return
 
     // Max 10MB (samakan dengan /api/upload)
@@ -363,7 +364,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     } catch (err) {
       showError("Error", err instanceof Error ? err.message : 'Gagal upload gambar')
     } finally {
-      e.target.value = ''
+      target.value = ''
     }
   }
 
@@ -788,9 +789,10 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                           accept=".xlsx,.xls"
                           className="hidden"
                           onChange={async (e) => {
-                            const file = e.target.files?.[0]
+                            const target = e.target
+                            const file = target.files?.[0]
                             if (!file) return
-                            e.target.value = ''
+                            target.value = ''
                             await handleImportExcel(file)
                           }}
                         />
