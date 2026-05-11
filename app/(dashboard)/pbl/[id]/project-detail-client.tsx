@@ -216,34 +216,34 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                             <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base mb-1">{material.judul}</h4>
                             <p className="text-sm text-muted-foreground line-clamp-2">{material.deskripsi}</p>
                           </div>
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1 sm:gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                             {isTeacherOrAdmin && (
-                              <div className="flex items-center gap-2">
+                              <>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-9 rounded-lg px-3"
+                                  size="icon"
+                                  className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     router.push(`/pbl/${course.id}/${material.id}/edit`)
                                   }}
                                 >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
+                                  <Pencil className="h-4 w-4 sm:mr-2" />
+                                  <span className="hidden sm:inline">Edit</span>
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
+                                  size="icon"
+                                  className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg text-destructive hover:text-destructive"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleDeleteMateri(material.id, material.judul)
                                   }}
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Hapus
+                                  <Trash2 className="h-4 w-4 sm:mr-2" />
+                                  <span className="hidden sm:inline">Hapus</span>
                                 </Button>
-                              </div>
+                              </>
                             )}
                           </div>
                         </div>
@@ -263,23 +263,23 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                     </CardTitle>
                   </div>
                   {isTeacherOrAdmin && (
-                    <div className="flex items-center gap-2 flex-wrap justify-end">
-                      <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 h-9 shadow-sm gap-2">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end shrink-0">
+                      <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-3 sm:px-4 h-8 sm:h-9 shadow-sm gap-1.5 sm:gap-2">
                         <Link href={`/pbl/${course.id}/add-asesmen?sintak=${activeSintak}&type=KUIS`}>
-                          <FileText className="h-4 w-4" />
-                          Kuis
+                          <FileText className="h-3.5 w-3.5 sm:h-4 w-4" />
+                          <span className="text-xs sm:text-sm">Kuis</span>
                         </Link>
                       </Button>
-                      <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
+                      <Button asChild size="sm" variant="outline" className="rounded-full px-3 sm:px-4 h-8 sm:h-9 gap-1.5 sm:gap-2">
                         <Link href={`/pbl/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=INDIVIDU`}>
-                          <Plus className="h-4 w-4" />
-                          <span className="inline">Individu</span>
+                          <Plus className="h-3.5 w-3.5 sm:h-4 w-4" />
+                          <span className="text-xs sm:text-sm">Individu</span>
                         </Link>
                       </Button>
-                      <Button asChild size="sm" variant="outline" className="rounded-full px-4 h-9 gap-2">
+                      <Button asChild size="sm" variant="outline" className="rounded-full px-3 sm:px-4 h-8 sm:h-9 gap-1.5 sm:gap-2">
                         <Link href={`/pbl/${course.id}/add-asesmen?sintak=${activeSintak}&type=TUGAS&mode=KELOMPOK`}>
-                          <Plus className="h-4 w-4" />
-                          <span className="inline">Kelompok</span>
+                          <Plus className="h-3.5 w-3.5 sm:h-4 w-4" />
+                          <span className="text-xs sm:text-sm">Kelompok</span>
                         </Link>
                       </Button>
                     </div>
@@ -324,34 +324,34 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center gap-1 sm:gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                             {isTeacherOrAdmin && (
-                              <div className="flex items-center gap-2">
+                              <>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-9 rounded-lg px-3"
+                                  size="icon"
+                                  className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     router.push(`/pbl/${course.id}/${assessment.id}/edit`)
                                   }}
                                 >
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
+                                  <Pencil className="h-4 w-4 sm:mr-2" />
+                                  <span className="hidden sm:inline">Edit</span>
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  size="sm"
-                                  className="h-9 rounded-lg px-3 text-destructive hover:text-destructive"
+                                  size="icon"
+                                  className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg text-destructive hover:text-destructive"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     handleDeleteAsesmen(assessment.id, assessment.nama)
                                   }}
                                 >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Hapus
+                                  <Trash2 className="h-4 w-4 sm:mr-2" />
+                                  <span className="hidden sm:inline">Hapus</span>
                                 </Button>
-                              </div>
+                              </>
                             )}
                           </div>
                         </div>

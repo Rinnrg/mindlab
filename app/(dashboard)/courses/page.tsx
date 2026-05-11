@@ -321,24 +321,24 @@ export default function CoursesPage() {
                             )}
                           </div>
                           {isTeacherOrAdmin && (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                className="h-8 rounded-lg px-2"
+                                size="icon"
+                                className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg"
                                 onClick={() => router.push(`/courses/${course.id}/edit`)}
                               >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
+                                <Pencil className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Edit</span>
                               </Button>
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                className="h-8 rounded-lg px-2 text-destructive hover:text-destructive"
+                                size="icon"
+                                className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg text-destructive hover:text-destructive"
                                 onClick={() => handleDeleteCourse(course.id, course.judul)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
+                                <Trash2 className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Hapus</span>
                               </Button>
                             </div>
                           )}

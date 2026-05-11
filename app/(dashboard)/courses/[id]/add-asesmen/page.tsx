@@ -36,6 +36,7 @@ import {
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth-context"
+import * as XLSX from 'xlsx'
 
 async function uploadPublicFile(file: File): Promise<string> {
   const form = new FormData()
@@ -189,6 +190,10 @@ export default function AddAsesmenPage() {
   ])
   // Settings sekarang selalu tampil di kanan (sticky)
   const [showSettings] = React.useState(true)
+
+  const [importExcelLoading, setImportExcelLoading] = React.useState(false)
+  const [importExcelResult, setImportExcelResult] = React.useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null)
+  const importExcelRef = React.useRef<HTMLInputElement>(null)
 
   const lastSoalRef = React.useRef<HTMLDivElement | null>(null)
 
@@ -662,6 +667,143 @@ export default function AddAsesmenPage() {
                 />
               </CardContent>
             </Card>
+
+            {tipe === "KUIS" && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <CardTitle className="text-sm">Import Soal dari Excel</CardTitle>
+                      <CardDescription className="text-xs mt-0.5">
+                        Download template, isi soal &amp; jawaban, lalu import sekaligus
+                      </CardDescription>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const a = document.createElement('a')
+                          a.href = `/api/asesmen/template-excel`
+                          a.download = 'Template_Soal_Kuis.xlsx'
+                          document.body.appendChild(a)
+                          a.click()
+                          document.body.removeChild(a)
+                        }}
+                      >
+                        <Upload className="mr-2 h-4 w-4 rotate-180" />
+                        Download Template
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        disabled={importExcelLoading}
+                        onClick={() => importExcelRef.current?.click()}
+                      >
+                        {importExcelLoading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
+                      </Button>
+
+                      <input
+                        ref={importExcelRef}
+                        type="file"
+                        accept=".xlsx,.xls"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          e.target.value = ''
+                          setImportExcelLoading(true)
+                          setImportExcelResult(null)
+
+                          try {
+                            const reader = new FileReader()
+                            reader.onload = (evt) => {
+                              try {
+                                const bstr = evt.target?.result
+                                const wb = XLSX.read(bstr, { type: 'binary' })
+                                const wsname = wb.SheetNames[0]
+                                const ws = wb.Sheets[wsname]
+                                const data = XLSX.utils.sheet_to_json(ws)
+
+                                const newSoal: Soal[] = data.map((row: any) => {
+                                  const getValue = (...keys: string[]) => {
+                                    for (const key of keys) {
+                                      const foundKey = Object.keys(row).find(k => k.toLowerCase() === key.toLowerCase())
+                                      if (foundKey) return row[foundKey]
+                                    }
+                                    return ''
+                                  }
+
+                                  const pertanyaan = getValue('pertanyaan')
+                                  if (!pertanyaan) return null
+
+                                  const opsiA = getValue('opsi a', 'a')
+                                  const opsiB = getValue('opsi b', 'b')
+                                  const opsiC = getValue('opsi c', 'c')
+                                  const opsiD = getValue('opsi d', 'd')
+                                  const kunci = String(getValue('jawaban benar', 'kunci', 'jawaban', 'kunci jawaban') || 'A').toUpperCase()
+
+                                  const opsi: Opsi[] = []
+                                  if (opsiA) opsi.push({ teks: String(opsiA), isBenar: kunci === 'A' })
+                                  if (opsiB) opsi.push({ teks: String(opsiB), isBenar: kunci === 'B' })
+                                  if (opsiC) opsi.push({ teks: String(opsiC), isBenar: kunci === 'C' })
+                                  if (opsiD) opsi.push({ teks: String(opsiD), isBenar: kunci === 'D' })
+
+                                  return {
+                                    pertanyaan: String(pertanyaan),
+                                    bobot: parseInt(getValue('bobot')) || 10,
+                                    tipeJawaban: 'PILIHAN_GANDA',
+                                    opsi
+                                  }
+                                }).filter(s => s !== null) as Soal[]
+
+                                if (newSoal.length > 0) {
+                                  setSoalList(prev => [...prev.filter(s => s.pertanyaan !== ""), ...newSoal])
+                                  setImportExcelResult({ message: `Berhasil mengimport ${newSoal.length} soal`, type: 'success' })
+                                } else {
+                                  setImportExcelResult({ message: 'Tidak ada soal valid ditemukan di file Excel', type: 'error' })
+                                }
+                              } catch (err) {
+                                setImportExcelResult({ message: 'Gagal memproses file Excel', type: 'error' })
+                              } finally {
+                                setImportExcelLoading(false)
+                              }
+                            }
+                            reader.readAsBinaryString(file)
+                          } catch (err) {
+                            setImportExcelResult({ message: 'Gagal membaca file', type: 'error' })
+                            setImportExcelLoading(false)
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+                </CardHeader>
+                {importExcelResult && (
+                  <CardContent className="pt-0">
+                    <Alert
+                      className={
+                        importExcelResult.type === 'success'
+                          ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                          : 'border-red-500 bg-red-50 dark:bg-red-950'
+                      }
+                    >
+                      <AlertDescription className="text-xs">
+                        {importExcelResult.message}
+                      </AlertDescription>
+                    </Alert>
+                  </CardContent>
+                )}
+              </Card>
+            )}
 
             {/* Catatan: Tipe asesmen tidak dipilih di UI ini (tiap asesmen sudah punya tipe). */}
             {/* Builder soal ala Google Form */}

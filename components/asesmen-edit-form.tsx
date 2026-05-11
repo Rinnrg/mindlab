@@ -736,6 +736,87 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
 
             {formData.tipe === "KUIS" && (
               <div className="space-y-4">
+                {/* Import Excel Card — Diletakkan di atas daftar soal */}
+                <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
+                  <CardHeader className="pb-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <CardTitle className="text-sm">Import Soal dari Excel</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          Download template, isi soal &amp; jawaban, lalu import sekaligus
+                        </CardDescription>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {/* Download Template */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const a = document.createElement('a')
+                            a.href = `/api/asesmen/${asesmenId}/soal/template-excel`
+                            a.download = 'Template_Soal_Kuis.xlsx'
+                            document.body.appendChild(a)
+                            a.click()
+                            document.body.removeChild(a)
+                          }}
+                        >
+                          <FileDown className="mr-2 h-4 w-4" />
+                          Download Template
+                        </Button>
+
+                        {/* Import Excel */}
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          disabled={importExcelLoading}
+                          onClick={() => importExcelRef.current?.click()}
+                        >
+                          {importExcelLoading ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileUp className="mr-2 h-4 w-4" />
+                          )}
+                          {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
+                        </Button>
+
+                        {/* Hidden file input */}
+                        <input
+                          ref={importExcelRef}
+                          type="file"
+                          accept=".xlsx,.xls"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0]
+                            if (!file) return
+                            e.target.value = ''
+                            await handleImportExcel(file)
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {importExcelResult && (
+                    <CardContent className="pt-0">
+                      <Alert
+                        variant={importExcelResult.type === 'error' ? 'destructive' : 'default'}
+                        className={
+                          importExcelResult.type === 'success'
+                            ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                            : importExcelResult.type === 'warning'
+                            ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
+                            : ''
+                        }
+                      >
+                        <AlertDescription className="whitespace-pre-wrap text-sm">
+                          {importExcelResult.message}
+                        </AlertDescription>
+                      </Alert>
+                    </CardContent>
+                  )}
+                </Card>
+
                 {soalList.map((soal, index) => (
                   <div
                     key={index}
@@ -936,87 +1017,6 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                     Tambah Soal
                   </Button>
                 </div>
-
-                {/* Import Excel Card */}
-                <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
-                  <CardHeader className="pb-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <CardTitle className="text-sm">Import Soal dari Excel</CardTitle>
-                        <CardDescription className="text-xs mt-0.5">
-                          Download template, isi soal &amp; jawaban, lalu import sekaligus
-                        </CardDescription>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {/* Download Template */}
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            const a = document.createElement('a')
-                            a.href = `/api/asesmen/${asesmenId}/soal/template-excel`
-                            a.download = 'Template_Soal_Kuis.xlsx'
-                            document.body.appendChild(a)
-                            a.click()
-                            document.body.removeChild(a)
-                          }}
-                        >
-                          <FileDown className="mr-2 h-4 w-4" />
-                          Download Template
-                        </Button>
-
-                        {/* Import Excel */}
-                        <Button
-                          type="button"
-                          variant="default"
-                          size="sm"
-                          disabled={importExcelLoading}
-                          onClick={() => importExcelRef.current?.click()}
-                        >
-                          {importExcelLoading ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <FileUp className="mr-2 h-4 w-4" />
-                          )}
-                          {importExcelLoading ? 'Mengimport...' : 'Import Excel'}
-                        </Button>
-
-                        {/* Hidden file input */}
-                        <input
-                          ref={importExcelRef}
-                          type="file"
-                          accept=".xlsx,.xls"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0]
-                            if (!file) return
-                            e.target.value = ''
-                            await handleImportExcel(file)
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {importExcelResult && (
-                    <CardContent className="pt-0">
-                      <Alert
-                        variant={importExcelResult.type === 'error' ? 'destructive' : 'default'}
-                        className={
-                          importExcelResult.type === 'success'
-                            ? 'border-green-500 bg-green-50 dark:bg-green-950'
-                            : importExcelResult.type === 'warning'
-                            ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950'
-                            : ''
-                        }
-                      >
-                        <AlertDescription className="whitespace-pre-wrap text-sm">
-                          {importExcelResult.message}
-                        </AlertDescription>
-                      </Alert>
-                    </CardContent>
-                  )}
-                </Card>
               </div>
             )}
 

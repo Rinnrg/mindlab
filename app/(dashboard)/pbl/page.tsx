@@ -301,21 +301,21 @@ export default function PblPage() {
                             )}
                           </div>
                           {isTeacherOrAdmin && (
-                            <div className="flex items-center gap-2">
-                              <Button asChild variant="ghost" size="sm" className="h-8 rounded-lg px-2">
+                            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                              <Button asChild variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg">
                                 <Link href={`/pbl/edit/${course.id}`}>
-                                  <Pencil className="mr-2 h-4 w-4" />
-                                  Edit
+                                  <Pencil className="h-4 w-4 sm:mr-2" />
+                                  <span className="hidden sm:inline">Edit</span>
                                 </Link>
                               </Button>
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                className="h-8 rounded-lg px-2 text-destructive hover:text-destructive"
+                                size="icon"
+                                className="h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-lg text-destructive hover:text-destructive"
                                 onClick={() => handleDeleteCourse(course.id, course.judul)}
                               >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Hapus
+                                <Trash2 className="h-4 w-4 sm:mr-2" />
+                                <span className="hidden sm:inline">Hapus</span>
                               </Button>
                             </div>
                           )}
