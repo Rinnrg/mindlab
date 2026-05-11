@@ -19,6 +19,7 @@ export async function POST(
     let siswaId: unknown
     let sourceCode: unknown
     let output: unknown
+    let textContent: unknown
     let scheduledAt: unknown
     let uploadedFile: File | null = null
 
@@ -32,6 +33,7 @@ export async function POST(
       siswaId = form.get('siswaId')
       sourceCode = form.get('sourceCode')
       output = form.get('output')
+      textContent = form.get('textContent')
       scheduledAt = form.get('scheduledAt')
       const f = form.get('file')
       uploadedFile = f instanceof File ? f : null
@@ -104,6 +106,7 @@ export async function POST(
     const fileUrlStr = typeof fileUrl === 'string' ? fileUrl.trim() : ''
     const sourceCodeStr = typeof sourceCode === 'string' ? sourceCode : ''
     const outputStr = typeof output === 'string' ? output : ''
+    const textContentStr = typeof textContent === 'string' ? textContent : ''
 
   // If multipart file is provided, we'll store bytes in DB (PengumpulanProyek.fileData)
   const hasUploadedFile = !!uploadedFile && typeof uploadedFile.name === 'string' && uploadedFile.size > 0
@@ -154,12 +157,14 @@ export async function POST(
       )
     }
 
-    // Basic validation: require at least uploaded file OR fileUrl OR sourceCode
+    // Basic validation: require at least one component
     const hasFile = fileUrlStr.length > 0 || hasUploadedFile
     const hasCode = sourceCodeStr.trim().length > 0
-    if (!hasFile && !hasCode) {
+    const hasText = textContentStr.trim().length > 0
+    
+    if (!hasFile && !hasCode && !hasText) {
       return NextResponse.json(
-        { error: 'Silakan upload file atau isi kode terlebih dahulu' },
+        { error: 'Silakan upload file, isi kode, atau ketikkan teks terlebih dahulu' },
         { status: 400 }
       )
     }
@@ -242,6 +247,7 @@ export async function POST(
           ...(typeof catatan === 'string' ? { catatan } : {}),
           sourceCode: sourceCodeStr || existingSubmission.sourceCode,
           output: outputStr || existingSubmission.output,
+          textContent: textContentStr || existingSubmission.textContent,
           kelompokId: existingSubmission.kelompokId || kelompokId,
           status: 'PENDING', // Reset status when re-submitted
           tgl_unggah: targetDate,
@@ -266,6 +272,7 @@ export async function POST(
           ...(typeof catatan === 'string' ? { catatan } : {}),
           ...(sourceCodeStr.trim() ? { sourceCode: sourceCodeStr } : {}),
           ...(outputStr ? { output: outputStr } : {}),
+          ...(textContentStr.trim() ? { textContent: textContentStr } : {}),
           siswaId: siswaId.trim(),
           asesmenId: id,
           kelompokId,

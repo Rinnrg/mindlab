@@ -253,6 +253,7 @@ model PengumpulanProyek {
   id              String            @id @default(uuid()) @db.Uuid
   catatan         String?           @db.VarChar(1000)
   sourceCode      String?           @db.VarChar(5000)
+  textContent     String?           @db.Text
   output          String?           @db.VarChar(5000)
   tgl_unggah      DateTime          @default(now())
   nilai           Float?

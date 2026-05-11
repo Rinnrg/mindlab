@@ -529,7 +529,7 @@ export default function AddAsesmenPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-[1600px] mx-auto p-6 space-y-6">
       <AlertComponent />
       <ActionFeedback />
 
@@ -544,9 +544,32 @@ export default function AddAsesmenPage() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr_380px] gap-6 items-start">
           {/* Left: Panel (KUIS: nomor soal) | (TUGAS: toolbox) */}
           <div className="lg:sticky lg:top-20 space-y-4">
+            {/* Header card ala Google Form (Moved to Left) */}
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Judul</CardTitle>
+                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <Input
+                  value={nama}
+                  onChange={(e) => setNama(e.target.value)}
+                  placeholder="Judul asesmen (contoh: Kuis 1)"
+                  className="text-lg sm:text-xl font-semibold h-11"
+                />
+                <Textarea
+                  value={deskripsi}
+                  onChange={(e) => setDeskripsi(e.target.value)}
+                  placeholder="Deskripsi (opsional)"
+                  rows={2}
+                  className="min-h-[64px]"
+                />
+              </CardContent>
+            </Card>
+
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader className="pb-3">
@@ -646,28 +669,6 @@ export default function AddAsesmenPage() {
 
           {/* Center: Builder + content utama */}
           <div className="space-y-6">
-            {/* Header card ala Google Form (compact) */}
-            <Card className="ios-glass-card border-border/30 rounded-2xl">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Judul</CardTitle>
-                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-5 space-y-3">
-                <Input
-                  value={nama}
-                  onChange={(e) => setNama(e.target.value)}
-                  placeholder="Judul asesmen (contoh: Kuis 1)"
-                  className="text-lg sm:text-xl font-semibold h-11"
-                />
-                <Textarea
-                  value={deskripsi}
-                  onChange={(e) => setDeskripsi(e.target.value)}
-                  placeholder="Deskripsi (opsional)"
-                  rows={2}
-                  className="min-h-[64px]"
-                />
-              </CardContent>
-            </Card>
 
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">

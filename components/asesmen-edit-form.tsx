@@ -520,7 +520,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
 
   // UI disamakan dengan Add Asesmen (single page, 3 kolom)
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="max-w-[1600px] mx-auto p-6 space-y-6">
       <AlertComponent />
       <form
         onSubmit={(e) => {
@@ -529,9 +529,32 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
         }}
         className="space-y-6"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr_380px] gap-6 items-start">
           {/* Left: Panel nomor soal (sticky) */}
           <div className="lg:sticky lg:top-20 space-y-4">
+            {/* Judul & Deskripsi Card (Moved to Left) */}
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Judul</CardTitle>
+                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4 sm:p-5 space-y-3">
+                <Input
+                  value={formData.nama}
+                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                  placeholder="Judul asesmen (contoh: Kuis 1)"
+                  className="text-lg sm:text-xl font-semibold h-11"
+                />
+                <Textarea
+                  value={formData.deskripsi}
+                  onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
+                  placeholder="Deskripsi (opsional)"
+                  rows={2}
+                  className="min-h-[64px]"
+                />
+              </CardContent>
+            </Card>
+
             {formData.tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader className="pb-3">
@@ -579,162 +602,10 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                 </CardContent>
               </Card>
             )}
-            {formData.tipe === "TUGAS" && (
-              <Card className="ios-glass-card border-border/30 rounded-2xl">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Toolbox</CardTitle>
-                  <CardDescription>Drag ke canvas untuk menambah</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Komponen Pengumpulan</div>
-                  <button
-                    type="button"
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "UPLOAD_FILE")}
-                    onClick={() => {
-                      if (!formData.submissionComponents.includes("UPLOAD_FILE")) {
-                        setFormData(prev => ({
-                          ...prev,
-                          submissionComponents: [...prev.submissionComponents, "UPLOAD_FILE"]
-                        }))
-                      }
-                    }}
-                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
-                  >
-                    <FileUp className="h-4 w-4" />
-                    Upload File
-                  </button>
-                  <button
-                    type="button"
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "COMPILER")}
-                    onClick={() => {
-                      if (!formData.submissionComponents.includes("COMPILER")) {
-                        setFormData(prev => ({
-                          ...prev,
-                          submissionComponents: [...prev.submissionComponents, "COMPILER"]
-                        }))
-                      }
-                    }}
-                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
-                  >
-                    <Code className="h-4 w-4" />
-                    Compiler
-                  </button>
-                  <button
-                    type="button"
-                    draggable
-                    onDragStart={(e) => e.dataTransfer.setData("text/plain", "TEXT")}
-                    onClick={() => {
-                      if (!formData.submissionComponents.includes("TEXT")) {
-                        setFormData(prev => ({
-                          ...prev,
-                          submissionComponents: [...prev.submissionComponents, "TEXT"]
-                        }))
-                      }
-                    }}
-                    className="w-full flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition bg-background/30 hover:bg-background/50 border-border/30"
-                  >
-                    <Type className="h-4 w-4" />
-                    Input Teks
-                  </button>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Middle: Builder utama */}
           <div className="space-y-6">
-            <Card className="ios-glass-card border-border/30 rounded-2xl">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Judul</CardTitle>
-                <CardDescription>Judul dan deskripsi asesmen.</CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-5 space-y-3">
-                <Input
-                  value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  placeholder="Judul asesmen (contoh: Kuis 1)"
-                  className="text-lg sm:text-xl font-semibold h-11"
-                />
-                <Textarea
-                  value={formData.deskripsi}
-                  onChange={(e) => setFormData({ ...formData, deskripsi: e.target.value })}
-                  placeholder="Deskripsi (opsional)"
-                  rows={2}
-                  className="min-h-[64px]"
-                />
-              </CardContent>
-            </Card>
-
-            {formData.tipe === "TUGAS" && (
-              <Card className="ios-glass-card border-border/30 rounded-2xl">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="text-base">Komponen Pengumpulan</CardTitle>
-                      <CardDescription>Drag komponen dari toolbox untuk menambahkannya.</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-5">
-                  {formData.submissionComponents.length === 0 ? (
-                    <div
-                      className="flex flex-col items-center justify-center py-10 border-2 border-dashed rounded-2xl bg-muted/20 border-border/30"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault()
-                        const raw = e.dataTransfer.getData("text/plain") as any
-                        if (raw === "UPLOAD_FILE" || raw === "COMPILER" || raw === "TEXT") {
-                          setFormData(prev => ({
-                            ...prev,
-                            submissionComponents: [...prev.submissionComponents, raw]
-                          }))
-                        }
-                      }}
-                    >
-                      <Plus className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                      <p className="text-sm text-muted-foreground">Seret komponen ke sini</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {formData.submissionComponents.map((comp) => (
-                        <div key={comp} className="rounded-xl border p-4 bg-background/50 border-border/30 relative group">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 font-medium">
-                              {comp === "UPLOAD_FILE" && <FileUp className="h-4 w-4" />}
-                              {comp === "COMPILER" && <Code className="h-4 w-4" />}
-                              {comp === "TEXT" && <Type className="h-4 w-4" />}
-                              {comp === "UPLOAD_FILE" ? "Upload File" : comp === "COMPILER" ? "Compiler" : "Input Teks"}
-                            </div>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() =>
-                                setFormData(prev => ({
-                                  ...prev,
-                                  submissionComponents: prev.submissionComponents.filter((c) => c !== comp)
-                                }))
-                              }
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            {comp === "UPLOAD_FILE" && "Siswa dapat mengunggah file dokumen atau link."}
-                            {comp === "COMPILER" && "Siswa dapat menulis dan menjalankan kode Python."}
-                            {comp === "TEXT" && "Siswa dapat mengetikkan jawaban dalam area teks."}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
             {formData.tipe === "KUIS" && (
               <div className="space-y-4">
                 {/* Import Excel Card — Diletakkan di atas daftar soal */}
@@ -1018,7 +889,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                 <Card className="ios-glass-card border-border/30 rounded-2xl overflow-hidden shadow-xl">
                   <CardHeader className="bg-muted/30 border-b border-border/30 pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
-                      <Layout className="h-5 w-5 text-primary" />
+                      <Plus className="h-5 w-5 text-primary" />
                       Komponen Pengumpulan
                     </CardTitle>
                     <CardDescription>
@@ -1038,13 +909,16 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                             { id: "COMPILER", label: "Python Compiler", icon: Code, desc: "Editor kode Python langsung" },
                             { id: "TEXT", label: "Input Teks", icon: Type, desc: "Kolom teks untuk jawaban/laporan" },
                           ].map((item) => {
-                            const isAdded = submissionComponents.includes(item.id)
+                            const isAdded = formData.submissionComponents.includes(item.id as any)
                             return (
                               <button
                                 key={item.id}
                                 type="button"
                                 disabled={isAdded}
-                                onClick={() => setSubmissionComponents(prev => [...prev, item.id])}
+                                onClick={() => setFormData(prev => ({
+                                  ...prev,
+                                  submissionComponents: [...prev.submissionComponents, item.id as any]
+                                }))}
                                 className={`w-full text-left p-3 rounded-xl border transition-all group ${
                                   isAdded 
                                     ? "bg-muted/50 border-border/50 opacity-50 cursor-not-allowed" 
@@ -1064,25 +938,20 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                             )
                           })}
                         </div>
-                        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                          <p className="text-[10px] leading-relaxed text-primary/80 italic">
-                            💡 Klik komponen di toolbox untuk menambahkannya ke canvas pengumpulan.
-                          </p>
-                        </div>
                       </div>
 
                       {/* Canvas */}
                       <div className="p-6 bg-background/50 space-y-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Canvas Pengumpulan ({submissionComponents.length})
+                            Canvas Pengumpulan ({formData.submissionComponents.length})
                           </div>
-                          {submissionComponents.length === 0 && (
+                          {formData.submissionComponents.length === 0 && (
                             <Badge variant="destructive" className="animate-pulse">Kosong</Badge>
                           )}
                         </div>
 
-                        {submissionComponents.length === 0 ? (
+                        {formData.submissionComponents.length === 0 ? (
                           <div className="h-[300px] border-2 border-dashed border-border/50 rounded-2xl flex flex-col items-center justify-center text-center p-6 bg-muted/5">
                             <div className="p-4 rounded-full bg-muted/50 mb-4">
                               <Plus className="h-8 w-8 text-muted-foreground/50" />
@@ -1094,18 +963,17 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                           </div>
                         ) : (
                           <div className="space-y-3">
-                            {submissionComponents.map((compId, idx) => {
+                            {formData.submissionComponents.map((compId, idx) => {
                               const config = {
                                 UPLOAD_FILE: { label: "Upload File", icon: FileUp, color: "blue" },
                                 COMPILER: { label: "Python Compiler", icon: Code, color: "emerald" },
                                 TEXT: { label: "Input Teks", icon: Type, color: "purple" },
-                              }[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"] || { label: compId, icon: FileUp, color: "gray" }
+                              }[compId] || { label: compId, icon: FileUp, color: "gray" }
 
                               return (
                                 <div 
                                   key={compId}
-                                  className="flex items-center gap-4 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group animate-in slide-in-from-right-4 duration-300"
-                                  style={{ animationDelay: `${idx * 50}ms` }}
+                                  className="flex items-center gap-4 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group"
                                 >
                                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                     {idx + 1}
@@ -1121,7 +989,10 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                                     type="button"
                                     variant="ghost"
                                     size="icon"
-                                    onClick={() => setSubmissionComponents(prev => prev.filter(id => id !== compId))}
+                                    onClick={() => setFormData(prev => ({
+                                      ...prev,
+                                      submissionComponents: prev.submissionComponents.filter(id => id !== compId)
+                                    }))}
                                     className="opacity-0 group-hover:opacity-100 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all rounded-full"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -1130,12 +1001,6 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                               )
                             })}
                           </div>
-                        )}
-                        
-                        {submissionComponents.length > 0 && (
-                          <p className="text-[10px] text-center text-muted-foreground mt-4 italic">
-                            * Urutan di atas akan menentukan urutan tab pada halaman pengumpulan siswa.
-                          </p>
                         )}
                       </div>
                     </div>
@@ -1229,16 +1094,18 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
-                  <Input
-                    id="durasi"
-                    type="number"
-                    min={0}
-                    value={formData.durasi}
-                    onChange={(e) => setFormData({ ...formData, durasi: e.target.value })}
-                  />
-                </div>
+                {formData.tipe === "KUIS" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
+                    <Input
+                      id="durasi"
+                      type="number"
+                      min={0}
+                      value={formData.durasi}
+                      onChange={(e) => setFormData({ ...formData, durasi: e.target.value })}
+                    />
+                  </div>
+                )}
 
                 {/* Enrollment Kelas (reuse existing UI) */}
                 <div className="space-y-2">

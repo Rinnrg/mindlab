@@ -336,7 +336,12 @@ export default function AddAsesmenPage() {
         if (tipe === "TUGAS") {
           payload.tipePengerjaan = tipePengerjaan
           if (tipePengerjaan === "KELOMPOK") {
-            payload.selectedGroupMembers = selectedGroupMembers
+            // New structure to support the updated API
+            payload.groups = {
+              groupCount: 1,
+              membersByGroup: { 1: selectedGroupMembers },
+              ketuaByGroup: { 1: selectedGroupMembers[0] || "" }
+            }
           }
           payload.lampiran = fileName
           payload.fileData = fileData
@@ -1050,10 +1055,12 @@ export default function AddAsesmenPage() {
                   <CardDescription>Pengaturan tanggal, durasi, kelas target, dan opsi lainnya.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
-                    <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
-                  </div>
+                  {tipe === "KUIS" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="durasi">Durasi (menit, opsional)</Label>
+                      <Input id="durasi" type="number" min={0} value={durasi} onChange={(e) => setDurasi(e.target.value)} />
+                    </div>
+                  )}
 
                   <div className="grid gap-4">
                     <div className="space-y-2">
@@ -1138,18 +1145,20 @@ export default function AddAsesmenPage() {
 
                   {tipe === "TUGAS" && (
                     <>
-                      <div className="space-y-2">
-                        <Label>Tipe Pengerjaan</Label>
-                        <Select value={tipePengerjaan} onValueChange={(v) => setTipePengerjaan(v as any)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih tipe pengerjaan" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INDIVIDU">Individu</SelectItem>
-                            <SelectItem value="KELOMPOK">Kelompok</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {!modeParam && (
+                        <div className="space-y-2">
+                          <Label>Tipe Pengerjaan</Label>
+                          <Select value={tipePengerjaan} onValueChange={(v) => setTipePengerjaan(v as any)}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih tipe pengerjaan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="INDIVIDU">Individu</SelectItem>
+                              <SelectItem value="KELOMPOK">Kelompok</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
 
                       <div className="space-y-2">
                         <Label htmlFor="file">Lampiran (opsional)</Label>

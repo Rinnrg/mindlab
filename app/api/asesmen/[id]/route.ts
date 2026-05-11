@@ -307,6 +307,14 @@ export async function PUT(
     if (tipe === 'TUGAS' && tipePengerjaan !== undefined) {
       updateData.tipePengerjaan = tipePengerjaan || 'INDIVIDU'
       if (submissionComponents && Array.isArray(submissionComponents)) {
+        const allowed = new Set(['UPLOAD_FILE', 'COMPILER', 'TEXT'])
+        const invalid = submissionComponents.find((c: any) => !allowed.has(String(c)))
+        if (invalid) {
+          return NextResponse.json(
+            { error: `Komponen pengumpulan tidak valid: ${String(invalid)}` },
+            { status: 400 }
+          )
+        }
         updateData.submissionComponents = submissionComponents
       }
     } else if (tipe === 'KUIS') {
