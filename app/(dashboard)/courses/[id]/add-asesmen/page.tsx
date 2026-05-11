@@ -886,20 +886,7 @@ export default function AddAsesmenPage() {
                             >
                               <ArrowUp className="h-4 w-4" />
                             </Button>
-                            <Label>Poin *</Label>
-                            <Input
-                              type="number"
-                              value={soal.bobot}
-                              onChange={(e) =>
-                                setSoalList((prev) => {
-                                  const next = [...prev]
-                                  next[index] = { ...next[index], bobot: parseInt(e.target.value) || 10 }
-                                  return next
-                                })
-                              }
-                              min={1}
-                              className="max-w-[140px]"
-                            />
+                            {/* Poin dihitung otomatis */}
                           </div>
                         </div>
                       </CardHeader>
