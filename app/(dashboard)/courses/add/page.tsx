@@ -281,11 +281,11 @@ export default function AddCoursePage() {
                 >
                   <ImageIcon className="h-10 w-10 text-muted-foreground" />
                   <p className="mt-2 text-sm text-muted-foreground">Click to upload thumbnail</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, WebP up to 5MB</p>
                   <input
                     id="thumbnail-upload"
                     type="file"
-                    accept="image/png,image/jpeg,image/jpg"
+                    accept="image/*"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0]

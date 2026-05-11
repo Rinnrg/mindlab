@@ -350,7 +350,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     }
 
     if (!file.type.startsWith('image/')) {
-      showError("Error", "File harus berupa gambar (JPG, PNG, GIF, dll)")
+      showError("Error", "File harus berupa gambar (JPG, PNG, WebP, AVIF, GIF, dll)")
       e.target.value = ''
       return
     }

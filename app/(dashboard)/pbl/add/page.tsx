@@ -344,7 +344,7 @@ export default function AddPblPage() {
                 <FileUploadField
                   onFileUpload={handleFileUpload}
                   currentFile={formData.lampiran}
-                  accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
+                  accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
                   maxSizeMB={10}
                   placeholder="Upload file pendukung PBL"
                 />

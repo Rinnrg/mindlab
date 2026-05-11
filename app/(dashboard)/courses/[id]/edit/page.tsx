@@ -276,7 +276,7 @@ export default function EditCoursePage() {
                 >
                   <ImageIcon className="h-10 w-10 text-muted-foreground" />
                   <p className="mt-2 text-sm text-muted-foreground">Klik untuk upload gambar</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG maksimal 5MB</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, WebP maksimal 5MB</p>
                   <input
                     id="thumbnail-upload"
                     type="file"

@@ -750,7 +750,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                           </div>
                         )}
                         <p className="text-[10px] text-muted-foreground italic">
-                          * Mendukung berbagai format file umum (PDF, Docx, PPT, Zip, dll). Maksimal 10MB.
+                          * Mendukung format PDF, Docx, Zip, Gambar (WebP, JPG, PNG), dll. Maksimal 10MB.
                         </p>
                       </div>
                     </div>

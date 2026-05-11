@@ -979,7 +979,7 @@ export default function AddAsesmenPage() {
                             </div>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            Bisa tempel URL atau upload gambar. Gambar akan disimpan sebagai URL (maks 255 karakter).
+                            Bisa tempel URL atau upload gambar. Mendukung format JPG, PNG, WebP, AVIF. Gambar akan disimpan sebagai URL (maks 255 karakter).
                           </p>
                         </div>
 
