@@ -82,7 +82,11 @@ export async function POST(
         for (const k of keys) {
           if (normalized[k] !== undefined && normalized[k] !== '') return normalized[k]
         }
-        return ''
+        // Fallback partial match
+        const foundKey = Object.keys(normalized).find(nk => 
+          keys.some(searchKey => nk.includes(searchKey))
+        )
+        return foundKey ? normalized[foundKey] : ''
       }
 
       const pertanyaan = getValue('pertanyaan')

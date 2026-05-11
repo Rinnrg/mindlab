@@ -536,57 +536,77 @@ export default function AddAsesmenPage() {
                             const reader = new FileReader()
                             reader.onload = (evt) => {
                               try {
-                                const bstr = evt.target?.result
-                                const wb = XLSX.read(bstr, { type: 'binary' })
+                                const data = evt.target?.result
+                                if (!data) throw new Error("Gagal membaca file")
+                                
+                                const wb = XLSX.read(data, { type: 'array' })
                                 const wsname = wb.SheetNames[0]
                                 const ws = wb.Sheets[wsname]
-                                const data = XLSX.utils.sheet_to_json(ws)
+                                const jsonData = XLSX.utils.sheet_to_json(ws)
 
-                                const newSoal: Soal[] = data.map((row: any) => {
+                                const newSoal: Soal[] = jsonData.map((row: any) => {
+                                  // Normalize keys for this row
+                                  const normalized: Record<string, any> = {}
+                                  Object.keys(row).forEach(k => {
+                                    normalized[k.trim().toLowerCase()] = row[k]
+                                  })
+
                                   const getValue = (...keys: string[]) => {
                                     for (const key of keys) {
-                                      const foundKey = Object.keys(row).find(k => k.toLowerCase() === key.toLowerCase())
-                                      if (foundKey) return row[foundKey]
+                                      if (normalized[key] !== undefined) return normalized[key]
                                     }
-                                    return ''
+                                    // Fallback partial match
+                                    const foundKey = Object.keys(normalized).find(k => 
+                                      keys.some(searchKey => k.includes(searchKey))
+                                    )
+                                    return foundKey ? normalized[foundKey] : ''
                                   }
 
-                                  const pertanyaan = getValue('pertanyaan')
-                                  if (!pertanyaan) return null
+                                  const pertanyaan = getValue('pertanyaan', 'soal')
+                                  if (!pertanyaan || String(pertanyaan).toLowerCase().startsWith('contoh:')) return null
 
-                                  const opsiA = getValue('opsi a', 'a')
-                                  const opsiB = getValue('opsi b', 'b')
-                                  const opsiC = getValue('opsi c', 'c')
-                                  const opsiD = getValue('opsi d', 'd')
-                                  const kunci = String(getValue('jawaban benar', 'kunci', 'jawaban', 'kunci jawaban') || 'A').toUpperCase()
+                                  const opsiA = getValue('opsi a', 'pilihan a', 'a')
+                                  const opsiB = getValue('opsi b', 'pilihan b', 'b')
+                                  const opsiC = getValue('opsi c', 'pilihan c', 'c')
+                                  const opsiD = getValue('opsi d', 'pilihan d', 'd')
+                                  const kunci = String(getValue('jawaban benar', 'kunci', 'jawaban', 'benar') || 'A').toUpperCase()
 
                                   const opsi: Opsi[] = []
-                                  if (opsiA) opsi.push({ teks: String(opsiA), isBenar: kunci === 'A' })
-                                  if (opsiB) opsi.push({ teks: String(opsiB), isBenar: kunci === 'B' })
-                                  if (opsiC) opsi.push({ teks: String(opsiC), isBenar: kunci === 'C' })
-                                  if (opsiD) opsi.push({ teks: String(opsiD), isBenar: kunci === 'D' })
+                                  if (opsiA) opsi.push({ teks: String(opsiA), isBenar: kunci.includes('A') })
+                                  if (opsiB) opsi.push({ teks: String(opsiB), isBenar: kunci.includes('B') })
+                                  if (opsiC) opsi.push({ teks: String(opsiC), isBenar: kunci.includes('C') })
+                                  if (opsiD) opsi.push({ teks: String(opsiD), isBenar: kunci.includes('D') })
+
+                                  // Jika tidak ada opsi yang benar, set A sebagai default (minimal data valid)
+                                  if (opsi.length > 0 && !opsi.some(o => o.isBenar)) {
+                                    opsi[0].isBenar = true
+                                  }
 
                                   return {
                                     pertanyaan: String(pertanyaan),
-                                    bobot: parseInt(getValue('bobot')) || 10,
+                                    bobot: parseInt(getValue('bobot', 'poin')) || 10,
                                     tipeJawaban: 'PILIHAN_GANDA',
                                     opsi
                                   }
-                                }).filter(s => s !== null) as Soal[]
+                                }).filter(s => s !== null && s.opsi.length >= 2) as Soal[]
 
                                 if (newSoal.length > 0) {
-                                  setSoalList(prev => [...prev.filter(s => s.pertanyaan !== ""), ...newSoal])
+                                  setSoalList(prev => {
+                                    const currentSoal = prev.filter(s => s.pertanyaan.trim() !== "")
+                                    return [...currentSoal, ...newSoal]
+                                  })
                                   setImportExcelResult({ message: `Berhasil mengimport ${newSoal.length} soal`, type: 'success' })
                                 } else {
-                                  setImportExcelResult({ message: 'Tidak ada soal valid ditemukan di file Excel', type: 'error' })
+                                  setImportExcelResult({ message: 'Tidak ada soal valid ditemukan (minimal 2 opsi)', type: 'error' })
                                 }
                               } catch (err) {
+                                console.error("Excel parse error:", err)
                                 setImportExcelResult({ message: 'Gagal memproses file Excel', type: 'error' })
                               } finally {
                                 setImportExcelLoading(false)
                               }
                             }
-                            reader.readAsBinaryString(file)
+                            reader.readAsArrayBuffer(file)
                           } catch (err) {
                             setImportExcelResult({ message: 'Gagal membaca file', type: 'error' })
                             setImportExcelLoading(false)
