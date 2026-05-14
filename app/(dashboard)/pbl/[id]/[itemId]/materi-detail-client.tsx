@@ -34,6 +34,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
+import { DocxViewer } from "@/components/docx-viewer"
 
 interface MateriDetailClientProps {
   materi: {
@@ -75,6 +76,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
   const { execute, ActionFeedback } = useAsyncAction()
   const [selectedMateriId, setSelectedMateriId] = useState(materi.id)
   const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [showDocxViewer, setShowDocxViewer] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
   const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
 
@@ -240,6 +242,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
       setPdfBlobUrl(null)
     }
     setShowPdfViewer(false)
+  setShowDocxViewer(false)
     setPdfLoading(false)
     setSelectedMateriId(materiId)
     router.push(`/pbl/${courseId}/${materiId}`)
@@ -400,24 +403,39 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                       )}
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0">
-                      {/* Tombol Lihat untuk PDF dan Video */}
-                      {((materi.hasFileData && (materi.fileType === 'application/pdf' || materi.fileType?.startsWith('video/'))) ||
+                      {/* Tombol Lihat untuk PDF / DOCX / Video */}
+                      {((materi.hasFileData && (materi.fileType === 'application/pdf' || materi.fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || materi.fileType?.startsWith('video/'))) ||
                         (materi.lampiran && (materi.lampiran.includes("youtube.com") || materi.lampiran.includes("youtu.be")))) && (
                           <Button
                             variant="outline"
                             size="sm"
                             className="gap-2"
-                            onClick={materi.hasFileData && materi.fileType === 'application/pdf' ? togglePdfViewer : () => setShowPdfViewer(!showPdfViewer)}
+                            onClick={() => {
+                              if (materi.hasFileData && materi.fileType === 'application/pdf') {
+                                togglePdfViewer()
+                                setShowDocxViewer(false)
+                                return
+                              }
+
+                              if (materi.hasFileData && materi.fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                                setShowDocxViewer((v) => !v)
+                                setShowPdfViewer(false)
+                                return
+                              }
+
+                              setShowPdfViewer(!showPdfViewer)
+                              setShowDocxViewer(false)
+                            }}
                             disabled={pdfLoading}
                           >
                             {pdfLoading ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : showPdfViewer ? (
+                            ) : (showPdfViewer || showDocxViewer) ? (
                               <EyeOff className="h-4 w-4" />
                             ) : (
                               <Eye className="h-4 w-4" />
                             )}
-                            {pdfLoading ? 'Memuat...' : showPdfViewer ? 'Sembunyikan' : 'Lihat Lampiran'}
+                            {pdfLoading ? 'Memuat...' : (showPdfViewer || showDocxViewer) ? 'Sembunyikan' : 'Lihat Lampiran'}
                           </Button>
                         )}
 
@@ -452,7 +470,7 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                 </Card>
 
                 {/* Preview Section */}
-                {showPdfViewer && (
+                {(showPdfViewer || showDocxViewer) && (
                   <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                     {/* YouTube Embed */}
                     {materi.lampiran && (materi.lampiran.includes("youtube.com") || materi.lampiran.includes("youtu.be")) && (
@@ -524,6 +542,24 @@ export default function MateriDetailClient({ materi, allMateri, courseId }: Mate
                               </Button>
                             </div>
                           )}
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* DOCX Preview */}
+                    {showDocxViewer && materi.hasFileData && materi.fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && (
+                      <Card>
+                        <CardContent className="p-4 sm:p-6 space-y-3">
+                          <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <p className="text-sm font-medium text-muted-foreground">Preview DOCX</p>
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={`/api/materi/${materi.id}/file`} target="_blank" rel="noopener noreferrer" download={materi.fileName || undefined}>
+                                <Download className="h-4 w-4 mr-2" />
+                                Download
+                              </a>
+                            </Button>
+                          </div>
+                          <DocxViewer src={`/api/materi/${materi.id}/file`} />
                         </CardContent>
                       </Card>
                     )}

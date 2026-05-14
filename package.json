@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "build": "pnpm exec prisma generate && next build",
+    "build": "pnpm exec prisma generate && next build",
     "dev": "next dev",
     "lint": "eslint .",
     "start": "next start",
     "db:seed": "tsx prisma/seed.ts",
-  "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate"
   },
   "prisma": {
@@ -55,6 +55,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.4",
     "date-fns": "4.1.0",
+    "docx-preview": "^0.3.7",
     "embla-carousel-react": "8.5.1",
     "framer-motion": "12.23.26",
     "input-otp": "1.4.1",
@@ -79,12 +80,15 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^10.3.0",
+    "eslint-config-next": "^16.2.6",
     "postcss": "^8.5",
     "prisma": "5.22.0",
     "tailwindcss": "^4.1.9",
