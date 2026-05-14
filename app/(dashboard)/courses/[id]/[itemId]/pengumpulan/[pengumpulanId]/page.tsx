@@ -37,7 +37,7 @@ interface PageProps {
   params: {
     id: string
     itemId: string
-  pengumpulanId?: string
+    pengumpulanId?: string
   }
 }
 
@@ -95,9 +95,9 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
         setCatatan(data?.pengumpulan?.catatan || "")
         setFeedback(data?.pengumpulan?.feedback || "")
       } catch (e) {
-  const msg = e instanceof Error ? e.message : "Gagal mengambil data"
-  setLoadError(msg)
-  showError("Gagal", msg)
+        const msg = e instanceof Error ? e.message : "Gagal mengambil data"
+        setLoadError(msg)
+        showError("Gagal", msg)
       } finally {
         setLoading(false)
       }
@@ -427,3 +427,4 @@ export default function CoursePengumpulanDetailPage({ params }: PageProps) {
     </div>
   )
 }
+
