@@ -57,6 +57,11 @@ interface Enrollment {
   averageGrade: number
 }
 
+type StudentAsesmenStatus = {
+  submitted: boolean
+  completedQuiz: boolean
+}
+
 export default function CourseDetailClient({ course, assessments }: CourseDetailClientProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -69,6 +74,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const [editTeacherOpen, setEditTeacherOpen] = useState(false)
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
+
+  const [studentStatusByAsesmenId, setStudentStatusByAsesmenId] = useState<Record<string, StudentAsesmenStatus>>({})
 
   // Handle tab from query parameter
   useEffect(() => {
@@ -95,6 +102,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   useBreadcrumbPage(course.judul, breadcrumbItems)
 
   const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
+  const isStudent = user?.role === "SISWA"
 
   // Filter materi dan asesmen berdasarkan kelas siswa
   const filteredMateri = useMemo(() => {
@@ -132,6 +140,28 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
       return asesmen.kelasTarget.includes(kelas)
     })
   }, [assessments, user?.kelas, isTeacherOrAdmin])
+
+  // Fetch per-asesmen completion/submission status for student so we can show a green check/outline in cards.
+  useEffect(() => {
+    if (!isStudent || !user?.id) return
+
+    const controller = new AbortController()
+    ;(async () => {
+      try {
+        const res = await fetch(
+          `/api/asesmen/status?courseId=${course.id}&siswaId=${user.id}`,
+          { signal: controller.signal }
+        )
+        if (!res.ok) return
+        const data = await res.json()
+        setStudentStatusByAsesmenId(data?.statusByAsesmenId || {})
+      } catch {
+        // noop (page should still work without indicator)
+      }
+    })()
+
+    return () => controller.abort()
+  }, [isStudent, user?.id, course.id])
 
   // TODO: Implement completed tracking in the database
   const completedCount = 0
@@ -602,8 +632,16 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
                 <div key={assessment.id} className="block">
+                  {(() => {
+                    const st = studentStatusByAsesmenId[assessment.id]
+                    const isDone = assessment.tipe === "TUGAS" ? !!st?.submitted : !!st?.completedQuiz
+
+                    return (
                   <Card 
-                    className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl"
+                    className={
+                      "ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl " +
+                      (isStudent && isDone ? "border-2 border-green-500/70" : "")
+                    }
                     role="link"
                     tabIndex={0}
                     onClick={() => router.push(`/courses/${course.id}/${assessment.id}`)}
@@ -629,6 +667,12 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                               <Badge variant="default" className="text-xs">
                                 {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
                               </Badge>
+                              {isStudent && isDone && (
+                                <Badge className="text-xs bg-green-600">
+                                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                                  Selesai
+                                </Badge>
+                              )}
                               {(!assessment.sintak || !getSintaksInfo(assessment.sintak)) && assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
                                 <Badge variant="secondary" className="text-xs">
                                   {assessment.kelasTarget.length} kelas enrolled
@@ -693,6 +737,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                       </div>
                     </CardContent>
                   </Card>
+                    )
+                  })()}
                 </div>
               ))}
             </div>
