@@ -100,10 +100,11 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const filteredMateri = useMemo(() => {
     if (isTeacherOrAdmin || !user?.kelas) {
       // Guru/Admin melihat semua materi, atau jika user tidak memiliki kelas
-      return course.materi || []
+      return (course.materi || []).filter((m) => m.origin !== 'PBL')
     }
 
     return (course.materi || []).filter((materi) => {
+      if (materi.origin === 'PBL') return false
       // Jika kelasTarget kosong, berarti untuk semua kelas
       if (!materi.kelasTarget || materi.kelasTarget.length === 0) {
         return true
@@ -118,10 +119,11 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const filteredAsesmen = useMemo(() => {
     if (isTeacherOrAdmin || !user?.kelas) {
       // Guru/Admin melihat semua asesmen, atau jika user tidak memiliki kelas
-      return assessments || []
+      return (assessments || []).filter((a) => a.origin !== 'PBL')
     }
 
     return (assessments || []).filter((asesmen) => {
+      if (asesmen.origin === 'PBL') return false
       // Jika kelasTarget kosong, berarti untuk semua kelas
       if (!asesmen.kelasTarget || asesmen.kelasTarget.length === 0) {
         return true
