@@ -491,7 +491,10 @@ export default function AddAsesmenPage() {
           payload.fileSize = fileSize
         }
 
-        const res = await fetch("/api/asesmen", {
+  // Mark asal pembuatan agar bisa difilter antara PBL vs Kursus.
+  ;(payload as any).origin = 'COURSE'
+
+  const res = await fetch("/api/asesmen", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

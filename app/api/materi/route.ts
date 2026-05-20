@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
         fileSize: true,
         courseId: true,
         sintak: true,
+  origin: true,
         course: {
           select: {
             id: true,
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { judul, deskripsi, kelasTarget, lampiran, fileData, fileName, fileType, fileSize, courseId, sintak } = body
+  const { judul, deskripsi, kelasTarget, lampiran, fileData, fileName, fileType, fileSize, courseId, sintak, origin } = body
 
     if (!judul || !courseId) {
       return NextResponse.json(
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
         fileSize,
         courseId,
         sintak,
+  origin: origin || 'COURSE',
       },
       include: {
         course: {

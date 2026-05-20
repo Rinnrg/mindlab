@@ -48,11 +48,11 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
   const [activeSintak, setActiveSintak] = useState("1")
 
   const filteredMateri = useMemo(() => {
-    return (course.materi || []).filter(m => (m.sintak || "1") === activeSintak)
+  return (course.materi || []).filter(m => (m.origin === 'PBL' || !m.origin) && (m.sintak || "1") === activeSintak)
   }, [course.materi, activeSintak])
 
   const filteredAsesmen = useMemo(() => {
-    return (assessments || []).filter(a => (a.sintak || "1") === activeSintak)
+  return (assessments || []).filter(a => (a.origin === 'PBL' || !a.origin) && (a.sintak || "1") === activeSintak)
   }, [assessments, activeSintak])
 
   // Set custom breadcrumb with useMemo to prevent re-renders
@@ -312,9 +312,11 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors text-base">{assessment.nama}</h4>
-                              <Badge variant="default" className="text-[10px] h-5">
-                                {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
-                              </Badge>
+                              {!!assessment.sintak && (
+                                <Badge variant="secondary" className="text-[10px] h-5">
+                                  Sintak {assessment.sintak}
+                                </Badge>
+                              )}
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{assessment.deskripsi}</p>
                             {assessment.tgl_selesai && (

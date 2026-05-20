@@ -1,85 +1,114 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
 
-/**
- * GET /api/asesmen/status?courseId=...&siswaId=...
- * Returns per-asesmen status for a student within a course.
- */
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+// GET /api/asesmen/status?asesmenId=...&siswaId=...
+// Returns submission status for both KUIS and TUGAS.
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url)
-    const courseId = searchParams.get("courseId")
-    const siswaId = searchParams.get("siswaId")
+	try {
+		const { searchParams } = new URL(request.url)
+		const asesmenId = searchParams.get('asesmenId')
+		const siswaId = searchParams.get('siswaId')
 
-    if (!courseId || !siswaId) {
-      return NextResponse.json(
-        { error: "courseId dan siswaId wajib diisi" },
-        { status: 400 }
-      )
-    }
+		if (!asesmenId || !siswaId) {
+			return NextResponse.json(
+				{ error: 'asesmenId dan siswaId diperlukan' },
+				{ status: 400 }
+			)
+		}
 
-    // Ensure student is enrolled in this course.
-    const enrollment = await prisma.enrollment.findFirst({
-      where: { courseId, siswaId },
-      select: { id: true },
-    })
+		const asesmen = await prisma.asesmen.findUnique({
+			where: { id: asesmenId },
+			select: { id: true, tipe: true, tipePengerjaan: true },
+		})
 
-    if (!enrollment) {
-      return NextResponse.json(
-        { error: "Tidak memiliki akses ke course ini" },
-        { status: 403 }
-      )
-    }
+		if (!asesmen) {
+			return NextResponse.json({ error: 'Asesmen tidak ditemukan' }, { status: 404 })
+		}
 
-    const asesmenList = await prisma.asesmen.findMany({
-      where: { courseId },
-      select: { id: true, tipe: true },
-    })
+		if (asesmen.tipe === 'KUIS') {
+			const attempt = await prisma.kuisAttempt.findUnique({
+				where: { siswaId_asesmenId_attempt: { siswaId, asesmenId } },
+				select: { id: true, submittedAt: true, createdAt: true },
+			})
 
-    const asesmenIds = asesmenList.map((a) => a.id)
+			const nilai = await prisma.nilai.findUnique({
+				where: { siswaId_asesmenId: { siswaId, asesmenId } },
+				select: { id: true, skor: true, tanggal: true },
+			})
 
-    if (asesmenIds.length === 0) {
-      return NextResponse.json({ statusByAsesmenId: {} })
-    }
+			return NextResponse.json({
+				asesmenId,
+				siswaId,
+				tipe: 'KUIS' as const,
+				hasAttempt: !!attempt,
+				attemptId: attempt?.id ?? null,
+				submittedAt: attempt?.submittedAt ?? null,
+				hasSubmitted: !!attempt?.submittedAt || !!nilai,
+				nilaiId: nilai?.id ?? null,
+				skor: nilai?.skor ?? null,
+				nilaiTanggal: nilai?.tanggal ?? null,
+			})
+		}
 
-    const [pengumpulan, nilai] = await Promise.all([
-      prisma.pengumpulanProyek.findMany({
-        where: {
-          asesmenId: { in: asesmenIds },
-          siswaId,
-        },
-        select: { asesmenId: true },
-      }),
-      prisma.nilai.findMany({
-        where: {
-          asesmenId: { in: asesmenIds },
-          siswaId,
-        },
-        select: { asesmenId: true },
-      }),
-    ])
+		if (asesmen.tipe === 'TUGAS') {
+			// For group tasks, try to resolve the student's kelompok first.
+			const kelompokId =
+				asesmen.tipePengerjaan === 'KELOMPOK'
+					? (
+							await prisma.kelompok.findFirst({
+								where: {
+									asesmenId,
+									anggota: {
+										some: { siswaId },
+									},
+								} as any,
+								select: { id: true },
+							})
+						)?.id ?? null
+					: null
 
-    const submittedSet = new Set(pengumpulan.map((p) => p.asesmenId))
-    const completedQuizSet = new Set(nilai.map((n) => n.asesmenId))
+			const submission = await prisma.pengumpulanProyek.findFirst({
+				where: {
+					asesmenId,
+					...(asesmen.tipePengerjaan === 'KELOMPOK'
+						? { kelompokId: kelompokId as string }
+						: { siswaId }),
+				},
+				select: {
+					id: true,
+					createdAt: true,
+					updatedAt: true,
+					fileUrl: true,
+					fileName: true,
+					fileType: true,
+					fileSize: true,
+					textContent: true,
+					sourceCode: true,
+				},
+			})
 
-    const statusByAsesmenId: Record<
-      string,
-      { submitted: boolean; completedQuiz: boolean }
-    > = {}
+			return NextResponse.json({
+				asesmenId,
+				siswaId,
+				tipe: 'TUGAS' as const,
+				tipePengerjaan: asesmen.tipePengerjaan,
+				kelompokId,
+				pengumpulanId: submission?.id ?? null,
+				hasSubmitted: !!submission,
+				submittedAt: submission?.updatedAt ?? submission?.createdAt ?? null,
+				hasFile:
+					!!(submission?.fileUrl && submission.fileUrl.trim()) ||
+					!!(submission?.fileName && submission.fileName.trim()),
+				hasText: !!(submission?.textContent && submission.textContent.trim()),
+				hasCode: !!(submission?.sourceCode && submission.sourceCode.trim()),
+			})
+		}
 
-    for (const a of asesmenList) {
-      statusByAsesmenId[a.id] = {
-        submitted: submittedSet.has(a.id),
-        completedQuiz: completedQuizSet.has(a.id),
-      }
-    }
-
-    return NextResponse.json({ statusByAsesmenId })
-  } catch (error) {
-    console.error("Error fetching asesmen status:", error)
-    return NextResponse.json(
-      { error: "Gagal mengambil status asesmen" },
-      { status: 500 }
-    )
-  }
+		return NextResponse.json({ error: 'Tipe asesmen tidak didukung' }, { status: 400 })
+	} catch (error) {
+		console.error('Error getting asesmen status:', error)
+		return NextResponse.json({ error: 'Gagal mengambil status asesmen' }, { status: 500 })
+	}
 }
+

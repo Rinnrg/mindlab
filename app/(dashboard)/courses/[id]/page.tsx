@@ -74,6 +74,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       tgl_unggah: m.tgl_unggah,
       lampiran: m.lampiran || undefined,
       courseId: course.id,
+  origin: (m as any).origin,
     })),
     asesmen: course.asesmen.map((a) => ({
       id: a.id,
@@ -89,6 +90,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
       lampiran: a.lampiran,
       guruId: a.guruId,
       courseId: course.id,
+  origin: (a as any).origin,
     })),
   }
 
@@ -106,6 +108,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     lampiran: a.lampiran,
     guruId: a.guruId,
     courseId: course.id,
+  origin: (a as any).origin,
   }))
 
   return <CourseDetailClient course={transformedCourse} assessments={assessments} />

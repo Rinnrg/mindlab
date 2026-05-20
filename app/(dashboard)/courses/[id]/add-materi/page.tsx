@@ -100,6 +100,7 @@ export default function AddMateriPage() {
           fileType: fileType || null,
           fileSize: fileSize || null,
           sintak: sintak || null,
+          origin: 'COURSE',
         }
 
         const res = await fetch("/api/materi", {

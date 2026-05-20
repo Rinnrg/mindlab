@@ -75,6 +75,7 @@ export default async function PblDetailPage({ params }: PageProps) {
       lampiran: m.lampiran || undefined,
       courseId: course.id,
       sintak: m.sintak || undefined,
+  origin: (m as any).origin,
     })),
     asesmen: course.asesmen.map((a) => ({
       id: a.id,
@@ -91,6 +92,7 @@ export default async function PblDetailPage({ params }: PageProps) {
       guruId: a.guruId,
       courseId: course.id,
       sintak: a.sintak || undefined,
+  origin: (a as any).origin,
     })),
   }
 
@@ -109,6 +111,7 @@ export default async function PblDetailPage({ params }: PageProps) {
     guruId: a.guruId,
     courseId: course.id,
     sintak: a.sintak || undefined,
+  origin: (a as any).origin,
   }))
 
   return <PblDetailClient course={transformedCourse} assessments={assessments} />

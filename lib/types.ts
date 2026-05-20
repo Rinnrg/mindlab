@@ -37,6 +37,7 @@ export interface Materi {
   lampiran?: string
   courseId: string
   sintak?: string | null
+  origin?: 'COURSE' | 'PBL'
 }
 
 export interface Asesmen {
@@ -54,6 +55,7 @@ export interface Asesmen {
   guruId: string
   courseId: string
   sintak?: string | null
+  origin?: 'COURSE' | 'PBL'
   soal?: Soal[]
   nilai?: Nilai[]
   pengumpulanProyek?: PengumpulanProyek[] // Renamed from pengumpulanTugas

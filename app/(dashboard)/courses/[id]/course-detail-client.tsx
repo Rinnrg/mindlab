@@ -57,11 +57,6 @@ interface Enrollment {
   averageGrade: number
 }
 
-type StudentAsesmenStatus = {
-  submitted: boolean
-  completedQuiz: boolean
-}
-
 export default function CourseDetailClient({ course, assessments }: CourseDetailClientProps) {
   const { user } = useAuth()
   const router = useRouter()
@@ -74,8 +69,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   const [editTeacherOpen, setEditTeacherOpen] = useState(false)
   const [enrollments, setEnrollments] = useState<Enrollment[]>([])
   const [isLoadingStudents, setIsLoadingStudents] = useState(false)
-
-  const [studentStatusByAsesmenId, setStudentStatusByAsesmenId] = useState<Record<string, StudentAsesmenStatus>>({})
 
   // Handle tab from query parameter
   useEffect(() => {
@@ -102,7 +95,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
   useBreadcrumbPage(course.judul, breadcrumbItems)
 
   const isTeacherOrAdmin = user?.role === "GURU" || user?.role === "ADMIN"
-  const isStudent = user?.role === "SISWA"
 
   // Filter materi dan asesmen berdasarkan kelas siswa
   const filteredMateri = useMemo(() => {
@@ -140,28 +132,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
       return asesmen.kelasTarget.includes(kelas)
     })
   }, [assessments, user?.kelas, isTeacherOrAdmin])
-
-  // Fetch per-asesmen completion/submission status for student so we can show a green check/outline in cards.
-  useEffect(() => {
-    if (!isStudent || !user?.id) return
-
-    const controller = new AbortController()
-    ;(async () => {
-      try {
-        const res = await fetch(
-          `/api/asesmen/status?courseId=${course.id}&siswaId=${user.id}`,
-          { signal: controller.signal }
-        )
-        if (!res.ok) return
-        const data = await res.json()
-        setStudentStatusByAsesmenId(data?.statusByAsesmenId || {})
-      } catch {
-        // noop (page should still work without indicator)
-      }
-    })()
-
-    return () => controller.abort()
-  }, [isStudent, user?.id, course.id])
 
   // TODO: Implement completed tracking in the database
   const completedCount = 0
@@ -512,8 +482,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap sm:gap-2">
                         <h4 className="text-sm font-medium truncate group-hover:text-primary transition-colors sm:text-base">{material.judul}</h4>
-                        {/* Show sintaks or enrollment badges */}
-                        {material.sintak && getSintaksInfo(material.sintak) ? (
+                        {/* Show sintaks only for item PBL; otherwise show enrollment badges */}
+                        {material.origin === 'PBL' && material.sintak && getSintaksInfo(material.sintak) ? (
                           <Badge variant="secondary" className="text-xs">
                             {getSintaksInfo(material.sintak)?.title}
                           </Badge>
@@ -632,16 +602,8 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               {filteredAsesmen.map((assessment) => (
                 <div key={assessment.id} className="block">
-                  {(() => {
-                    const st = studentStatusByAsesmenId[assessment.id]
-                    const isDone = assessment.tipe === "TUGAS" ? !!st?.submitted : !!st?.completedQuiz
-
-                    return (
                   <Card 
-                    className={
-                      "ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl " +
-                      (isStudent && isDone ? "border-2 border-green-500/70" : "")
-                    }
+                    className="ios-glass-card border-border/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 cursor-pointer group rounded-2xl"
                     role="link"
                     tabIndex={0}
                     onClick={() => router.push(`/courses/${course.id}/${assessment.id}`)}
@@ -659,7 +621,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                             <CardTitle className="text-sm group-hover:text-primary transition-colors sm:text-base">{assessment.nama}</CardTitle>
                             {/* Show sintaks and category badges */}
                             <div className="flex gap-1.5 flex-wrap">
-                              {assessment.sintak && getSintaksInfo(assessment.sintak) && (
+                              {assessment.origin === 'PBL' && assessment.sintak && getSintaksInfo(assessment.sintak) && (
                                 <Badge variant="secondary" className="text-xs">
                                   {getSintaksInfo(assessment.sintak)?.title}
                                 </Badge>
@@ -667,12 +629,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                               <Badge variant="default" className="text-xs">
                                 {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
                               </Badge>
-                              {isStudent && isDone && (
-                                <Badge className="text-xs bg-green-600">
-                                  <CheckCircle2 className="mr-1 h-3 w-3" />
-                                  Selesai
-                                </Badge>
-                              )}
                               {(!assessment.sintak || !getSintaksInfo(assessment.sintak)) && assessment.kelasTarget && assessment.kelasTarget.length > 0 && (
                                 <Badge variant="secondary" className="text-xs">
                                   {assessment.kelasTarget.length} kelas enrolled
@@ -722,9 +678,7 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                     </CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <Badge variant="default">
-                          {assessment.tipe === 'KUIS' ? 'Kuis' : 'Pengumpulan'}
-                        </Badge>
+                        {/* Badge tipe sudah ditampilkan di header */}
                         {assessment.tgl_selesai && (
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Calendar className="h-3.5 w-3.5" />
@@ -737,8 +691,6 @@ export default function CourseDetailClient({ course, assessments }: CourseDetail
                       </div>
                     </CardContent>
                   </Card>
-                    )
-                  })()}
                 </div>
               ))}
             </div>

@@ -65,6 +65,7 @@ model Materi {
   fileSize    Int?
   courseId    String   @db.Uuid
   sintak      String?  @db.VarChar(50)
+  origin      ItemOrigin @default(COURSE)
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@index([courseId])
@@ -93,6 +94,7 @@ model Asesmen {
   guruId            String              @db.Uuid
   courseId          String              @db.Uuid
   sintak            String?             @db.VarChar(50)
+  origin            ItemOrigin          @default(COURSE)
   acakJawaban       Boolean             @default(false)
   acakSoal          Boolean             @default(false)
   course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
@@ -110,6 +112,11 @@ model Asesmen {
   @@index([tgl_mulai])
   @@index([tgl_selesai])
   @@index([kelasTarget])
+}
+
+enum ItemOrigin {
+  COURSE
+  PBL
 }
 
 enum SubmissionComponent {
