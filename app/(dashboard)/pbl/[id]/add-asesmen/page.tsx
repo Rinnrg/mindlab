@@ -85,6 +85,7 @@ export default function AddAsesmenPage() {
   const searchParams = useSearchParams()
   const courseId = params.id
   const sintak = searchParams.get('sintak')
+  const modeParam = searchParams.get('mode')
 
   const { user } = useAuth()
 
