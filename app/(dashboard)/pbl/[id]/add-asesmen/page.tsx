@@ -408,61 +408,9 @@ export default function AddAsesmenPage() {
       </div>
 
       <form onSubmit={onSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_380px] gap-6 items-start">
-          {/* Left: Panel nomor soal (sticky) */}
-          <div className="lg:sticky lg:top-20 space-y-4">
-            {tipe === "KUIS" && (
-              <Card className="ios-glass-card border-border/30 rounded-2xl">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Panel Soal</CardTitle>
-                  <CardDescription>Drag untuk ubah urutan</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {soalList.map((_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      draggable
-                      onClick={() => {
-                        setActiveSoalIndex(i)
-                        // scroll ke soal
-                        document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
-                      }}
-                      onDragStart={() => {
-                        dragFromIndexRef.current = i
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault()
-                        const from = dragFromIndexRef.current
-                        dragFromIndexRef.current = null
-                        if (from === null) return
-                        moveSoalToIndex(from, i)
-                        setActiveSoalIndex(i)
-                        // setelah reorder, scroll ke posisi baru
-                        setTimeout(() => {
-                          document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
-                        }, 50)
-                      }}
-                      className={
-                        "w-full flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition " +
-                        (i === activeSoalIndex
-                          ? "bg-primary/10 border-primary/30 text-foreground"
-                          : "bg-background/30 hover:bg-background/50 border-border/30 text-muted-foreground")
-                      }
-                      aria-label={`Soal ${i + 1}`}
-                      title="Drag untuk pindah"
-                    >
-                      <span className="font-medium">Soal {i + 1}</span>
-                      <span className="text-xs">↕</span>
-                    </button>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Left: Builder + content utama */}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr_380px] gap-6 items-start">
+          {/* Left: Judul */}
           <div className="space-y-6">
             {/* Header card ala Google Form (compact) */}
             <Card className="ios-glass-card border-border/30 rounded-2xl">
@@ -486,6 +434,12 @@ export default function AddAsesmenPage() {
                 />
               </CardContent>
             </Card>
+
+            {/* Panel soal dipindah ke bawah agar tidak mengganggu layout 3 kolom */}
+          </div>
+
+          {/* Middle: konten utama */}
+          <div className="space-y-6">
 
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
@@ -1050,8 +1004,8 @@ export default function AddAsesmenPage() {
             )}
           </div>
 
-          {/* Right: Settings sticky */}
-          <div className="lg:sticky lg:top-20 space-y-4">
+          {/* Right: Informasi */}
+          <div className="space-y-4">
             {showSettings && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader>
@@ -1170,48 +1124,101 @@ export default function AddAsesmenPage() {
                         {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
                       </div>
 
-                      {tipePengerjaan === "KELOMPOK" && (
-                        <div className="space-y-3 pt-2">
-                          <Label>Pilih Anggota Kelompok</Label>
-                          <p className="text-xs text-muted-foreground">Pilih siswa yang akan masuk ke dalam kelompok untuk tugas ini.</p>
-                          
-                          {loadingStudents ? (
-                            <div className="text-sm text-muted-foreground">Memuat daftar siswa...</div>
-                          ) : students.length === 0 ? (
-                            <div className="text-sm text-muted-foreground">Tidak ada siswa terdaftar di kursus ini.</div>
-                          ) : (
-                            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                              {students.map((student) => (
-                                <label 
-                                  key={student.id} 
-                                  className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
-                                >
-                                  <Checkbox 
-                                    checked={selectedGroupMembers.includes(student.id)} 
-                                    onCheckedChange={(checked) => {
-                                      setSelectedGroupMembers(prev => 
-                                        checked 
-                                          ? [...prev, student.id] 
-                                          : prev.filter(id => id !== student.id)
-                                      )
-                                    }}
-                                  />
-                                  <div className="flex flex-col">
-                                    <span className="text-sm font-medium">{student.nama}</span>
-                                    <span className="text-xs text-muted-foreground">{student.email}</span>
-                                  </div>
-                                </label>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
                     </>
                   )}
                 </CardContent>
               </Card>
             )}
           </div>
+          </div>
+
+          {/* Card khusus untuk kelompok: list & manajemen kelompok */}
+          {tipe === "TUGAS" && tipePengerjaan === "KELOMPOK" && (
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader>
+                <CardTitle className="text-base">Manajemen Kelompok</CardTitle>
+                <CardDescription>Pilih siswa yang akan masuk ke dalam kelompok untuk tugas ini.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingStudents ? (
+                  <div className="text-sm text-muted-foreground">Memuat daftar siswa...</div>
+                ) : students.length === 0 ? (
+                  <div className="text-sm text-muted-foreground">Tidak ada siswa terdaftar di kursus ini.</div>
+                ) : (
+                  <div className="max-h-[420px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    {students.map((student) => (
+                      <label
+                        key={student.id}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={selectedGroupMembers.includes(student.id)}
+                          onCheckedChange={(checked) => {
+                            setSelectedGroupMembers((prev) =>
+                              checked ? [...prev, student.id] : prev.filter((id) => id !== student.id)
+                            )
+                          }}
+                        />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium">{student.nama}</span>
+                          <span className="text-xs text-muted-foreground">{student.email}</span>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Panel soal (KUIS) diletakkan di bawah agar tidak ada kolom kiri kosong */}
+          {tipe === "KUIS" && (
+            <Card className="ios-glass-card border-border/30 rounded-2xl">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Panel Soal</CardTitle>
+                <CardDescription>Drag untuk ubah urutan</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {soalList.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    draggable
+                    onClick={() => {
+                      setActiveSoalIndex(i)
+                      document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }}
+                    onDragStart={() => {
+                      dragFromIndexRef.current = i
+                    }}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      const from = dragFromIndexRef.current
+                      dragFromIndexRef.current = null
+                      if (from === null) return
+                      moveSoalToIndex(from, i)
+                      setActiveSoalIndex(i)
+                      setTimeout(() => {
+                        document.getElementById(`soal-${i}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+                      }, 50)
+                    }}
+                    className={
+                      "w-full flex items-center justify-between rounded-xl border px-3 py-2 text-sm transition " +
+                      (i === activeSoalIndex
+                        ? "bg-primary/10 border-primary/30 text-foreground"
+                        : "bg-background/30 hover:bg-background/50 border-border/30 text-muted-foreground")
+                    }
+                    aria-label={`Soal ${i + 1}`}
+                    title="Drag untuk pindah"
+                  >
+                    <span className="font-medium">Soal {i + 1}</span>
+                    <span className="text-xs">↕</span>
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         <div className="flex justify-end pt-4">
