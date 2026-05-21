@@ -393,7 +393,7 @@ export default function AddAsesmenPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+  <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-6 overflow-x-hidden">
       <AlertComponent />
       <ActionFeedback />
 
@@ -409,9 +409,9 @@ export default function AddAsesmenPage() {
 
       <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr_380px] gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)_minmax(0,380px)] gap-6 items-start">
           {/* Left: Judul */}
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
             {/* Header card ala Google Form (compact) */}
             <Card className="ios-glass-card border-border/30 rounded-2xl">
               <CardHeader className="pb-2">
@@ -439,7 +439,7 @@ export default function AddAsesmenPage() {
           </div>
 
           {/* Middle: konten utama */}
-          <div className="space-y-6">
+          <div className="space-y-6 min-w-0">
 
             {tipe === "KUIS" && (
               <Card className="ios-glass-card border-border/30 rounded-2xl border-dashed">
@@ -1005,7 +1005,7 @@ export default function AddAsesmenPage() {
           </div>
 
           {/* Right: Informasi */}
-          <div className="space-y-4">
+          <div className="space-y-4 min-w-0">
             {showSettings && (
               <Card className="ios-glass-card border-border/30 rounded-2xl">
                 <CardHeader>
