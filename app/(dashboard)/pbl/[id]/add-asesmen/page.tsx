@@ -117,7 +117,10 @@ export default function AddAsesmenPage() {
   // - draft = checklist sementara sebelum dimasukkan ke kelompok
   // - groups = hasil pembentukan kelompok (Kelompok 1..n)
   type GroupDraft = { memberIds: string[] }
-  type BuiltGroup = { id: number; name: string; memberIds: string[]; ketuaId?: string }
+  // NOTE:
+  // - `number` = nomor kelompok (1..n) yang stabil untuk label & payload
+  // - saat ditampilkan, kelompok terbaru ditaruh di atas (order UI), tetapi nomor tetap stabil
+  type BuiltGroup = { number: number; name: string; memberIds: string[]; ketuaId?: string; createdAt: number }
 
   const [groupDraft, setGroupDraft] = React.useState<GroupDraft>({ memberIds: [] })
   const [builtGroups, setBuiltGroups] = React.useState<BuiltGroup[]>([])
@@ -268,15 +271,23 @@ export default function AddAsesmenPage() {
 
   const canCreateGroup = groupDraft.memberIds.length > 0
 
+  const nextGroupNumber = React.useMemo(() => {
+    // Nomor kelompok mengikuti max(number) + 1 supaya tidak bentrok walau ada yang dihapus.
+    const maxNumber = builtGroups.reduce((acc, g) => Math.max(acc, g.number), 0)
+    return maxNumber + 1
+  }, [builtGroups])
+
   const createGroupFromDraft = React.useCallback(() => {
     if (groupDraft.memberIds.length === 0) return
     setBuiltGroups((prev) => {
-      const nextId = prev.length + 1
+      const maxNumber = prev.reduce((acc, g) => Math.max(acc, g.number), 0)
+      const nextNumber = maxNumber + 1
       const newGroup: BuiltGroup = {
-        id: nextId,
-        name: `Kelompok ${nextId}`,
+        number: nextNumber,
+        name: `Kelompok ${nextNumber}`,
         memberIds: [...groupDraft.memberIds],
         ketuaId: groupDraft.memberIds[0],
+        createdAt: Date.now(),
       }
       // Tampilkan kelompok terbaru di atas list card
       return [newGroup, ...prev]
@@ -284,8 +295,8 @@ export default function AddAsesmenPage() {
     setGroupDraft({ memberIds: [] })
   }, [groupDraft.memberIds])
 
-  const removeGroup = React.useCallback((groupId: number) => {
-    setBuiltGroups((prev) => prev.filter((g) => g.id !== groupId))
+  const removeGroup = React.useCallback((groupNumber: number) => {
+    setBuiltGroups((prev) => prev.filter((g) => g.number !== groupNumber))
   }, [])
 
   const toggleKelas = (kelasId: string, checked: boolean) => {
@@ -387,15 +398,15 @@ export default function AddAsesmenPage() {
             // Struktur groupCount + membersByGroup|ketuaByGroup (mendukung multi kelompok)
             // Fallback: jika user belum membentuk kelompok, coba pakai draft sebagai Kelompok 1.
             const groupsSource = builtGroups.length
-              ? [...builtGroups].sort((a, b) => a.id - b.id)
+              ? [...builtGroups].sort((a, b) => a.number - b.number)
               : groupDraft.memberIds.length
-              ? [{ id: 1, name: "Kelompok 1", memberIds: groupDraft.memberIds, ketuaId: groupDraft.memberIds[0] }]
+              ? [{ number: 1, name: "Kelompok 1", memberIds: groupDraft.memberIds, ketuaId: groupDraft.memberIds[0], createdAt: Date.now() }]
               : []
 
             const membersByGroup: Record<number, string[]> = {}
             const ketuaByGroup: Record<number, string> = {}
             for (let i = 0; i < groupsSource.length; i++) {
-              const number = i + 1
+              const number = groupsSource[i].number
               membersByGroup[number] = groupsSource[i].memberIds
               ketuaByGroup[number] = groupsSource[i].ketuaId || groupsSource[i].memberIds?.[0] || ""
             }
@@ -455,7 +466,7 @@ export default function AddAsesmenPage() {
   }
 
   return (
-  <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-6 overflow-x-hidden">
+  <div className="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 py-6 space-y-6 overflow-x-hidden overscroll-y-none">
       <AlertComponent />
       <ActionFeedback />
 
@@ -550,6 +561,7 @@ export default function AddAsesmenPage() {
                         ref={importExcelRef}
                         type="file"
                         accept=".xlsx,.xls"
+                        aria-label="Import soal dari file Excel"
                         className="hidden"
                         onChange={async (e) => {
                           const file = e.target.files?.[0]
@@ -947,13 +959,13 @@ export default function AddAsesmenPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] min-h-[400px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] min-h-[340px]">
                       {/* Toolbox */}
-                      <div className="p-4 bg-muted/20 border-r border-border/30 space-y-4">
+                      <div className="p-4 bg-muted/20 lg:border-r border-border/30 space-y-4">
                         <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2">
                           Toolbox
                         </div>
-                        <div className="space-y-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2">
                           {[
                             { id: "UPLOAD_FILE", label: "Upload File", icon: FileUp, desc: "Siswa mengunggah file atau link" },
                             { id: "COMPILER", label: "Python Compiler", icon: Code, desc: "Editor kode Python langsung" },
@@ -966,7 +978,7 @@ export default function AddAsesmenPage() {
                                 type="button"
                                 disabled={isAdded}
                                 onClick={() => setSubmissionComponents(prev => [...prev, item.id])}
-                                className={`w-full text-left p-3 rounded-xl border transition-all group ${
+                                className={`w-full text-left p-3 rounded-xl border transition-all group min-w-0 ${
                                   isAdded 
                                     ? "bg-muted/50 border-border/50 opacity-50 cursor-not-allowed" 
                                     : "bg-background border-border/50 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
@@ -978,22 +990,17 @@ export default function AddAsesmenPage() {
                                   </div>
                                   <div>
                                     <p className="text-xs font-semibold">{item.label}</p>
-                                    <p className="text-[9px] text-muted-foreground line-clamp-1">{item.desc}</p>
+                                    <p className="text-[9px] text-muted-foreground line-clamp-2">{item.desc}</p>
                                   </div>
                                 </div>
                               </button>
                             )
                           })}
                         </div>
-                        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                          <p className="text-[10px] leading-relaxed text-primary/80 italic">
-                            💡 Klik komponen di toolbox untuk menambahkannya ke canvas pengumpulan.
-                          </p>
-                        </div>
                       </div>
 
                       {/* Canvas */}
-                      <div className="p-6 bg-background/50 space-y-4">
+                      <div className="p-4 sm:p-6 bg-background/50 space-y-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             Canvas Pengumpulan ({submissionComponents.length})
@@ -1025,13 +1032,21 @@ export default function AddAsesmenPage() {
                               return (
                                 <div 
                                   key={compId}
-                                  className="flex items-center gap-4 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group animate-in slide-in-from-right-4 duration-300"
-                                  style={{ animationDelay: `${idx * 50}ms` }}
+                                  // Tailwind arbitrary variant supaya delay tidak perlu inline-style
+                                  className={`flex items-center gap-4 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group animate-in slide-in-from-right-4 duration-300 ${
+                                    idx === 0
+                                      ? "[animation-delay:0ms]"
+                                      : idx === 1
+                                      ? "[animation-delay:50ms]"
+                                      : idx === 2
+                                      ? "[animation-delay:100ms]"
+                                      : "[animation-delay:150ms]"
+                                  }`}
                                 >
                                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                     {idx + 1}
                                   </div>
-                                  <div className={`p-2.5 rounded-xl bg-${config.color}-500/10 text-${config.color}-500`}>
+                                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
                                     <config.icon className="h-5 w-5" />
                                   </div>
                                   <div className="flex-1">
@@ -1212,7 +1227,7 @@ export default function AddAsesmenPage() {
                     {builtGroups.length > 0 && (
                       <div className="space-y-2">
                         {builtGroups.map((g) => (
-                          <Card key={g.id} className="rounded-xl border border-border/50 bg-background/30">
+        <Card key={g.number} className="rounded-xl border border-border/50 bg-background/30">
                             <CardHeader className="py-3">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0">
@@ -1226,7 +1241,7 @@ export default function AddAsesmenPage() {
                                   variant="ghost"
                                   size="sm"
                                   className="text-destructive hover:bg-destructive/10"
-                                  onClick={() => removeGroup(g.id)}
+          onClick={() => removeGroup(g.number)}
                                 >
                                   <Trash2 className="h-4 w-4 mr-2" />
                                   Hapus
@@ -1266,15 +1281,16 @@ export default function AddAsesmenPage() {
                         >
                           Reset pilihan
                         </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          disabled={!canCreateGroup}
-                          onClick={createGroupFromDraft}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Tambah {`Kelompok ${builtGroups.length + 1}`}
-                        </Button>
+                        {canCreateGroup && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={createGroupFromDraft}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Tambah {`Kelompok ${nextGroupNumber}`}
+                          </Button>
+                        )}
                       </div>
                     </div>
 
