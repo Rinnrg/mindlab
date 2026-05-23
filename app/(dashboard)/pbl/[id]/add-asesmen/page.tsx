@@ -113,7 +113,14 @@ export default function AddAsesmenPage() {
 
   const [students, setStudents] = React.useState<any[]>([])
   const [loadingStudents, setLoadingStudents] = React.useState(false)
-  const [selectedGroupMembers, setSelectedGroupMembers] = React.useState<string[]>([])
+  // Group builder state (untuk TUGAS mode KELOMPOK)
+  // - draft = checklist sementara sebelum dimasukkan ke kelompok
+  // - groups = hasil pembentukan kelompok (Kelompok 1..n)
+  type GroupDraft = { memberIds: string[] }
+  type BuiltGroup = { id: number; name: string; memberIds: string[]; ketuaId?: string }
+
+  const [groupDraft, setGroupDraft] = React.useState<GroupDraft>({ memberIds: [] })
+  const [builtGroups, setBuiltGroups] = React.useState<BuiltGroup[]>([])
 
   const [submissionComponents, setSubmissionComponents] = React.useState<string[]>(["UPLOAD_FILE"])
 
@@ -241,6 +248,46 @@ export default function AddAsesmenPage() {
     }
   }, [tipe, tipePengerjaan, courseId])
 
+  // Reset builder ketika mode berubah
+  React.useEffect(() => {
+    if (tipe !== "TUGAS" || tipePengerjaan !== "KELOMPOK") {
+      setGroupDraft({ memberIds: [] })
+      setBuiltGroups([])
+      return
+    }
+    // Mode kelompok: pastikan state konsisten
+    setGroupDraft({ memberIds: [] })
+    setBuiltGroups([])
+  }, [tipe, tipePengerjaan])
+
+  const membersInAnyGroup = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const g of builtGroups) for (const id of g.memberIds) set.add(id)
+    return set
+  }, [builtGroups])
+
+  const canCreateGroup = groupDraft.memberIds.length > 0
+
+  const createGroupFromDraft = React.useCallback(() => {
+    if (groupDraft.memberIds.length === 0) return
+    setBuiltGroups((prev) => {
+      const nextId = prev.length + 1
+      const newGroup: BuiltGroup = {
+        id: nextId,
+        name: `Kelompok ${nextId}`,
+        memberIds: [...groupDraft.memberIds],
+        ketuaId: groupDraft.memberIds[0],
+      }
+      // Tampilkan kelompok terbaru di atas list card
+      return [newGroup, ...prev]
+    })
+    setGroupDraft({ memberIds: [] })
+  }, [groupDraft.memberIds])
+
+  const removeGroup = React.useCallback((groupId: number) => {
+    setBuiltGroups((prev) => prev.filter((g) => g.id !== groupId))
+  }, [])
+
   const toggleKelas = (kelasId: string, checked: boolean) => {
     setSelectedKelas((prev) => (checked ? [...prev, kelasId] : prev.filter((id) => id !== kelasId)))
   }
@@ -337,11 +384,26 @@ export default function AddAsesmenPage() {
         if (tipe === "TUGAS") {
           payload.tipePengerjaan = tipePengerjaan
           if (tipePengerjaan === "KELOMPOK") {
-            // New structure to support the updated API
+            // Struktur groupCount + membersByGroup|ketuaByGroup (mendukung multi kelompok)
+            // Fallback: jika user belum membentuk kelompok, coba pakai draft sebagai Kelompok 1.
+            const groupsSource = builtGroups.length
+              ? [...builtGroups].sort((a, b) => a.id - b.id)
+              : groupDraft.memberIds.length
+              ? [{ id: 1, name: "Kelompok 1", memberIds: groupDraft.memberIds, ketuaId: groupDraft.memberIds[0] }]
+              : []
+
+            const membersByGroup: Record<number, string[]> = {}
+            const ketuaByGroup: Record<number, string> = {}
+            for (let i = 0; i < groupsSource.length; i++) {
+              const number = i + 1
+              membersByGroup[number] = groupsSource[i].memberIds
+              ketuaByGroup[number] = groupsSource[i].ketuaId || groupsSource[i].memberIds?.[0] || ""
+            }
+
             payload.groups = {
-              groupCount: 1,
-              membersByGroup: { 1: selectedGroupMembers },
-              ketuaByGroup: { 1: selectedGroupMembers[0] || "" }
+              groupCount: groupsSource.length,
+              membersByGroup,
+              ketuaByGroup,
             }
           }
           payload.lampiran = fileName
@@ -1145,26 +1207,115 @@ export default function AddAsesmenPage() {
                 ) : students.length === 0 ? (
                   <div className="text-sm text-muted-foreground">Tidak ada siswa terdaftar di kursus ini.</div>
                 ) : (
-                  <div className="max-h-[420px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                    {students.map((student) => (
-                      <label
-                        key={student.id}
-                        className="flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:bg-muted/50 cursor-pointer transition-colors"
-                      >
-                        <Checkbox
-                          checked={selectedGroupMembers.includes(student.id)}
-                          onCheckedChange={(checked) => {
-                            setSelectedGroupMembers((prev) =>
-                              checked ? [...prev, student.id] : prev.filter((id) => id !== student.id)
-                            )
-                          }}
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{student.nama}</span>
-                          <span className="text-xs text-muted-foreground">{student.email}</span>
-                        </div>
-                      </label>
-                    ))}
+                  <div className="space-y-4">
+                    {/* List kelompok yang sudah terbentuk (muncul di atas list siswa) */}
+                    {builtGroups.length > 0 && (
+                      <div className="space-y-2">
+                        {builtGroups.map((g) => (
+                          <Card key={g.id} className="rounded-xl border border-border/50 bg-background/30">
+                            <CardHeader className="py-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                  <CardTitle className="text-sm truncate">{g.name}</CardTitle>
+                                  <CardDescription className="text-xs">
+                                    {g.memberIds.length} anggota
+                                  </CardDescription>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:bg-destructive/10"
+                                  onClick={() => removeGroup(g.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Hapus
+                                </Button>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="pt-0 pb-3">
+                              <div className="flex flex-wrap gap-2">
+                                {g.memberIds.map((id) => {
+                                  const s = students.find((st) => st.id === id)
+                                  const label = s?.nama || id
+                                  return (
+                                    <Badge key={id} variant="secondary" className="rounded-lg">
+                                      {label}
+                                    </Badge>
+                                  )
+                                })}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Draft actions */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-xl border border-border/50 p-3 bg-muted/10">
+                      <div className="text-xs text-muted-foreground">
+                        Dipilih: <span className="font-medium text-foreground">{groupDraft.memberIds.length}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={groupDraft.memberIds.length === 0}
+                          onClick={() => setGroupDraft({ memberIds: [] })}
+                        >
+                          Reset pilihan
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!canCreateGroup}
+                          onClick={createGroupFromDraft}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Tambah {`Kelompok ${builtGroups.length + 1}`}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* List siswa (scroll tunggal) */}
+                    <div className="max-h-[420px] overflow-y-auto space-y-2 pr-2 custom-scrollbar overscroll-contain">
+                      {students.map((student) => {
+                        const isInGroup = membersInAnyGroup.has(student.id)
+                        const checked = groupDraft.memberIds.includes(student.id)
+                        return (
+                          <label
+                            key={student.id}
+                            className={
+                              "flex items-center gap-3 p-3 rounded-xl border border-border/50 transition-colors " +
+                              (isInGroup
+                                ? "bg-muted/30 opacity-60 cursor-not-allowed"
+                                : "hover:bg-muted/50 cursor-pointer")
+                            }
+                          >
+                            <Checkbox
+                              checked={checked}
+                              disabled={isInGroup}
+                              onCheckedChange={(nextChecked) => {
+                                if (isInGroup) return
+                                setGroupDraft((prev) => ({
+                                  memberIds: Boolean(nextChecked)
+                                    ? [...prev.memberIds, student.id]
+                                    : prev.memberIds.filter((id) => id !== student.id),
+                                }))
+                              }}
+                            />
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-medium truncate">{student.nama}</span>
+                              <span className="text-xs text-muted-foreground truncate">{student.email}</span>
+                              {isInGroup && (
+                                <span className="text-[10px] text-muted-foreground">Sudah masuk kelompok</span>
+                              )}
+                            </div>
+                          </label>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </CardContent>
