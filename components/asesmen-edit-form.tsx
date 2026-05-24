@@ -25,6 +25,7 @@ import { FileUploadField } from "@/components/file-upload-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { Switch } from "@/components/ui/switch"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import AsesmenGroupsManagement from "@/components/asesmen-groups-management"
 
 interface AsesmenEditFormProps {
   asesmenId: string
@@ -730,6 +731,24 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                 </CardContent>
               </Card>
             )}
+
+            {formData.tipe === 'TUGAS' && formData.tipePengerjaan === 'KELOMPOK' && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    Manajemen Kelompok
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Tambah/hapus kelompok dan atur anggota (satu siswa hanya boleh ada di satu kelompok).
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <AsesmenGroupsManagement asesmenId={asesmenId} title={formData.nama || undefined} />
+                </CardContent>
+              </Card>
+            )}
+
 
             {formData.tipe === "KUIS" && (
               <div className="space-y-4">
