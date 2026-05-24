@@ -117,7 +117,10 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     UPLOAD_FILE: { label: "Upload File", icon: FileUp, accent: "text-blue-600", bg: "bg-blue-500/10" },
     COMPILER: { label: "Python Compiler", icon: Code, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
     TEXT: { label: "Input Teks", icon: Type, accent: "text-purple-600", bg: "bg-purple-500/10" },
-  }) satisfies Record<"UPLOAD_FILE" | "COMPILER" | "TEXT", { label: string; icon: any; accent: string; bg: string }>, [])
+  }) satisfies Record<
+    "UPLOAD_FILE" | "COMPILER" | "TEXT",
+    { label: string; icon: React.ComponentType<any>; accent: string; bg: string }
+  >, [])
   
   // Fetch enrollments untuk mendapatkan kelas yang ada di course
   useEffect(() => {
@@ -1118,6 +1121,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                           <div className="space-y-2">
                             {formData.submissionComponents.map((compId, idx) => {
                               const config = submissionComponentConfig[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"]
+                              const IconComp = (config?.icon || FileUp) as React.ComponentType<any>
 
                               return (
                                 <button
@@ -1131,7 +1135,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                                     {idx + 1}
                                   </div>
                                   <div className={`p-2.5 rounded-xl ${config?.bg || "bg-muted"} ${config?.accent || "text-muted-foreground"}`}>
-                                    {(config?.icon || FileUp)({ className: "h-5 w-5" })}
+                                    <IconComp className="h-5 w-5" />
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold truncate">{config?.label || String(compId)}</p>
