@@ -20,6 +20,7 @@ import {
   CheckCircle2, 
   Star,
   User,
+  Users,
   Calendar,
   Code,
   MessageSquare,
@@ -67,6 +68,11 @@ export default function PengumpulanDetailClient({
   const [feedback, setFeedback] = React.useState<string>(pengumpulan.feedback || "")
   const [showPdf, setShowPdf] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+
+  const pengerjaanLabel =
+    (pengumpulan as any)?.asesmen?.tipePengerjaan === 'KELOMPOK'
+      ? 'Kelompok'
+      : 'Individu'
 
   const hasSintaks = !!pengumpulan.asesmen.sintak
 
@@ -164,6 +170,9 @@ export default function PengumpulanDetailClient({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Badge variant="outline" className="h-8 px-3 rounded-lg">
+            {pengerjaanLabel}
+          </Badge>
           <Badge variant={pengumpulan.status === 'VALIDATED' ? 'default' : 'secondary'} className="h-8 px-3 rounded-lg">
             {pengumpulan.status === 'VALIDATED' ? (
               <><Trophy className="mr-2 h-4 w-4 text-yellow-400" /> Ter-showcase</>
