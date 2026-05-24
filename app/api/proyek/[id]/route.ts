@@ -74,9 +74,53 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { judul, deskripsi, tgl_mulai, tgl_selesai, lampiran, sintaks } = body
+    const { judul, deskripsi, tgl_mulai, tgl_selesai, lampiran, sintaks, fileData, fileName, fileType, fileSize, sintak, isMaterialOnly } = body
 
-    // Validation  
+    // Check if project exists
+    const existingProyek = await prisma.pBL.findUnique({
+      where: { id },
+    })
+
+    if (!existingProyek) {
+      return NextResponse.json(
+        { error: "PBL tidak ditemukan" },
+        { status: 404 }
+      )
+    }
+
+    if (isMaterialOnly) {
+      // Process file if provided
+      let fileBuffer = null
+      if (fileData) {
+        const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
+        fileBuffer = Buffer.from(base64Data, 'base64')
+      }
+
+      const proyek = await prisma.pBL.update({
+        where: { id },
+        data: {
+          lampiran: fileName || null,
+          fileData: fileBuffer,
+          fileName: fileName || null,
+          fileType: fileType || null,
+          fileSize: fileSize || null,
+          materiSintak: sintak || null,
+        },
+        include: {
+          guru: {
+            select: {
+              id: true,
+              nama: true,
+              email: true,
+            },
+          },
+        },
+      })
+
+      return NextResponse.json({ pbl: proyek })
+    }
+
+    // Validation for standard update  
     if (!judul || !deskripsi || !tgl_mulai || !tgl_selesai) {
       return NextResponse.json(
         { error: "Semua field wajib harus diisi" },
@@ -99,16 +143,31 @@ export async function PUT(
       )
     }
 
-    // Check if project exists
-    const existingProyek = await prisma.pBL.findUnique({
-      where: { id },
-    })
-
-    if (!existingProyek) {
-      return NextResponse.json(
-        { error: "PBL tidak ditemukan" },
-        { status: 404 }
-      )
+    // Process file if provided for standard update
+    let fileUpdate: any = {}
+    if (fileData !== undefined) {
+      if (fileData) {
+        const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
+        fileUpdate = {
+          fileData: Buffer.from(base64Data, 'base64'),
+          fileName: fileName || null,
+          fileType: fileType || null,
+          fileSize: fileSize || null,
+          lampiran: fileName || null,
+        }
+      } else {
+        fileUpdate = {
+          fileData: null,
+          fileName: null,
+          fileType: null,
+          fileSize: null,
+          lampiran: null,
+        }
+      }
+    } else if (lampiran !== undefined) {
+      fileUpdate = {
+        lampiran: lampiran || null,
+      }
     }
 
     const proyek = await prisma.pBL.update({
@@ -118,8 +177,8 @@ export async function PUT(
         deskripsi,
         tgl_mulai: new Date(tgl_mulai),
         tgl_selesai: new Date(tgl_selesai),
-        lampiran,
         sintaks,
+        ...fileUpdate,
       },
       include: {
         guru: {
@@ -131,6 +190,19 @@ export async function PUT(
         },
       },
     })
+
+    // Sync corresponding Course record if it exists
+    try {
+      await prisma.course.update({
+        where: { id },
+        data: {
+          judul,
+          deskripsi: deskripsi || null,
+        }
+      })
+    } catch (syncError) {
+      console.warn("Course sync update skipped (course might not exist):", syncError)
+    }
 
     return NextResponse.json({ pbl: proyek })
   } catch (error) {

@@ -20,27 +20,50 @@ export async function GET(
       },
     })
 
+    let fileData = materi?.fileData
+    let fileName = materi?.fileName
+    let fileType = materi?.fileType
+    let fileSize = materi?.fileSize
+
     if (!materi || !materi.fileData) {
-      console.log('File not found or no fileData for materi:', id)
-      return NextResponse.json(
-        { error: 'File tidak ditemukan' },
-        { status: 404 }
-      )
+      console.log('Materi file not found, checking if ID matches a PBL project:', id)
+      const pbl = await prisma.pBL.findUnique({
+        where: { id },
+        select: {
+          fileData: true,
+          fileName: true,
+          fileType: true,
+          fileSize: true,
+        }
+      })
+
+      if (pbl && pbl.fileData) {
+        fileData = pbl.fileData
+        fileName = pbl.fileName
+        fileType = pbl.fileType
+        fileSize = pbl.fileSize
+      } else {
+        console.log('File not found in both Materi and PBL for ID:', id)
+        return NextResponse.json(
+          { error: 'File tidak ditemukan' },
+          { status: 404 }
+        )
+      }
     }
 
     console.log('Serving file:', {
-      fileName: materi.fileName,
-      fileType: materi.fileType,
-      fileSize: materi.fileSize,
-      dataLength: materi.fileData.length
+      fileName: fileName,
+      fileType: fileType,
+      fileSize: fileSize,
+      dataLength: fileData.length
     })
 
     // Return file with proper headers
-    return new NextResponse(Buffer.from(materi.fileData), {
+    return new NextResponse(Buffer.from(fileData), {
       headers: {
-        'Content-Type': materi.fileType || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${materi.fileName || 'file'}"`,
-        'Content-Length': String(materi.fileSize || materi.fileData.length),
+        'Content-Type': fileType || 'application/octet-stream',
+        'Content-Disposition': `inline; filename="${fileName || 'file'}"`,
+        'Content-Length': String(fileSize || fileData.length),
         'Cache-Control': 'public, max-age=31536000, immutable',
         'X-Content-Type-Options': 'nosniff',
         'Accept-Ranges': 'bytes',

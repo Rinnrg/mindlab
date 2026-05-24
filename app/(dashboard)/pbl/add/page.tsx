@@ -25,6 +25,15 @@ interface ClassInfo {
   studentIds: string[]
 }
 
+async function fileToDataUrl(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const bytes = new Uint8Array(buf)
+  let binary = ""
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  const base64 = btoa(binary)
+  return `data:${file.type || "application/octet-stream"};base64,${base64}`
+}
+
 export default function AddPblPage() {
   const { user } = useAuth()
   const router = useRouter()
@@ -40,6 +49,7 @@ export default function AddPblPage() {
     sintaks: [] as SintaksKey[]
   })
 
+  const [file, setFile] = useState<File | null>(null)
   const [selectedClasses, setSelectedClasses] = useState<string[]>([])
   const [classData, setClassData] = useState<ClassInfo[]>([])
   const [loadingClasses, setLoadingClasses] = useState(true)
@@ -165,6 +175,18 @@ export default function AddPblPage() {
     try {
       setIsSubmitting(true)
       
+      let fileData = undefined
+      let fileName = undefined
+      let fileType = undefined
+      let fileSize = undefined
+
+      if (file) {
+        fileData = await fileToDataUrl(file)
+        fileName = file.name
+        fileType = file.type
+        fileSize = file.size
+      }
+
       await execute(
         async () => {
           const response = await fetch("/api/proyek", {
@@ -174,6 +196,10 @@ export default function AddPblPage() {
             },
             body: JSON.stringify({
               ...formData,
+              fileData,
+              fileName,
+              fileType,
+              fileSize,
               guruId: user.id,
               selectedClasses: selectedClasses.length > 0 ? selectedClasses : undefined,
             }),
@@ -341,13 +367,14 @@ export default function AddPblPage() {
                 <Label className="text-sm font-medium">
                   Lampiran <span className="text-muted-foreground">(Opsional)</span>
                 </Label>
-                <FileUploadField
-                  onFileUpload={handleFileUpload}
-                  currentFile={formData.lampiran}
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
                   accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
-                  maxSizeMB={10}
-                  placeholder="Upload file pendukung PBL"
+                  className="cursor-pointer"
                 />
+                {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
               </div>
 
               {/* Enrollment - Pilih Kelas */}

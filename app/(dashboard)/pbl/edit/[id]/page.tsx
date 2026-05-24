@@ -33,6 +33,15 @@ interface PBL {
   }
 }
 
+async function fileToDataUrl(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const bytes = new Uint8Array(buf)
+  let binary = ""
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i])
+  const base64 = btoa(binary)
+  return `data:${file.type || "application/octet-stream"};base64,${base64}`
+}
+
 export default function EditPblPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: pblId } = use(params)
   const { user } = useAuth()
@@ -43,6 +52,7 @@ export default function EditPblPage({ params }: { params: Promise<{ id: string }
   const [proyek, setProyek] = useState<PBL | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [file, setFile] = useState<File | null>(null)
   
   const [formData, setFormData] = useState({
     judul: "",
@@ -148,6 +158,18 @@ export default function EditPblPage({ params }: { params: Promise<{ id: string }
     try {
       setIsSubmitting(true)
       
+      let fileData = undefined
+      let fileName = undefined
+      let fileType = undefined
+      let fileSize = undefined
+
+      if (file) {
+        fileData = await fileToDataUrl(file)
+        fileName = file.name
+        fileType = file.type
+        fileSize = file.size
+      }
+
       await execute(
         async () => {
           const response = await fetch(`/api/proyek/${pblId}`, {
@@ -155,7 +177,13 @@ export default function EditPblPage({ params }: { params: Promise<{ id: string }
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({
+              ...formData,
+              fileData,
+              fileName,
+              fileType,
+              fileSize,
+            }),
           })
 
           const data = await response.json()
@@ -363,13 +391,19 @@ export default function EditPblPage({ params }: { params: Promise<{ id: string }
                 <Label className="text-sm font-medium">
                   Lampiran <span className="text-muted-foreground">(Opsional)</span>
                 </Label>
-                <FileUploadField
-                  onFileUpload={handleFileUpload}
-                  currentFile={formData.lampiran}
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={(e) => setFile(e.target.files?.[0] || null)}
                   accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar"
-                  maxSizeMB={10}
-                  placeholder="Upload file pendukung PBL"
+                  className="cursor-pointer"
                 />
+                {formData.lampiran && !file && (
+                  <p className="text-xs text-muted-foreground">File saat ini: {formData.lampiran}</p>
+                )}
+                {file && (
+                  <p className="text-xs text-muted-foreground text-primary font-medium">Dipilih untuk diupload: {file.name}</p>
+                )}
               </div>
 
               {/* Submit Buttons */}

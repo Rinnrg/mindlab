@@ -12,42 +12,62 @@ interface PageProps {
 export default async function PblDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  // Fetch course from database
-  const course = await prisma.course.findUnique({
-    where: { id },
-    include: {
-      guru: {
-        select: {
-          id: true,
-          nama: true,
-          email: true,
-          foto: true,
-        },
-      },
-      materi: {
-        orderBy: {
-          tgl_unggah: 'desc',
-        },
-      },
-      asesmen: {
-        include: {
-          guru: {
-            select: {
-              id: true,
-              nama: true,
-            },
+  // Fetch course and pbl from database
+  const [course, pbl] = await Promise.all([
+    prisma.course.findUnique({
+      where: { id },
+      include: {
+        guru: {
+          select: {
+            id: true,
+            nama: true,
+            email: true,
+            foto: true,
           },
         },
-        orderBy: {
-          nama: 'asc',
+        materi: {
+          orderBy: {
+            tgl_unggah: 'desc',
+          },
+        },
+        asesmen: {
+          include: {
+            guru: {
+              select: {
+                id: true,
+                nama: true,
+              },
+            },
+          },
+          orderBy: {
+            nama: 'asc',
+          },
         },
       },
-    },
-  })
+    }),
+    prisma.pBL.findUnique({
+      where: { id },
+    })
+  ])
 
   // If course not found, show 404
   if (!course) {
     notFound()
+  }
+
+  const materiList = []
+  if (pbl && pbl.fileName) {
+    materiList.push({
+      id: pbl.id, // Use project ID to load it in item detail page
+      judul: pbl.fileName || "Materi PBL / Jobsheet",
+      deskripsi: pbl.deskripsi || undefined,
+      kelasTarget: [] as string[],
+      tgl_unggah: pbl.tgl_mulai,
+      lampiran: pbl.lampiran || undefined,
+      courseId: course.id,
+      sintak: pbl.materiSintak || "1",
+      origin: "PBL",
+    })
   }
 
   // Transform data to match client component expectations
@@ -66,17 +86,20 @@ export default async function PblDetailPage({ params }: PageProps) {
       foto: course.guru.foto || undefined,
       createdAt: new Date(),
     } : undefined,
-    materi: course.materi.map((m) => ({
-      id: m.id,
-      judul: m.judul,
-      deskripsi: m.deskripsi || undefined,
-      kelasTarget: m.kelasTarget,
-      tgl_unggah: m.tgl_unggah,
-      lampiran: m.lampiran || undefined,
-      courseId: course.id,
-      sintak: m.sintak || undefined,
-  origin: (m as any).origin,
-    })),
+    materi: [
+      ...materiList,
+      ...course.materi.filter(m => m.id !== id).map((m) => ({
+        id: m.id,
+        judul: m.judul,
+        deskripsi: m.deskripsi || undefined,
+        kelasTarget: m.kelasTarget,
+        tgl_unggah: m.tgl_unggah,
+        lampiran: m.lampiran || undefined,
+        courseId: course.id,
+        sintak: m.sintak || undefined,
+        origin: (m as any).origin,
+      }))
+    ],
     asesmen: course.asesmen.map((a) => ({
       id: a.id,
       nama: a.nama,
@@ -92,7 +115,7 @@ export default async function PblDetailPage({ params }: PageProps) {
       guruId: a.guruId,
       courseId: course.id,
       sintak: a.sintak || undefined,
-  origin: (a as any).origin,
+      origin: (a as any).origin,
     })),
   }
 
@@ -111,7 +134,7 @@ export default async function PblDetailPage({ params }: PageProps) {
     guruId: a.guruId,
     courseId: course.id,
     sintak: a.sintak || undefined,
-  origin: (a as any).origin,
+    origin: (a as any).origin,
   }))
 
   return <PblDetailClient course={transformedCourse} assessments={assessments} />

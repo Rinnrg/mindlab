@@ -7,6 +7,15 @@ export async function GET(request: NextRequest) {
     const guruId = searchParams.get('guruId')
     const judul = searchParams.get('judul')
 
+    // Auto-migrate database by checking/adding materiSintak column
+    try {
+      await prisma.$executeRawUnsafe(`
+        ALTER TABLE pbl ADD COLUMN IF NOT EXISTS "materiSintak" VARCHAR(50);
+      `)
+    } catch (sqlError) {
+      console.warn('materiSintak auto-migration skipped/failed:', sqlError)
+    }
+
     // If judul is specified, return single proyek
     if (judul) {
       const proyek = await prisma.pBL.findFirst({
@@ -82,7 +91,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { judul, deskripsi, tgl_mulai, tgl_selesai, lampiran, sintaks, guruId } = body
+    const { judul, deskripsi, tgl_mulai, tgl_selesai, lampiran, sintaks, guruId, fileData, fileName, fileType, fileSize } = body
 
     if (!judul || !deskripsi || !tgl_mulai || !tgl_selesai || !guruId) {
       return NextResponse.json(
@@ -124,6 +133,13 @@ export async function POST(request: NextRequest) {
     // Extract selectedClasses for enrollment
     const { selectedClasses } = body
 
+    // Process file if provided
+    let fileBuffer = null
+    if (fileData) {
+      const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
+      fileBuffer = Buffer.from(base64Data, 'base64')
+    }
+
     const proyek = await prisma.$transaction(async (tx) => {
       // Create the project
       const newProyek = await tx.pBL.create({
@@ -132,9 +148,14 @@ export async function POST(request: NextRequest) {
           deskripsi,
           tgl_mulai: new Date(tgl_mulai),
           tgl_selesai: new Date(tgl_selesai),
-          lampiran: lampiran || null,
+          lampiran: fileName || lampiran || null,
+          fileData: fileBuffer,
+          fileName: fileName || null,
+          fileType: fileType || null,
+          fileSize: fileSize || null,
           sintaks,
           guruId,
+          materiSintak: "1", // default to Sintak 1
         },
         include: {
           guru: {
@@ -150,6 +171,18 @@ export async function POST(request: NextRequest) {
             },
           },
         },
+      })
+
+      // Create the corresponding Course record for UI compatibility
+      await tx.course.create({
+        data: {
+          id: newProyek.id,
+          judul,
+          deskripsi: deskripsi || null,
+          gambar: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop',
+          kategori: 'Programming',
+          guruId,
+        }
       })
 
       // If classes are selected, create a default group and enroll all students from those classes

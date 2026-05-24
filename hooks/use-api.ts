@@ -201,8 +201,9 @@ export function useProyek(guruId?: string) {
       const data = await response.json()
       
       if (response.ok) {
-        setProyek(data.proyek)
-        setCachedData(cacheKey, data.proyek)
+        const projects = data.pbl || data.proyek || []
+        setProyek(projects)
+        setCachedData(cacheKey, projects)
       } else {
         setError(data.error || 'Gagal mengambil data proyek')
       }

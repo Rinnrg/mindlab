@@ -220,6 +220,7 @@ model PBL {
   guruId      String     @db.Uuid
   kelompok    Kelompok[]
   guru        User       @relation("PBLDibuat", fields: [guruId], references: [id], onDelete: Cascade)
+  materiSintak String?   @db.VarChar(50)
 
   @@index([guruId])
   @@index([tgl_mulai])

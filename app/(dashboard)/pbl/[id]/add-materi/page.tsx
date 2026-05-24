@@ -100,11 +100,11 @@ export default function AddMateriPage() {
           fileType: fileType || null,
           fileSize: fileSize || null,
           sintak: sintak || null,
-          origin: 'PBL',
+          isMaterialOnly: true,
         }
 
-        const res = await fetch("/api/materi", {
-          method: "POST",
+        const res = await fetch(`/api/proyek/${courseId}`, {
+          method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         })
