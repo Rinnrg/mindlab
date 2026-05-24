@@ -72,6 +72,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [courses, setCourses] = useState<any[]>([])
+  const [asesmenData, setAsesmenData] = useState<any>(null)
   const [soalList, setSoalList] = useState<Soal[]>([])
   const lastSoalRef = useRef<HTMLDivElement>(null)
   const [activeSoalIndex, setActiveSoalIndex] = useState(0)
@@ -111,6 +112,12 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       }
     })
   }, [])
+
+  const submissionComponentConfig = useMemo(() => ({
+    UPLOAD_FILE: { label: "Upload File", icon: FileUp, accent: "text-blue-600", bg: "bg-blue-500/10" },
+    COMPILER: { label: "Python Compiler", icon: Code, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
+    TEXT: { label: "Input Teks", icon: Type, accent: "text-purple-600", bg: "bg-purple-500/10" },
+  }) satisfies Record<"UPLOAD_FILE" | "COMPILER" | "TEXT", { label: string; icon: any; accent: string; bg: string }>, [])
   
   // Fetch enrollments untuk mendapatkan kelas yang ada di course
   useEffect(() => {
@@ -212,6 +219,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       const query = new URLSearchParams({
         userId: user.id,
         userRole: user.role,
+  includeStats: 'true',
       })
       const asesmenRes = await fetch(`/api/asesmen/${asesmenId}?${query.toString()}`)
       const asesmenText = await asesmenRes.text()
@@ -228,6 +236,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       
       // Set form data
       const asesmen = asesmenData.asesmen
+  setAsesmenData(asesmen)
       
       // Helper: format Date ke string datetime-local (waktu lokal, bukan UTC)
       const toLocalDatetimeString = (dateStr: string) => {
@@ -668,6 +677,57 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
               </Card>
             )}
 
+            {formData.tipe === 'TUGAS' && formData.tipePengerjaan === 'KELOMPOK' && (
+              <Card className="ios-glass-card border-border/30 rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    Daftar Kelompok
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Kelompok yang sudah disusun untuk asesmen ini. Siswa akan otomatis masuk sesuai daftar ini.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  {Array.isArray(asesmenData?.kelompok) && asesmenData.kelompok.length > 0 ? (
+                    <div className="space-y-2">
+                      {asesmenData.kelompok.map((k: any, idx: number) => (
+                        <div key={k.id || idx} className="rounded-2xl border border-border/50 bg-background/40 p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-[10px]">Kelompok {idx + 1}</Badge>
+                                <div className="font-semibold truncate">{k.nama || `Kelompok ${idx + 1}`}</div>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {k.anggota?.length || 0} anggota
+                              </div>
+                            </div>
+                          </div>
+
+                          {Array.isArray(k.anggota) && k.anggota.length > 0 && (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {k.anggota.map((a: any, aIdx: number) => (
+                                <Badge key={a.id || aIdx} variant="outline" className="max-w-full truncate">
+                                  {a.siswa?.nama || a.siswaId || 'Anggota'}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Alert className="border-border/40 bg-muted/20">
+                      <AlertDescription className="text-xs">
+                        Belum ada kelompok. Buat kelompok dari halaman <span className="font-medium">Tambah Asesmen</span> (mode Kelompok) atau fitur manajemen kelompok.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {formData.tipe === "KUIS" && (
               <div className="space-y-4">
                 {/* Import Excel Card — Diletakkan di atas daftar soal */}
@@ -995,7 +1055,6 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                                     ? "bg-primary/5 border-primary/30 hover:border-primary/40"
                                     : "bg-background border-border/50 hover:border-primary/30 hover:shadow-sm")
                                 }
-                                aria-pressed={isAdded}
                               >
                                 <div className="flex items-start gap-3">
                                   <div
@@ -1058,16 +1117,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                         ) : (
                           <div className="space-y-2">
                             {formData.submissionComponents.map((compId, idx) => {
-                              const config = {
-                                UPLOAD_FILE: { label: "Upload File", icon: FileUp, accent: "text-blue-600", bg: "bg-blue-500/10" },
-                                COMPILER: { label: "Python Compiler", icon: Code, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
-                                TEXT: { label: "Input Teks", icon: Type, accent: "text-purple-600", bg: "bg-purple-500/10" },
-                              }[compId as any] || {
-                                label: String(compId),
-                                icon: FileUp,
-                                accent: "text-muted-foreground",
-                                bg: "bg-muted",
-                              }
+                              const config = submissionComponentConfig[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"]
 
                               return (
                                 <button
@@ -1080,11 +1130,11 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                     {idx + 1}
                                   </div>
-                                  <div className={`p-2.5 rounded-xl ${config.bg} ${config.accent}`}>
-                                    <config.icon className="h-5 w-5" />
+                                  <div className={`p-2.5 rounded-xl ${config?.bg || "bg-muted"} ${config?.accent || "text-muted-foreground"}`}>
+                                    {(config?.icon || FileUp)({ className: "h-5 w-5" })}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold truncate">{config.label}</p>
+                                    <p className="text-sm font-semibold truncate">{config?.label || String(compId)}</p>
                                     <p className="text-[11px] text-muted-foreground mt-0.5">Klik untuk menghapus</p>
                                   </div>
                                   <Trash2 className="h-4 w-4 text-muted-foreground" />

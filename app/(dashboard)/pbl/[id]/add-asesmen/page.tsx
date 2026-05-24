@@ -985,7 +985,6 @@ export default function AddAsesmenPage() {
                                     ? "bg-primary/5 border-primary/30 hover:border-primary/40"
                                     : "bg-background border-border/50 hover:border-primary/30 hover:shadow-sm")
                                 }
-                                aria-pressed={isAdded ? "true" : "false"}
                               >
                                 <div className="flex items-start gap-3">
                                   <div
