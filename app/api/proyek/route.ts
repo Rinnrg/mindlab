@@ -34,26 +34,7 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
-        kelompok: {
-          include: {
-            anggota: {
-              include: {
-                siswa: {
-                  select: {
-                    id: true,
-                    nama: true,
-                    kelas: true,
-                  },
-                },
-              },
-            },
-            _count: {
-              select: {
-                anggota: true,
-              },
-            },
-          },
-        },
+        kelompok: true,
         _count: {
           select: {
             kelompok: true,
@@ -65,7 +46,30 @@ export async function GET(request: NextRequest) {
       },
     })
 
-    return NextResponse.json({ pbl: proyek })
+    // Fetch all user details for kelompok anggota
+    const allUserIds = Array.from(new Set(proyek.flatMap(p => p.kelompok.flatMap(k => k.anggotaIds))))
+    const users = await prisma.user.findMany({
+      where: { id: { in: allUserIds } },
+      select: {
+        id: true,
+        nama: true,
+        kelas: true,
+      }
+    })
+    const userMap = new Map(users.map(u => [u.id, u]))
+
+    const formattedProyek = proyek.map(p => ({
+      ...p,
+      kelompok: p.kelompok.map(k => ({
+        ...k,
+        anggota: k.anggotaIds.map(id => userMap.get(id)).filter(Boolean),
+        _count: {
+          anggota: k.anggotaIds.length
+        }
+      }))
+    }))
+
+    return NextResponse.json({ pbl: formattedProyek })
   } catch (error) {
     console.error('Error fetching proyek:', error)
     return NextResponse.json(
@@ -160,20 +164,13 @@ export async function POST(request: NextRequest) {
         })
 
         if (students.length > 0) {
-          // Create a default group
-          const kelompok = await tx.kelompok.create({
+          // Create a default group and connect students
+          await tx.kelompok.create({
             data: {
               nama: 'Kelompok Utama',
               pblId: newProyek.id,
+              anggotaIds: students.map((s) => s.id)
             },
-          })
-
-          // Add all students as members
-          await tx.anggotaKelompok.createMany({
-            data: students.map((s) => ({
-              kelompokId: kelompok.id,
-              siswaId: s.id,
-            })),
           })
         }
       }

@@ -334,10 +334,8 @@ export async function POST(request: NextRequest) {
                   nama: `Kelompok ${g.groupNo}`,
                   asesmenId: newAsesmen.id,
                   ketuaId: g.ketuaId,
-                  anggota: {
-                    create: g.members.map((siswaId) => ({ siswaId })),
-                  },
-                } as any,
+                  anggotaIds: g.members,
+                },
               })
             )
           )

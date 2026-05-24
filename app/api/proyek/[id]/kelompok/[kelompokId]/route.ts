@@ -21,14 +21,9 @@ export async function DELETE(
       )
     }
 
-    // Delete all members first, then the group
-    await prisma.$transaction(async (tx) => {
-      await tx.anggotaKelompok.deleteMany({
-        where: { kelompokId },
-      })
-      await tx.kelompok.delete({
-        where: { id: kelompokId },
-      })
+    // Delete group (Prisma automatically handles join table cleanup for implicit relations)
+    await prisma.kelompok.delete({
+      where: { id: kelompokId },
     })
 
     return NextResponse.json({ message: 'Kelompok berhasil dihapus' })

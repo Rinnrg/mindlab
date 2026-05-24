@@ -30,24 +30,18 @@ export async function GET(request: NextRequest) {
           where: { siswaId: userId },
           select: { courseId: true }
         }),
-        prisma.anggotaKelompok.findMany({
-          where: { siswaId: userId },
+        prisma.kelompok.findMany({
+          where: { anggotaIds: { has: userId } },
           select: {
             id: true,
-            siswaId: true,
-            kelompokId: true,
-            kelompok: {
+            nama: true,
+            pbl: {
               select: {
-                nama: true,
-                pbl: {
-                  select: {
-                    id: true,
-                    judul: true,
-                    deskripsi: true,
-                    tgl_mulai: true,
-                    tgl_selesai: true,
-                  }
-                }
+                id: true,
+                judul: true,
+                deskripsi: true,
+                tgl_mulai: true,
+                tgl_selesai: true,
               }
             }
           }
@@ -98,15 +92,15 @@ export async function GET(request: NextRequest) {
 
       // Add projects to schedule
       anggotaKelompok.forEach(ak => {
-        if (ak.kelompok.pbl.tgl_selesai >= today) {
+        if (ak.pbl && ak.pbl.tgl_selesai >= today) {
           scheduleEvents.push({
-            id: `proyek-${ak.kelompok.pbl.id}`,
-            title: ak.kelompok.pbl.judul,
+            id: `proyek-${ak.pbl.id}`,
+            title: ak.pbl.judul,
             type: 'project',
-            date: ak.kelompok.pbl.tgl_selesai.toISOString(),
-            description: ak.kelompok.pbl.deskripsi,
-            group: ak.kelompok.nama,
-            status: ak.kelompok.pbl.tgl_mulai <= today ? 'ongoing' : 'upcoming'
+            date: ak.pbl.tgl_selesai.toISOString(),
+            description: ak.pbl.deskripsi,
+            group: ak.nama,
+            status: ak.pbl.tgl_mulai <= today ? 'ongoing' : 'upcoming'
           })
         }
       })

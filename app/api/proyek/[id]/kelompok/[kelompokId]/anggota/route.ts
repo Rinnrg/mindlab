@@ -30,18 +30,14 @@ export async function GET(
     })
 
     // Get already assigned members to this project (all groups)
-    const assignedMembers = await prisma.anggotaKelompok.findMany({
-      where: {
-        kelompok: {
-          pblId: proyekId,
-        }
-      },
+    const groups = await prisma.kelompok.findMany({
+      where: { pblId: proyekId },
       select: {
-        siswaId: true
+        anggotaIds: true
       }
     })
 
-    const assignedIds = assignedMembers.map(a => a.siswaId)
+    const assignedIds = groups.flatMap(g => g.anggotaIds)
 
     // Filter out already assigned students
     const availableStudents = allStudents.filter(student => 
@@ -94,12 +90,18 @@ export async function POST(
     }
 
     // Add members
-    await prisma.anggotaKelompok.createMany({
-      data: studentIds.map((siswaId: string) => ({
-        kelompokId,
-        siswaId,
-      })),
-      skipDuplicates: true
+    const currentGroup = await prisma.kelompok.findUnique({
+      where: { id: kelompokId },
+      select: { anggotaIds: true }
+    })
+    const currentIds = currentGroup?.anggotaIds || []
+    const updatedIds = Array.from(new Set([...currentIds, ...studentIds]))
+
+    await prisma.kelompok.update({
+      where: { id: kelompokId },
+      data: {
+        anggotaIds: updatedIds
+      }
     })
 
     return NextResponse.json({ 

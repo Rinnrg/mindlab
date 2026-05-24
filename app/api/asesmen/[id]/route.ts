@@ -160,21 +160,7 @@ export async function GET(
           }
         }
         
-        includeOptions.kelompok = {
-          include: {
-            anggota: {
-              include: {
-                siswa: {
-                  select: {
-                    id: true,
-                    nama: true,
-                    foto: true,
-                  }
-                }
-              }
-            }
-          }
-        }
+        includeOptions.kelompok = true
       } else {
         // Fast path: just counts
         includeOptions._count = {
@@ -198,6 +184,25 @@ export async function GET(
         { error: 'Asesmen tidak ditemukan' },
         { status: 404 }
       )
+    }
+
+    // Populate kelompok.anggota using manual load from array column
+    if (asesmen.kelompok && asesmen.kelompok.length > 0) {
+      const allUserIds = Array.from(new Set(asesmen.kelompok.flatMap(k => k.anggotaIds)))
+      const users = await prisma.user.findMany({
+        where: { id: { in: allUserIds } },
+        select: {
+          id: true,
+          nama: true,
+          foto: true,
+        }
+      })
+      const userMap = new Map(users.map(u => [u.id, u]))
+      const formattedKelompok = asesmen.kelompok.map(k => ({
+        ...k,
+        anggota: k.anggotaIds.map(id => userMap.get(id)).filter(Boolean)
+      }))
+      ;(asesmen as any).kelompok = formattedKelompok
     }
 
     console.log(`✓ Successfully fetched asesmen: ${asesmen.nama}`)

@@ -22,13 +22,11 @@ export async function GET(
     })
 
     // Get already assigned members to this project (all groups)
-    const assignedMembers = await prisma.anggotaKelompok.findMany({
-      where: {
-        kelompok: { pblId: proyekId },
-      },
-      select: { siswaId: true },
+    const groups = await prisma.kelompok.findMany({
+      where: { pblId: proyekId },
+      select: { anggotaIds: true }
     })
-    const assignedIds = new Set(assignedMembers.map((a) => a.siswaId))
+    const assignedIds = new Set(groups.flatMap(g => g.anggotaIds))
 
     // Group by class
     const classMap: Record<string, { total: number; enrolled: number; available: number }> = {}

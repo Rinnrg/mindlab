@@ -122,14 +122,7 @@ export default function AddAsesmenPage() {
   const [groupDraft, setGroupDraft] = React.useState<GroupDraft>({ memberIds: [] })
   const [builtGroups, setBuiltGroups] = React.useState<BuiltGroup[]>([])
 
-  const [submissionComponents, setSubmissionComponents] = React.useState<string[]>([])
-
-  const toggleSubmissionComponent = React.useCallback((id: string) => {
-    setSubmissionComponents((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id)
-      return [...prev, id]
-    })
-  }, [])
+  const [submissionComponents, setSubmissionComponents] = React.useState<string[]>(["UPLOAD_FILE"])
 
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
@@ -955,116 +948,85 @@ export default function AddAsesmenPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="p-4 sm:p-6 space-y-5">
-                      {/* Toolbox (atas) */}
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                            Toolbox
-                          </div>
-                          <Badge variant={submissionComponents.length === 0 ? "destructive" : "secondary"} className={submissionComponents.length === 0 ? "animate-pulse" : ""}>
-                            {submissionComponents.length === 0 ? "Kosong" : `${submissionComponents.length} dipilih`}
-                          </Badge>
+                    <div className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] min-h-[440px]">
+                      {/* Toolbox */}
+                      <div className="p-4 bg-muted/20 md:border-r border-border/30 space-y-4">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2">
+                          Toolbox
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="space-y-2">
                           {[
-                            { id: "UPLOAD_FILE", label: "Upload File", icon: FileUp, desc: "Unggah file atau link" },
-                            { id: "COMPILER", label: "Python Compiler", icon: Code, desc: "Kerjakan kode Python" },
-                            { id: "TEXT", label: "Input Teks", icon: Type, desc: "Jawaban/laporan" },
+                            { id: "UPLOAD_FILE", label: "Upload File", icon: FileUp, desc: "Siswa mengunggah file atau link" },
+                            { id: "COMPILER", label: "Python Compiler", icon: Code, desc: "Editor kode Python langsung" },
+                            { id: "TEXT", label: "Input Teks", icon: Type, desc: "Kolom teks untuk jawaban/laporan" },
                           ].map((item) => {
                             const isAdded = submissionComponents.includes(item.id)
                             return (
                               <button
                                 key={item.id}
                                 type="button"
-                                onClick={() => toggleSubmissionComponent(item.id)}
-                                className={
-                                  "w-full text-left p-3 rounded-2xl border transition-all group min-w-0 " +
-                                  (isAdded
-                                    ? "bg-primary/5 border-primary/30 hover:border-primary/40"
-                                    : "bg-background border-border/50 hover:border-primary/30 hover:shadow-sm")
-                                }
+                                disabled={isAdded}
+                                onClick={() => setSubmissionComponents(prev => [...prev, item.id])}
+                                className={`w-full text-left p-3 rounded-xl border transition-all group ${
+                                  isAdded 
+                                    ? "bg-muted/50 border-border/50 opacity-50 cursor-not-allowed" 
+                                    : "bg-background border-border/50 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                                }`}
                               >
-                                <div className="flex items-start gap-3">
-                                  <div
-                                    className={
-                                      "p-2.5 rounded-xl transition-colors " +
-                                      (isAdded
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-primary/10 text-primary group-hover:bg-primary/15")
-                                    }
-                                  >
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 rounded-lg ${isAdded ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors"}`}>
                                     <item.icon className="h-4 w-4" />
                                   </div>
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <p className="text-sm font-semibold leading-tight truncate">{item.label}</p>
-                                      {isAdded ? (
-                                        <Badge variant="secondary" className="text-[10px] px-2">Dipilih</Badge>
-                                      ) : (
-                                        <Badge variant="outline" className="text-[10px] px-2">Klik</Badge>
-                                      )}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
-                                      {item.desc}
-                                    </p>
-                                    <p className="text-[10px] text-muted-foreground mt-2">
-                                      {isAdded ? "Klik lagi untuk menghapus" : "Klik untuk menambah"}
-                                    </p>
+                                  <div>
+                                    <p className="text-xs font-semibold">{item.label}</p>
+                                    <p className="text-[9px] text-muted-foreground line-clamp-1">{item.desc}</p>
                                   </div>
                                 </div>
                               </button>
                             )
                           })}
                         </div>
-
-                        <Alert className="border-border/40 bg-muted/20">
-                          <AlertDescription className="text-xs">
-                            Klik item untuk <span className="font-medium">menambah</span>. Klik lagi untuk <span className="font-medium">menghapus</span>.
-                          </AlertDescription>
-                        </Alert>
+                        <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+                          <p className="text-[10px] leading-relaxed text-primary/80 italic">
+                            💡 Klik komponen di toolbox untuk menambahkannya ke canvas pengumpulan.
+                          </p>
+                        </div>
                       </div>
 
-                      <Separator className="bg-border/40" />
-
-                      {/* Komponen dipilih (bawah) */}
-                      <div className="space-y-3">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Komponen dipilih
+                      {/* Canvas */}
+                      <div className="p-4 sm:p-6 bg-background/50 space-y-4 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Canvas Pengumpulan ({submissionComponents.length})
+                          </div>
+                          {submissionComponents.length === 0 && (
+                            <Badge variant="destructive" className="animate-pulse">Kosong</Badge>
+                          )}
                         </div>
 
                         {submissionComponents.length === 0 ? (
-                          <div className="border-2 border-dashed border-border/50 rounded-2xl p-8 text-center bg-muted/5">
-                            <div className="mx-auto w-fit p-3 rounded-2xl bg-muted/40 mb-3">
-                              <Plus className="h-7 w-7 text-muted-foreground/60" />
+                          <div className="h-[320px] border-2 border-dashed border-border/50 rounded-2xl flex flex-col items-center justify-center text-center p-6 bg-muted/5">
+                            <div className="p-4 rounded-full bg-muted/50 mb-4">
+                              <Plus className="h-8 w-8 text-muted-foreground/50" />
                             </div>
-                            <p className="text-sm font-semibold">Belum ada komponen</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Pilih dari toolbox di atas untuk mulai menyusun pengumpulan.
+                            <p className="text-sm font-medium text-muted-foreground">Belum ada komponen</p>
+                            <p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px]">
+                              Pilih komponen dari toolbox di sebelah kiri untuk mulai membangun form pengumpulan.
                             </p>
                           </div>
                         ) : (
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             {submissionComponents.map((compId, idx) => {
                               const config = {
                                 UPLOAD_FILE: { label: "Upload File", icon: FileUp, accent: "text-blue-600", bg: "bg-blue-500/10" },
                                 COMPILER: { label: "Python Compiler", icon: Code, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
                                 TEXT: { label: "Input Teks", icon: Type, accent: "text-purple-600", bg: "bg-purple-500/10" },
-                              }[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"] || {
-                                label: String(compId),
-                                icon: FileUp,
-                                accent: "text-muted-foreground",
-                                bg: "bg-muted",
-                              }
+                              }[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"] || { label: compId, icon: FileUp, accent: "text-muted-foreground", bg: "bg-muted" }
 
                               return (
-                                <button
+                                <div 
                                   key={compId}
-                                  type="button"
-                                  onClick={() => toggleSubmissionComponent(compId)}
-                                  className="w-full flex items-center gap-3 p-4 bg-background border border-border/50 rounded-2xl text-left hover:shadow-sm transition-all"
-                                  title="Klik untuk menghapus dari pilihan"
+                                  className="flex items-center gap-4 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group animate-in slide-in-from-right-4 duration-300"
                                 >
                                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                     {idx + 1}
@@ -1072,20 +1034,28 @@ export default function AddAsesmenPage() {
                                   <div className={`p-2.5 rounded-xl ${config.bg} ${config.accent}`}>
                                     <config.icon className="h-5 w-5" />
                                   </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold truncate">{config.label}</p>
-                                    <p className="text-[11px] text-muted-foreground mt-0.5">Klik untuk menghapus</p>
+                                  <div className="flex-1">
+                                    <p className="text-sm font-bold">{config.label}</p>
+                                    <p className="text-[10px] text-muted-foreground italic">Komponen ini akan muncul sebagai tab di halaman siswa.</p>
                                   </div>
-                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
-                                </button>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setSubmissionComponents(prev => prev.filter(id => id !== compId))}
+                                    className="opacity-0 group-hover:opacity-100 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all rounded-full"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               )
                             })}
                           </div>
                         )}
-
+                        
                         {submissionComponents.length > 0 && (
-                          <p className="text-[11px] text-center text-muted-foreground mt-2">
-                            Urutan di atas akan menjadi urutan tab pada halaman pengumpulan siswa.
+                          <p className="text-[10px] text-center text-muted-foreground mt-4 italic">
+                            * Urutan di atas akan menentukan urutan tab pada halaman pengumpulan siswa.
                           </p>
                         )}
                       </div>

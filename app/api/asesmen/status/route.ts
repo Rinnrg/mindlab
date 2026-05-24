@@ -59,10 +59,8 @@ export async function GET(request: NextRequest) {
 							await prisma.kelompok.findFirst({
 								where: {
 									asesmenId,
-									anggota: {
-										some: { siswaId },
-									},
-								} as any,
+									anggotaIds: { has: siswaId },
+								},
 								select: { id: true },
 							})
 						)?.id ?? null

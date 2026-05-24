@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
           where: { siswaId: userId },
         }),
         // Total proyek yang diikuti
-        prisma.anggotaKelompok.count({
-          where: { siswaId: userId },
+        prisma.kelompok.count({
+          where: { anggotaIds: { has: userId } },
         }),
         // Rata-rata nilai
         prisma.nilai.aggregate({

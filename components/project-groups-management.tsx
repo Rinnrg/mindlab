@@ -28,10 +28,7 @@ interface Student {
 interface Kelompok {
   id: string
   nama: string
-  anggota: {
-    id: string
-    siswa: Student
-  }[]
+  anggota: Student[]
   _count: {
     anggota: number
   }
@@ -455,7 +452,7 @@ export default function ProjectGroupsManagement({
   const getMembersByClass = (group: Kelompok) => {
     const classMap: Record<string, typeof group.anggota> = {}
     for (const member of group.anggota) {
-      const kelas = member.siswa.kelas || "Tanpa Kelas"
+      const kelas = member.kelas || "Tanpa Kelas"
       if (!classMap[kelas]) classMap[kelas] = []
       classMap[kelas].push(member)
     }
@@ -595,13 +592,13 @@ export default function ProjectGroupsManagement({
                             {members.map((member) => (
                               <div key={member.id} className="flex items-center gap-2 group">
                                 <Avatar className="h-7 w-7">
-                                  <AvatarImage src={member.siswa.foto || undefined} />
+                                  <AvatarImage src={member.foto || undefined} />
                                   <AvatarFallback className="text-xs">
-                                    {member.siswa.nama.split(" ").map((n) => n[0]).join("")}
+                                    {member.nama.split(" ").map((n) => n[0]).join("")}
                                   </AvatarFallback>
                                 </Avatar>
                                 <p className="text-sm font-medium truncate flex-1">
-                                  {member.siswa.nama}
+                                  {member.nama}
                                 </p>
                                 <Button
                                   variant="ghost"
@@ -609,7 +606,7 @@ export default function ProjectGroupsManagement({
                                   className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
                                   disabled={deletingMemberId === member.id}
                                   onClick={() =>
-                                    handleDeleteMember(group.id, member.id, member.siswa.nama)
+                                    handleDeleteMember(group.id, member.id, member.nama)
                                   }
                                 >
                                   <XCircle className="h-3.5 w-3.5" />

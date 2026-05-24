@@ -10,25 +10,28 @@ export async function DELETE(
     const { id: proyekId, kelompokId, anggotaId } = await params
 
     // Verify the member belongs to this group and project
-    const anggota = await prisma.anggotaKelompok.findFirst({
+    const kelompok = await prisma.kelompok.findFirst({
       where: {
-        id: anggotaId,
-        kelompokId,
-        kelompok: {
-          pblId: proyekId,
-        },
+        id: kelompokId,
+        pblId: proyekId,
+        anggotaIds: { has: anggotaId }
       },
     })
 
-    if (!anggota) {
+    if (!kelompok) {
       return NextResponse.json(
         { error: 'Anggota tidak ditemukan' },
         { status: 404 }
       )
     }
 
-    await prisma.anggotaKelompok.delete({
-      where: { id: anggotaId },
+    const updatedIds = kelompok.anggotaIds.filter(id => id !== anggotaId)
+
+    await prisma.kelompok.update({
+      where: { id: kelompokId },
+      data: {
+        anggotaIds: updatedIds
+      }
     })
 
     return NextResponse.json({ message: 'Anggota berhasil dihapus dari kelompok' })

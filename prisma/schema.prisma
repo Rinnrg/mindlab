@@ -19,7 +19,6 @@ model User {
   foto              String?             @db.VarChar(255)
   kelas             String?             @db.VarChar(255)
   createdAt         DateTime            @default(now())
-  anggotaKelompok   AnggotaKelompok[]
   asesmenDibuat     Asesmen[]
   balasanForum      BalasanForum[]
   course            Course[]
@@ -234,7 +233,7 @@ model Kelompok {
   pblId       String?             @db.Uuid
   asesmenId   String?             @db.Uuid
   ketuaId     String?             @db.Uuid
-  anggota     AnggotaKelompok[]
+  anggotaIds  String[]
   pbl         PBL?                @relation(fields: [pblId], references: [id], onDelete: Cascade)
   asesmen     Asesmen?            @relation("AsesmenKelompok", fields: [asesmenId], references: [id], onDelete: Cascade)
   ketua       User?               @relation("KetuaKelompok", fields: [ketuaId], references: [id], onDelete: SetNull)
@@ -243,17 +242,6 @@ model Kelompok {
   @@index([pblId])
   @@index([asesmenId])
   @@index([ketuaId])
-}
-
-model AnggotaKelompok {
-  id         String   @id @default(uuid()) @db.Uuid
-  kelompokId String   @db.Uuid
-  siswaId    String   @db.Uuid
-  kelompok   Kelompok @relation(fields: [kelompokId], references: [id], onDelete: Cascade)
-  siswa      User     @relation(fields: [siswaId], references: [id], onDelete: Cascade)
-
-  @@index([kelompokId])
-  @@index([siswaId])
 }
 
 model PengumpulanProyek {

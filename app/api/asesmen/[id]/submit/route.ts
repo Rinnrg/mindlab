@@ -175,10 +175,8 @@ export async function POST(
       const kelompok = await prisma.kelompok.findFirst({
         where: {
           asesmenId: id,
-          anggota: {
-            some: { siswaId },
-          },
-        } as any,
+          anggotaIds: { has: siswaId },
+        },
         select: { id: true },
       })
       kelompokId = kelompok?.id || null

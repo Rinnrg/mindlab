@@ -133,15 +133,9 @@ export interface Kelompok {
   id: string
   nama: string
   masalahId: string
-  anggota?: AnggotaKelompok[]
+  anggotaIds?: string[]
+  anggota?: User[]
   pengumpulan?: PengumpulanProyek[]
-}
-
-export interface AnggotaKelompok {
-  id: string
-  siswaId: string
-  kelompokId: string
-  siswa?: User
 }
 
 // NOTE: There was a duplicate interface name `PengumpulanProyek` below.

@@ -9,30 +9,32 @@ export async function GET(
   try {
     const { id } = await params
 
-    const kelompok = await prisma.kelompok.findMany({
+    const kelompokList = await prisma.kelompok.findMany({
       where: { pblId: id },
-      include: {
-        anggota: {
-          include: {
-            siswa: {
-              select: {
-                id: true,
-                nama: true,
-                email: true,
-                foto: true,
-                kelas: true,
-              }
-            }
-          }
-        },
-        _count: {
-          select: {
-            anggota: true
-          }
-        }
-      },
       orderBy: { nama: 'asc' }
     })
+
+    // Fetch all user details for kelompok anggota
+    const allUserIds = Array.from(new Set(kelompokList.flatMap(k => k.anggotaIds)))
+    const users = await prisma.user.findMany({
+      where: { id: { in: allUserIds } },
+      select: {
+        id: true,
+        nama: true,
+        email: true,
+        foto: true,
+        kelas: true,
+      }
+    })
+    const userMap = new Map(users.map(u => [u.id, u]))
+
+    const kelompok = kelompokList.map(k => ({
+      ...k,
+      anggota: k.anggotaIds.map(id => userMap.get(id)).filter(Boolean),
+      _count: {
+        anggota: k.anggotaIds.length
+      }
+    }))
 
     return NextResponse.json({ kelompok })
   } catch (error) {
@@ -80,18 +82,9 @@ export async function POST(
         data: {
           nama,
           pblId: id,
+          anggotaIds: anggotaIds || []
         }
       })
-
-      // Add members if any
-      if (anggotaIds && anggotaIds.length > 0) {
-        await tx.anggotaKelompok.createMany({
-          data: anggotaIds.map((siswaId: string) => ({
-            kelompokId: newKelompok.id,
-            siswaId,
-          }))
-        })
-      }
 
       return newKelompok
     })
