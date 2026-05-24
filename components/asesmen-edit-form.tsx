@@ -99,6 +99,18 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
   const [enrollments, setEnrollments] = useState<any[]>([])
   const [availableKelas, setAvailableKelas] = useState<string[]>([])
   const [isLoadingEnrollments, setIsLoadingEnrollments] = useState(true)
+
+  const toggleSubmissionComponent = useCallback((id: "UPLOAD_FILE" | "COMPILER" | "TEXT") => {
+    setFormData((prev) => {
+      const exists = prev.submissionComponents.includes(id)
+      return {
+        ...prev,
+        submissionComponents: exists
+          ? (prev.submissionComponents.filter((x) => x !== id) as any)
+          : ([...prev.submissionComponents, id] as any),
+      }
+    })
+  }, [])
   
   // Fetch enrollments untuk mendapatkan kelas yang ada di course
   useEffect(() => {
@@ -948,42 +960,68 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <div className="grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] min-h-[440px]">
-                      {/* Toolbox */}
-                      <div className="p-4 bg-muted/20 lg:border-r border-border/30 space-y-4 min-w-0">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2">
-                          Toolbox
+                    <div className="p-4 sm:p-6 space-y-5">
+                      {/* Toolbox (atas) */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            Toolbox
+                          </div>
+                          <Badge
+                            variant={formData.submissionComponents.length === 0 ? "destructive" : "secondary"}
+                            className={formData.submissionComponents.length === 0 ? "animate-pulse" : ""}
+                          >
+                            {formData.submissionComponents.length === 0
+                              ? "Kosong"
+                              : `${formData.submissionComponents.length} dipilih`}
+                          </Badge>
                         </div>
-                        <div className="grid gap-2">
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           {[
-                            { id: "UPLOAD_FILE", label: "Upload File", icon: FileUp, desc: "Siswa mengunggah file atau link" },
-                            { id: "COMPILER", label: "Python Compiler", icon: Code, desc: "Editor kode Python langsung" },
-                            { id: "TEXT", label: "Input Teks", icon: Type, desc: "Kolom teks untuk jawaban/laporan" },
+                            { id: "UPLOAD_FILE" as const, label: "Upload File", icon: FileUp, desc: "Unggah file atau link" },
+                            { id: "COMPILER" as const, label: "Python Compiler", icon: Code, desc: "Kerjakan kode Python" },
+                            { id: "TEXT" as const, label: "Input Teks", icon: Type, desc: "Jawaban/laporan" },
                           ].map((item) => {
-                            const isAdded = formData.submissionComponents.includes(item.id as any)
+                            const isAdded = formData.submissionComponents.includes(item.id)
                             return (
                               <button
                                 key={item.id}
                                 type="button"
-                                disabled={isAdded}
-                                onClick={() => setFormData(prev => ({
-                                  ...prev,
-                                  submissionComponents: [...prev.submissionComponents, item.id as any]
-                                }))}
-                                className={`w-full text-left p-3 rounded-2xl border transition-all group ${
-                                  isAdded 
-                                    ? "bg-muted/50 border-border/50 opacity-50 cursor-not-allowed" 
-                                    : "bg-background border-border/50 hover:border-primary/50 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
-                                }`}
+                                onClick={() => toggleSubmissionComponent(item.id)}
+                                className={
+                                  "w-full text-left p-3 rounded-2xl border transition-all group min-w-0 " +
+                                  (isAdded
+                                    ? "bg-primary/5 border-primary/30 hover:border-primary/40"
+                                    : "bg-background border-border/50 hover:border-primary/30 hover:shadow-sm")
+                                }
+                                aria-pressed={isAdded}
                               >
                                 <div className="flex items-start gap-3">
-                                  <div className={`p-2.5 rounded-xl ${isAdded ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors"}`}>
+                                  <div
+                                    className={
+                                      "p-2.5 rounded-xl transition-colors " +
+                                      (isAdded
+                                        ? "bg-primary text-primary-foreground"
+                                        : "bg-primary/10 text-primary group-hover:bg-primary/15")
+                                    }
+                                  >
                                     <item.icon className="h-4 w-4" />
                                   </div>
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-semibold leading-tight">{item.label}</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <p className="text-sm font-semibold leading-tight truncate">{item.label}</p>
+                                      {isAdded ? (
+                                        <Badge variant="secondary" className="text-[10px] px-2">Dipilih</Badge>
+                                      ) : (
+                                        <Badge variant="outline" className="text-[10px] px-2">Klik</Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5 leading-snug line-clamp-2">
                                       {item.desc}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground mt-2">
+                                      {isAdded ? "Klik lagi untuk menghapus" : "Klik untuk menambah"}
                                     </p>
                                   </div>
                                 </div>
@@ -992,78 +1030,52 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                           })}
                         </div>
 
-                        <div className="p-3 bg-primary/5 rounded-2xl border border-primary/10">
-                          <p className="text-xs leading-relaxed text-primary/80">
-                            Klik item di atas untuk menambahkannya ke canvas. Komponen yang sudah ditambahkan akan terkunci.
-                          </p>
-                        </div>
+                        <Alert className="border-border/40 bg-muted/20">
+                          <AlertDescription className="text-xs">
+                            Klik item untuk <span className="font-medium">menambah</span>. Klik lagi untuk <span className="font-medium">menghapus</span>.
+                          </AlertDescription>
+                        </Alert>
                       </div>
 
-                      {/* Canvas */}
-                      <div className="p-4 sm:p-6 bg-background/50 space-y-4 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-1">
-                          <div>
-                            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                              Canvas Pengumpulan
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                              {formData.submissionComponents.length} komponen dipilih.
-                            </p>
-                          </div>
-                          {formData.submissionComponents.length === 0 ? (
-                            <Badge variant="destructive" className="animate-pulse w-fit">Kosong</Badge>
-                          ) : (
-                            <Badge variant="secondary" className="w-fit">Siap</Badge>
-                          )}
+                      <Separator className="bg-border/40" />
+
+                      {/* Komponen dipilih (bawah) */}
+                      <div className="space-y-3">
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Komponen dipilih
                         </div>
 
                         {formData.submissionComponents.length === 0 ? (
-                          <div className="h-[320px] border-2 border-dashed border-border/50 rounded-2xl flex flex-col items-center justify-center text-center p-6 bg-muted/5">
-                            <div className="p-3 rounded-2xl bg-muted/40 mb-4">
+                          <div className="border-2 border-dashed border-border/50 rounded-2xl p-8 text-center bg-muted/5">
+                            <div className="mx-auto w-fit p-3 rounded-2xl bg-muted/40 mb-3">
                               <Plus className="h-7 w-7 text-muted-foreground/60" />
                             </div>
                             <p className="text-sm font-semibold">Belum ada komponen</p>
-                            <p className="text-xs text-muted-foreground mt-1 max-w-[280px]">
-                              Tambahkan komponen dari <span className="font-medium">Toolbox</span> untuk menentukan metode pengumpulan siswa.
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Pilih dari toolbox di atas untuk mulai menyusun pengumpulan.
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2">
                             {formData.submissionComponents.map((compId, idx) => {
                               const config = {
-                                UPLOAD_FILE: {
-                                  label: "Upload File",
-                                  icon: FileUp,
-                                  accent: "text-blue-600",
-                                  bg: "bg-blue-500/10",
-                                  helper: "Siswa mengirim file tugas atau link."
-                                },
-                                COMPILER: {
-                                  label: "Python Compiler",
-                                  icon: Code,
-                                  accent: "text-emerald-600",
-                                  bg: "bg-emerald-500/10",
-                                  helper: "Siswa mengerjakan kode Python di editor."
-                                },
-                                TEXT: {
-                                  label: "Input Teks",
-                                  icon: Type,
-                                  accent: "text-purple-600",
-                                  bg: "bg-purple-500/10",
-                                  helper: "Siswa menulis jawaban/uraian langsung."
-                                },
-                              }[compId as "UPLOAD_FILE" | "COMPILER" | "TEXT"] || {
+                                UPLOAD_FILE: { label: "Upload File", icon: FileUp, accent: "text-blue-600", bg: "bg-blue-500/10" },
+                                COMPILER: { label: "Python Compiler", icon: Code, accent: "text-emerald-600", bg: "bg-emerald-500/10" },
+                                TEXT: { label: "Input Teks", icon: Type, accent: "text-purple-600", bg: "bg-purple-500/10" },
+                              }[compId as any] || {
                                 label: String(compId),
                                 icon: FileUp,
                                 accent: "text-muted-foreground",
                                 bg: "bg-muted",
-                                helper: ""
                               }
 
                               return (
-                                <div 
-                                  key={compId}
-                                  className="flex items-center gap-3 p-4 bg-background border border-border/50 rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                <button
+                                  key={String(compId)}
+                                  type="button"
+                                  onClick={() => toggleSubmissionComponent(compId as any)}
+                                  className="w-full flex items-center gap-3 p-4 bg-background border border-border/50 rounded-2xl text-left hover:shadow-sm transition-all"
+                                  title="Klik untuk menghapus dari pilihan"
                                 >
                                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
                                     {idx + 1}
@@ -1073,30 +1085,17 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-semibold truncate">{config.label}</p>
-                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                                      {config.helper}
-                                    </p>
+                                    <p className="text-[11px] text-muted-foreground mt-0.5">Klik untuk menghapus</p>
                                   </div>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setFormData(prev => ({
-                                      ...prev,
-                                      submissionComponents: prev.submissionComponents.filter(id => id !== compId)
-                                    }))}
-                                    className="opacity-0 group-hover:opacity-100 text-destructive hover:bg-destructive/10 hover:text-destructive transition-all rounded-full"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
+                                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                                </button>
                               )
                             })}
                           </div>
                         )}
 
                         {formData.submissionComponents.length > 0 && (
-                          <p className="text-[11px] text-center text-muted-foreground mt-3">
+                          <p className="text-[11px] text-center text-muted-foreground mt-2">
                             Urutan di atas akan menjadi urutan tab pada halaman pengumpulan siswa.
                           </p>
                         )}
