@@ -90,17 +90,25 @@ export async function PUT(
 
     if (isMaterialOnly) {
       // Process file if provided
-      let fileBuffer = null
+      let finalLampiran = lampiran || null
       if (fileData) {
-        const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-        fileBuffer = Buffer.from(base64Data, 'base64')
+        const { uploadToSupabase } = await import('@/lib/supabase')
+        try {
+          finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+        } catch (uploadError: any) {
+          console.error('Supabase upload failed:', uploadError)
+          return NextResponse.json(
+            { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+            { status: 500 }
+          )
+        }
       }
 
       const proyek = await prisma.pBL.update({
         where: { id },
         data: {
-          lampiran: fileName || null,
-          fileData: fileBuffer,
+          lampiran: finalLampiran,
+          fileData: null,
           fileName: fileName || null,
           fileType: fileType || null,
           fileSize: fileSize || null,
@@ -147,13 +155,22 @@ export async function PUT(
     let fileUpdate: any = {}
     if (fileData !== undefined) {
       if (fileData) {
-        const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-        fileUpdate = {
-          fileData: Buffer.from(base64Data, 'base64'),
-          fileName: fileName || null,
-          fileType: fileType || null,
-          fileSize: fileSize || null,
-          lampiran: fileName || null,
+        const { uploadToSupabase } = await import('@/lib/supabase')
+        try {
+          const publicUrl = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+          fileUpdate = {
+            fileData: null,
+            fileName: fileName || null,
+            fileType: fileType || null,
+            fileSize: fileSize || null,
+            lampiran: publicUrl,
+          }
+        } catch (uploadError: any) {
+          console.error('Supabase upload failed:', uploadError)
+          return NextResponse.json(
+            { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+            { status: 500 }
+          )
         }
       } else {
         fileUpdate = {

@@ -203,17 +203,28 @@ export async function POST(
 
     let pengumpulan
 
-    // Prepare uploaded file data if any
-    let fileDataToSave: Buffer | null = null
+    // Prepare uploaded file URL if any
+    let uploadedFileUrl: string | null = null
     let fileNameToSave: string | null = null
     let fileTypeToSave: string | null = null
     let fileSizeToSave: number | null = null
     if (hasUploadedFile) {
       const arr = await uploadedFile!.arrayBuffer()
-      fileDataToSave = Buffer.from(arr)
+      const fileBuffer = Buffer.from(arr)
       fileNameToSave = uploadedFile!.name
       fileTypeToSave = uploadedFile!.type || 'application/octet-stream'
       fileSizeToSave = uploadedFile!.size
+
+      const { uploadToSupabase } = await import('@/lib/supabase')
+      try {
+        uploadedFileUrl = await uploadToSupabase(fileBuffer, fileNameToSave, fileTypeToSave)
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed for student submission:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
     }
 
     if (existingSubmission) {
@@ -233,10 +244,10 @@ export async function POST(
           ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           ...(anggotaArr.length > 0 ? { anggota: anggotaArr } : {}),
-          fileUrl: fileUrlStr || (hasUploadedFile ? null : existingSubmission.fileUrl),
+          fileUrl: uploadedFileUrl || fileUrlStr || existingSubmission.fileUrl,
           ...(hasUploadedFile
             ? {
-                fileData: fileDataToSave!,
+                fileData: null,
                 fileName: fileNameToSave,
                 fileType: fileTypeToSave,
                 fileSize: fileSizeToSave,
@@ -258,10 +269,10 @@ export async function POST(
           ...(typeof namaKelompok === 'string' && namaKelompok.trim() ? { namaKelompok } : {}),
           ...(typeof ketua === 'string' && ketua.trim() ? { ketua } : {}),
           anggota: anggotaArr,
-          ...(fileUrlStr ? { fileUrl: fileUrlStr } : {}),
+          fileUrl: uploadedFileUrl || fileUrlStr || null,
           ...(hasUploadedFile
             ? {
-                fileData: fileDataToSave!,
+                fileData: null,
                 fileName: fileNameToSave,
                 fileType: fileTypeToSave,
                 fileSize: fileSizeToSave,

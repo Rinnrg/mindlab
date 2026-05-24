@@ -63,12 +63,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Convert base64 file data to Buffer if provided
-    let fileBuffer = null
+    // Process file if provided
+    let finalLampiran = lampiran || null
     if (fileData) {
-      // Remove data URL prefix if exists (e.g., "data:application/pdf;base64,")
-      const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-      fileBuffer = Buffer.from(base64Data, 'base64')
+      const { uploadToSupabase } = await import('@/lib/supabase')
+      try {
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
     }
 
     const materi = await prisma.materi.create({
@@ -76,8 +83,8 @@ export async function POST(request: NextRequest) {
         judul,
         deskripsi,
         kelasTarget: kelasTarget || [],
-        lampiran,
-        fileData: fileBuffer,
+        lampiran: finalLampiran,
+        fileData: null,
         fileName,
         fileType,
         fileSize,

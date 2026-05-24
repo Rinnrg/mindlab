@@ -17,8 +17,14 @@ export async function GET(
         fileName: true,
         fileType: true,
         fileSize: true,
+        lampiran: true,
       },
     })
+
+    if (materi && materi.lampiran && materi.lampiran.startsWith('http')) {
+      console.log('Redirecting to public URL for materi:', materi.lampiran)
+      return NextResponse.redirect(materi.lampiran)
+    }
 
     let fileData = materi?.fileData
     let fileName = materi?.fileName
@@ -34,8 +40,14 @@ export async function GET(
           fileName: true,
           fileType: true,
           fileSize: true,
+          lampiran: true,
         }
       })
+
+      if (pbl && pbl.lampiran && pbl.lampiran.startsWith('http')) {
+        console.log('Redirecting to fallback PBL public URL:', pbl.lampiran)
+        return NextResponse.redirect(pbl.lampiran)
+      }
 
       if (pbl && pbl.fileData) {
         fileData = pbl.fileData

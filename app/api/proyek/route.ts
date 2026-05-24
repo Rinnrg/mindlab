@@ -134,10 +134,18 @@ export async function POST(request: NextRequest) {
     const { selectedClasses } = body
 
     // Process file if provided
-    let fileBuffer = null
+    let finalLampiran = lampiran || null
     if (fileData) {
-      const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-      fileBuffer = Buffer.from(base64Data, 'base64')
+      const { uploadToSupabase } = await import('@/lib/supabase')
+      try {
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
     }
 
     const proyek = await prisma.$transaction(async (tx) => {
@@ -148,8 +156,8 @@ export async function POST(request: NextRequest) {
           deskripsi,
           tgl_mulai: new Date(tgl_mulai),
           tgl_selesai: new Date(tgl_selesai),
-          lampiran: fileName || lampiran || null,
-          fileData: fileBuffer,
+          lampiran: finalLampiran,
+          fileData: null,
           fileName: fileName || null,
           fileType: fileType || null,
           fileSize: fileSize || null,

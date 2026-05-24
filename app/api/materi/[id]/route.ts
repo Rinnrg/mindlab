@@ -54,11 +54,19 @@ export async function PUT(
 
     console.log('Updating materi:', id, 'with data:', body)
 
-    // Convert base64 file data to Buffer if provided
-    let fileBuffer = undefined
+    // Process file if provided
+    let finalLampiran = lampiran
     if (fileData) {
-      const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-      fileBuffer = Buffer.from(base64Data, 'base64')
+      const { uploadToSupabase } = await import('@/lib/supabase')
+      try {
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
     }
 
     const materi = await prisma.materi.update({
@@ -66,8 +74,8 @@ export async function PUT(
       data: {
         ...(judul && { judul }),
         ...(deskripsi !== undefined && { deskripsi }),
-        ...(lampiran !== undefined && { lampiran }),
-        ...(fileBuffer !== undefined && { fileData: fileBuffer }),
+        ...(finalLampiran !== undefined && { lampiran: finalLampiran }),
+        fileData: fileData ? null : undefined,
         ...(fileName !== undefined && { fileName }),
         ...(fileType !== undefined && { fileType }),
         ...(fileSize !== undefined && { fileSize }),

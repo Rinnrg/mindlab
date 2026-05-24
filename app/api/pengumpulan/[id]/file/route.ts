@@ -11,9 +11,21 @@ export async function GET(
 
   const pengumpulan = await prisma.pengumpulanProyek.findUnique({
     where: { id },
+    select: {
+      fileData: true,
+      fileName: true,
+      fileType: true,
+      fileSize: true,
+      fileUrl: true,
+    }
   })
 
   const data = pengumpulan as any
+
+  if (data && data.fileUrl && data.fileUrl.startsWith('http')) {
+    console.log('Redirecting to public URL for submission:', data.fileUrl)
+    return NextResponse.redirect(data.fileUrl)
+  }
 
   if (!data || !data.fileData) {
     return NextResponse.json({ error: 'File tidak ditemukan' }, { status: 404 })

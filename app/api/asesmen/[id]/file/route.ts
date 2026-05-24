@@ -17,8 +17,14 @@ export async function GET(
         fileName: true,
         fileType: true,
         fileSize: true,
+        lampiran: true,
       },
     }) as any
+
+    if (asesmen && asesmen.lampiran && asesmen.lampiran.startsWith('http')) {
+      console.log('Redirecting to public URL for asesmen:', asesmen.lampiran)
+      return NextResponse.redirect(asesmen.lampiran)
+    }
 
     if (!asesmen || !asesmen.fileData) {
       console.log('File not found or no fileData for asesmen:', id)

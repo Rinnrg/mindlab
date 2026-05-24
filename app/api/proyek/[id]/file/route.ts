@@ -15,8 +15,14 @@ export async function GET(
         fileName: true,
         fileType: true,
         fileSize: true,
+        lampiran: true,
       },
     }) as any
+
+    if (proyek && proyek.lampiran && proyek.lampiran.startsWith('http')) {
+      console.log('Redirecting to public URL for proyek:', proyek.lampiran)
+      return NextResponse.redirect(proyek.lampiran)
+    }
 
     if (!proyek || !proyek.fileData) {
       return NextResponse.json(

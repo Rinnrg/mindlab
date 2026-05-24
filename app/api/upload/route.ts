@@ -39,46 +39,10 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // In production (Vercel/serverless) we can't rely on writing to local disk,
-    // and returning base64 data URLs breaks DB constraints (fileUrl is VARCHAR(255)).
-    // So we fail fast with a clear message.
-    const isProduction = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production'
+    // Upload to Supabase Storage
+    const { uploadToSupabase } = await import('@/lib/supabase')
+    const url = await uploadToSupabase(buffer, file.name, file.type)
 
-    if (isProduction) {
-      return NextResponse.json(
-        {
-          error:
-            'Upload file langsung belum didukung di production. Silakan gunakan link (Google Drive/OneDrive) atau integrasikan storage (Supabase Storage/S3) agar menghasilkan URL pendek.',
-        },
-        { status: 400 }
-      )
-    }
-
-    // Development: save to file system
-    const uploadDir = join(process.cwd(), 'public', 'uploads')
-    console.log('Upload directory:', uploadDir)
-    
-    if (!existsSync(uploadDir)) {
-      console.log('Creating upload directory...')
-      await mkdir(uploadDir, { recursive: true })
-    }
-
-    // Generate unique filename
-    const timestamp = Date.now()
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-    const filename = `${timestamp}-${sanitizedName}`
-    const filepath = join(uploadDir, filename)
-
-    console.log('Writing file to:', filepath)
-
-    // Write file
-    await writeFile(filepath, buffer)
-
-    console.log('File written successfully')
-
-    // Return URL
-    const url = `/uploads/${filename}`
-    
     return NextResponse.json({ 
       url,
       filename: file.name,

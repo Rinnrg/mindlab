@@ -208,12 +208,19 @@ export async function POST(request: NextRequest) {
       console.log(`✓ KUIS validation passed: ${soal.length} questions`)
     }
 
-    // Convert base64 file data to Buffer if provided
-    let fileBuffer = null
+    // Process file if provided
+    let finalLampiran = lampiran || null
     if (fileData) {
-      // Remove data URL prefix if exists (e.g., "data:application/pdf;base64,")
-      const base64Data = fileData.includes(',') ? fileData.split(',')[1] : fileData
-      fileBuffer = Buffer.from(base64Data, 'base64')
+      const { uploadToSupabase } = await import('@/lib/supabase')
+      try {
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
     }
 
     // Validate dates if provided
@@ -273,8 +280,8 @@ export async function POST(request: NextRequest) {
       if (submissionComponents && Array.isArray(submissionComponents)) {
         asesmenData.submissionComponents = submissionComponents
       }
-      asesmenData.lampiran = lampiran || null
-      asesmenData.fileData = fileBuffer
+      asesmenData.lampiran = finalLampiran
+      asesmenData.fileData = null
       asesmenData.fileName = fileName
       asesmenData.fileType = fileType
       asesmenData.fileSize = fileSize
