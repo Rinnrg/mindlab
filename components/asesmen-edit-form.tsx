@@ -25,6 +25,7 @@ import { FileUploadField } from "@/components/file-upload-field"
 import { DateTimePicker } from "@/components/ui/date-time-picker"
 import { Switch } from "@/components/ui/switch"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import AsesmenGroupsManagement from "@/components/asesmen-groups-management"
 
 interface AsesmenEditFormProps {
   asesmenId: string
@@ -455,7 +456,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
         deskripsi: formData.deskripsi || null,
         kelasTarget: kelasTarget,
         tipe: formData.tipe,
-        tipePengerjaan: formData.tipe === 'TUGAS' ? formData.tipePengerjaan : null,
+  tipePengerjaan: formData.tipe === 'TUGAS' ? (formData.tipePengerjaan || 'INDIVIDU') : null,
         tgl_mulai: toISOWithTimezone(formData.tgl_mulai),
         tgl_selesai: toISOWithTimezone(formData.tgl_selesai),
         durasi: formData.durasi ? parseInt(formData.durasi) : null,
@@ -886,6 +887,53 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
 
             {formData.tipe === 'TUGAS' && (
               <div className="space-y-6">
+                <Card className="ios-glass-card border-border/30 rounded-2xl">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Mode Pengerjaan
+                    </CardTitle>
+                    <CardDescription>Pilih apakah tugas dikerjakan individu atau per kelompok.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Tipe Pengerjaan</Label>
+                      <Select
+                        value={formData.tipePengerjaan || 'INDIVIDU'}
+                        onValueChange={(v) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            tipePengerjaan: v as any,
+                          }))
+                        }
+                      >
+                        <SelectTrigger className="max-w-[260px]">
+                          <SelectValue placeholder="Pilih tipe pengerjaan" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="INDIVIDU">Individu</SelectItem>
+                          <SelectItem value="KELOMPOK">Kelompok</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        Jika dipilih <b>Kelompok</b>, siswa akan submit sebagai kelompok dan guru bisa mengatur anggota kelompok di bawah.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {formData.tipePengerjaan === 'KELOMPOK' && (
+                  <Card className="ios-glass-card border-border/30 rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Manajemen Kelompok</CardTitle>
+                      <CardDescription>Buat, ubah, dan atur anggota kelompok untuk tugas ini.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <AsesmenGroupsManagement asesmenId={asesmenId} courseId={formData.courseId || courseId} />
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card className="ios-glass-card border-border/30 rounded-2xl overflow-hidden shadow-xl">
                   <CardHeader className="bg-muted/30 border-b border-border/30 pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">

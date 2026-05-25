@@ -38,6 +38,7 @@ import {
   Terminal,
   Code,
   Crown,
+  Clock,
   CheckCircle2,
   X,
   BookOpen,
