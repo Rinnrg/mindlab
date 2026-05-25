@@ -198,6 +198,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             if (myGroup) {
               setUserGroup(myGroup)
               setNamaKelompok(myGroup.nama)
+              // Preselect ketua if available; fallback to first member
+              const preKetua = (myGroup as any).ketuaId || (Array.isArray((myGroup as any).anggotaIds) ? (myGroup as any).anggotaIds?.[0] : undefined)
+              if (preKetua) setSelectedKetua(String(preKetua))
               // If we already have a submission, it will overwrite these
             }
 
@@ -732,9 +735,60 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   {userGroup ? (
                     /* Pre-assigned Group View */
                     <div className="space-y-6">
-                      <div className="text-center p-4 rounded-2xl bg-primary/10 border border-primary/20">
-                        <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Nama Kelompok</p>
-                        <h3 className="text-lg font-extrabold">{userGroup.nama}</h3>
+                      <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-3">
+                        <div className="text-center">
+                          <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Nama Kelompok</p>
+                        </div>
+                        <Input
+                          value={namaKelompok}
+                          onChange={(e) => setNamaKelompok(e.target.value)}
+                          placeholder="Contoh: Tim Alpha"
+                          className="rounded-xl border-primary/20 bg-background/60 h-11 font-bold text-center"
+                          disabled={isDeadlinePassed}
+                          aria-label="Nama kelompok"
+                        />
+                        <p className="text-[10px] text-primary/70 text-center">
+                          Nama ini akan dipakai saat pengumpulan.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold text-primary">Ketua (Pilih satu)</Label>
+                        <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
+                          {(allowedKetuaStudents.length > 0 ? allowedKetuaStudents : enrolledStudents).map((student: any) => {
+                            const isMember = Array.isArray((userGroup as any).anggotaIds)
+                              ? (userGroup as any).anggotaIds.includes(student.id)
+                              : (userGroup as any).anggota?.some((a: any) => a?.siswaId === student.id)
+                            if (!isMember) return null
+                            const isSelected = selectedKetua === student.id
+                            return (
+                              <button
+                                key={`ketua-${student.id}`}
+                                type="button"
+                                onClick={() => selectKetua(student.id)}
+                                disabled={isDeadlinePassed}
+                                className={`flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${
+                                  isSelected
+                                    ? 'border-primary bg-primary/20 shadow-sm'
+                                    : 'border-border/30 hover:border-primary/50'
+                                }`}
+                                aria-label={`Pilih ketua ${student.nama}`}
+                              >
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={student.foto} />
+                                  <AvatarFallback className="text-[10px]">
+                                    {student.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <p className="text-xs font-bold truncate flex-1">{student.nama}</p>
+                                {isSelected && <Crown className="h-3 w-3 text-primary" />}
+                              </button>
+                            )
+                          })}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Ketua wajib dipilih untuk pengumpulan kelompok.
+                        </p>
                       </div>
                       
                       <div className="space-y-4">
