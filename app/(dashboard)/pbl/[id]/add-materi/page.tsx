@@ -28,7 +28,8 @@ export default function AddMateriPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
-  const courseId = params.id
+  // `id` di route ini adalah ID PBL/proyek (bukan courseId)
+  const pblId = params.id
   const sintak = searchParams.get('sintak')
 
   const { error: showError, AlertComponent } = useAdaptiveAlert()
@@ -93,7 +94,8 @@ export default function AddMateriPage() {
           judul: judul.trim(),
           deskripsi: deskripsi.trim() || null,
           kelasTarget: selectedKelas,
-          courseId,
+          // Backend `/api/proyek/[id]` hanya butuh `id` dari URL.
+          // Jangan kirim `courseId` karena ini bukan materi course.
           lampiran: fileName || null,
           fileData: fileData || null,
           fileName: fileName || null,
@@ -103,7 +105,7 @@ export default function AddMateriPage() {
           isMaterialOnly: true,
         }
 
-        const res = await fetch(`/api/proyek/${courseId}`, {
+        const res = await fetch(`/api/proyek/${pblId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -128,7 +130,7 @@ export default function AddMateriPage() {
         successTitle: "Berhasil!",
         successDescription: "Materi berhasil ditambahkan.",
         errorTitle: "Gagal",
-        onSuccess: () => router.push(`/pbl/${courseId}`),
+  onSuccess: () => router.push(`/pbl/${pblId}`),
       }
     )
 
@@ -146,7 +148,7 @@ export default function AddMateriPage() {
           <p className="text-sm text-muted-foreground">Tambahkan materi untuk PBL ini.</p>
         </div>
         <Button variant="outline" asChild>
-          <Link href={`/pbl/${courseId}`}>Kembali</Link>
+          <Link href={`/pbl/${pblId}`}>Kembali</Link>
         </Button>
       </div>
 
