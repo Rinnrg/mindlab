@@ -143,6 +143,19 @@ export default function AddAsesmenPage() {
 
   const [selectedKetuaByGroup, setSelectedKetuaByGroup] = React.useState<Record<number, string>>({})
 
+  const debugLogAsesmenPayload = React.useCallback((payload: any) => {
+    try {
+      const safe = {
+        ...payload,
+        // Avoid logging huge base64 strings in full
+        fileData: payload?.fileData ? `(${String(payload.fileData).length} chars)` : null,
+      }
+      console.log('=== [AddAsesmenPage] POST /api/asesmen payload:', safe)
+    } catch {
+      // ignore
+    }
+  }, [])
+
   const autoGenerateGroups = React.useCallback(() => {
     if (enrolledStudents.length === 0) return
 
@@ -173,6 +186,28 @@ export default function AddAsesmenPage() {
     // Clear ketua selection on auto-generate
     setSelectedKetuaByGroup({})
   }, [enrolledStudents, groupCount])
+
+  const computeGroupsPayload = React.useCallback(() => {
+    if (tipe !== 'TUGAS' || tipePengerjaan !== 'KELOMPOK') return null
+
+    // Backend expects keys using string groupNo: "1", "2", ...
+    const membersByGroup: Record<string, string[]> = {}
+    const ketuaByGroup: Record<string, string> = {}
+
+    for (let i = 1; i <= groupCount; i++) {
+      const key = String(i)
+      const members = (selectedGroupMembersByGroup[i] || []).filter(Boolean).map(String)
+      membersByGroup[key] = members
+      const ketua = selectedKetuaByGroup[i] || members[0] || ''
+      if (ketua) ketuaByGroup[key] = String(ketua)
+    }
+
+    return {
+      groupCount,
+      membersByGroup,
+      ketuaByGroup,
+    }
+  }, [groupCount, selectedGroupMembersByGroup, selectedKetuaByGroup, tipe, tipePengerjaan])
 
   // Google-Form-like builder state (hanya untuk KUIS)
   const [soalList, setSoalList] = React.useState<Soal[]>([
@@ -1332,6 +1367,24 @@ export default function AddAsesmenPage() {
             )}
           </div>
         </div>
+
+        {/* Debug helper (dev only): dump groups payload when in kelompok mode */}
+        {process.env.NODE_ENV !== 'production' && tipe === 'TUGAS' && tipePengerjaan === 'KELOMPOK' && (
+          <div className="mt-4 rounded-xl border border-border/40 bg-muted/10 p-3 text-xs text-muted-foreground">
+            <div className="flex items-center justify-between gap-2">
+              <div className="font-semibold text-foreground/70">Debug Kelompok</div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => console.log('=== [AddAsesmenPage] groups payload preview:', computeGroupsPayload())}
+              >
+                Log ke Console
+              </Button>
+            </div>
+            <div className="mt-2">Buka DevTools Console untuk lihat payload groups yang akan dikirim.</div>
+          </div>
+        )}
         <Dialog open={kelompokDialogOpen} onOpenChange={setKelompokDialogOpen}>
           <DialogContent className="max-w-[98vw] sm:max-w-[95vw] lg:max-w-7xl h-[95vh] sm:h-[90vh] overflow-hidden flex flex-col p-0 border-none rounded-none sm:rounded-[32px] bg-background/95 sm:bg-background/80 backdrop-blur-2xl shadow-2xl transition-all duration-500">
             {/* Main Content Area */}
