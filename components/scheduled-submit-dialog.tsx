@@ -44,7 +44,10 @@ export function ScheduledSubmitDialog({
     const selected = new Date(scheduledLocal)
     if (isNaN(selected.getTime())) return 'Tanggal/waktu tidak valid.'
     const now = new Date()
-    if (selected <= now) return 'Waktu terjadwal harus di masa depan.'
+    // Allow past dates only if they are within the same calendar month and year as now.
+    if (selected.getFullYear() !== now.getFullYear() || selected.getMonth() !== now.getMonth()) {
+      return 'Waktu terjadwal harus berada di bulan yang sama dengan sekarang.'
+    }
     if (deadline && selected > deadline) return 'Waktu terjadwal tidak boleh melewati deadline.'
     return null
   }

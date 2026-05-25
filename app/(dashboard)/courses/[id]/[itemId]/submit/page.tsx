@@ -317,9 +317,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     if (isScheduled && scheduledDate) {
       const selected = new Date(scheduledDate)
       const now = new Date()
-      if (selected <= now) {
-        showError("Waktu Tidak Valid", "Waktu terjadwal harus di masa depan.")
-        return
+      // allow past dates only if same calendar month/year as now
+      if (selected.getFullYear() !== now.getFullYear() || selected.getMonth() !== now.getMonth()) {
+        if (selected <= now) {
+          showError("Waktu Tidak Valid", "Waktu terjadwal harus berada di bulan yang sama dengan sekarang atau masa depan.")
+          return
+        }
       }
       if (asesmen?.tgl_selesai && selected > new Date(asesmen.tgl_selesai)) {
         showError("Waktu Tidak Valid", "Waktu terjadwal tidak boleh melewati deadline.")

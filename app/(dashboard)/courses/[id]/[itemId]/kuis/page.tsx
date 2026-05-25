@@ -501,8 +501,11 @@ export default function KuisPage({ params }: PageProps) {
       if (isScheduled && scheduledDate) {
         const selected = new Date(scheduledDate)
         const now = new Date()
-        if (selected <= now) {
-          throw new Error("Waktu terjadwal harus di masa depan.")
+        // allow past dates only if same calendar month/year as now
+        if (selected.getFullYear() !== now.getFullYear() || selected.getMonth() !== now.getMonth()) {
+          if (selected <= now) {
+            throw new Error("Waktu terjadwal harus berada di bulan yang sama dengan sekarang atau masa depan.")
+          }
         }
         if (asesmen?.tgl_selesai && selected > new Date(asesmen.tgl_selesai)) {
           throw new Error("Waktu terjadwal tidak boleh melewati deadline.")
@@ -918,7 +921,6 @@ export default function KuisPage({ params }: PageProps) {
                   <Switch
                     checked={isScheduled}
                     onCheckedChange={setIsScheduled}
-                    size="sm"
                   />
                 </div>
                 
