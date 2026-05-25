@@ -71,9 +71,11 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [ketua, setKetua] = useState("")
   const [anggota, setAnggota] = useState("")
   const [fileUrl, setFileUrl] = useState("")
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [catatan, setCatatan] = useState("")
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
+
+  // Kelompok state (ditentukan guru)
+  const [myGroup, setMyGroup] = useState<any>(null)
 
   // Compiler state
   const [sourceCode, setSourceCode] = useState("# Tulis kode Python kamu di sini\nprint('Hello, World!')\n")
@@ -92,7 +94,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   // Students for group selection
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
   const [selectedKetua, setSelectedKetua] = useState<string | null>(null)
-  const [selectedAnggota, setSelectedAnggota] = useState<string[]>([])
 
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
@@ -153,14 +154,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             )
             
             if (myKelompok) {
+              setMyGroup(myKelompok)
               setNamaKelompok(myKelompok.nama || "")
               // Check if we have a ketuaId from the new system
               if (myKelompok.ketuaId) {
                 setSelectedKetua(myKelompok.ketuaId)
               }
-              // Set members
-              const memberIds = (myKelompok.anggota || []).map((a: any) => a.siswaId)
-              setSelectedAnggota(memberIds.filter((id: string) => id !== (myKelompok.ketuaId || "")))
               
               submission = asesmenData.pengumpulanProyek?.find((p: any) => p.kelompokId === myKelompok.id) || null
             } else {
@@ -254,24 +253,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     }
   }
 
-  const toggleAnggota = (studentId: string) => {
-    if (studentId === selectedKetua) return // Can't be both ketua and anggota
-    setSelectedAnggota(prev =>
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    )
-  }
-
   const selectKetua = (studentId: string) => {
     setSelectedKetua(studentId)
-    setSelectedAnggota(prev => prev.filter(id => id !== studentId))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const hasFile = (fileUrl || uploadedFile)
+  const hasFile = Boolean(fileUrl)
     const hasCode = sourceCode.trim()
     const hasText = textContent.trim()
 
@@ -287,11 +276,27 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     let finalAnggota = anggota
     let finalNamaKelompok = namaKelompok
 
-    if (isKelompok && enrolledStudents.length > 0) {
-      const ketuaStudent = enrolledStudents.find(s => s.id === selectedKetua)
-      const anggotaStudents = enrolledStudents.filter(s => selectedAnggota.includes(s.id))
-      if (ketuaStudent) finalKetua = ketuaStudent.nama
-      if (anggotaStudents.length > 0) finalAnggota = anggotaStudents.map((s: any) => s.nama).join(", ")
+    if (isKelompok) {
+      // Nama kelompok ditentukan guru
+      finalNamaKelompok = myGroup?.nama || finalNamaKelompok
+
+      const memberIds: string[] = (myGroup?.anggota || []).map((a: any) => a.siswaId)
+      const memberIdSet = new Set(memberIds)
+
+      // Ketua dipilih dari anggota kelompok
+      if (selectedKetua && memberIdSet.has(selectedKetua)) {
+        const ketuaStudent = enrolledStudents.find((s: any) => s.id === selectedKetua)
+        if (ketuaStudent?.nama) finalKetua = ketuaStudent.nama
+      } else {
+        finalKetua = ""
+      }
+
+      // Anggota otomatis dari struktur kelompok
+      const memberNames = enrolledStudents
+        .filter((s: any) => memberIdSet.has(s.id))
+        .map((s: any) => s.nama)
+        .filter(Boolean)
+      finalAnggota = memberNames.join(", ")
     }
 
     if (isKelompok) {
@@ -340,48 +345,24 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         
         const scheduledAtISO = isScheduled && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
 
-        const response = await (async () => {
-            if (uploadedFile) {
-              const form = new FormData()
-              form.append('siswaId', user?.id || '')
-              if (isKelompok) {
-                form.append('namaKelompok', finalNamaKelompok || '')
-                form.append('ketua', finalKetua || '')
-                form.append('anggota', finalAnggota || '')
-              }
-              if (catatan) form.append('catatan', catatan)
-              if (fileUrl) form.append('fileUrl', fileUrl)
-              if (sourceCode) form.append('sourceCode', sourceCode)
-              if (compilerOutput) form.append('output', compilerOutput)
-              if (textContent) form.append('textContent', textContent)
-              if (scheduledAtISO) form.append('scheduledAt', scheduledAtISO)
-              form.append('file', uploadedFile)
+        const payload: Record<string, any> = {
+          siswaId: user?.id,
+          namaKelompok: isKelompok ? finalNamaKelompok : null,
+          ketua: isKelompok ? finalKetua : null,
+          anggota: isKelompok ? finalAnggota : null,
+          catatan,
+          fileUrl,
+          sourceCode,
+          output: compilerOutput,
+          textContent,
+          scheduledAt: scheduledAtISO,
+        }
 
-              return fetch(endpoint, {
-                method: 'POST',
-                body: form,
-              })
-            }
-
-          const payload: Record<string, any> = {
-            siswaId: user?.id,
-            namaKelompok: isKelompok ? finalNamaKelompok : null,
-            ketua: isKelompok ? finalKetua : null,
-            anggota: isKelompok ? finalAnggota : null,
-            catatan,
-            fileUrl,
-            sourceCode,
-            output: compilerOutput,
-            textContent,
-            scheduledAt: scheduledAtISO,
-          }
-
-          return fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-        })()
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
 
         const responseText = await response.text()
         let responseData: any = null
@@ -405,7 +386,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => {
-          setUploadedFile(null)
           setTimeout(() => {
             router.push(`/courses/${courseId}/${asesmenId}`)
           }, 1500)
@@ -519,35 +499,40 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         )}
       </Card>
 
-  {/* Kelompok Selection Card */}
+  {/* Kelompok Info (ketua dipilih siswa, anggota sudah di-set guru) */}
   {isKelompok && !groupAlreadySubmittedByOther && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Users className="h-5 w-5" />Informasi Kelompok
             </CardTitle>
-            <CardDescription>Lengkapi informasi kelompok Anda</CardDescription>
+            <CardDescription>Pilih ketua dari anggota kelompok Anda</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="namaKelompok">Nama Kelompok <span className="text-destructive">*</span></Label>
+              <Label htmlFor="namaKelompok">Nama Kelompok</Label>
               <Input
                 id="namaKelompok"
                 value={namaKelompok}
-                onChange={(e) => setNamaKelompok(e.target.value)}
                 placeholder="Masukkan nama kelompok"
-                required
-                disabled={isDeadlinePassed}
+                disabled
               />
+              {!myGroup ? (
+                <p className="text-xs text-destructive">
+                  Anda belum masuk kelompok untuk tugas ini. Hubungi guru untuk mengatur kelompok.
+                </p>
+              ) : null}
             </div>
 
-            {enrolledStudents.length > 0 ? (
+            {enrolledStudents.length > 0 && myGroup ? (
               <>
                 {/* Ketua Selection */}
                 <div className="space-y-2">
                   <Label>Ketua Kelompok <span className="text-destructive">*</span></Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {enrolledStudents.map((student) => {
+                    {enrolledStudents
+                      .filter((student) => (myGroup?.anggota || []).some((a: any) => a.siswaId === student.id))
+                      .map((student) => {
                       const isSelected = selectedKetua === student.id
                       return (
                         <button
@@ -577,60 +562,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                     })}
                   </div>
                 </div>
-
-                <Separator />
-
-                {/* Anggota Selection */}
-                <div className="space-y-2">
-                  <Label>Anggota Kelompok</Label>
-                  {selectedAnggota.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {selectedAnggota.map(id => {
-                        const s = enrolledStudents.find(st => st.id === id)
-                        return s ? (
-                          <Badge key={id} variant="secondary" className="gap-1 py-1 px-2">
-                            {s.nama}
-                            <button type="button" onClick={() => toggleAnggota(id)} className="ml-1 hover:text-destructive" title="Hapus anggota">
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ) : null
-                      })}
-                    </div>
-                  )}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {enrolledStudents
-                      .filter(s => s.id !== selectedKetua)
-                      .map((student) => {
-                        const isSelected = selectedAnggota.includes(student.id)
-                        return (
-                          <button
-                            key={`anggota-${student.id}`}
-                            type="button"
-                            onClick={() => toggleAnggota(student.id)}
-                            disabled={isDeadlinePassed}
-                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                              isSelected
-                                ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                : 'border-border hover:border-muted-foreground/50 hover:bg-muted/50'
-                            }`}
-                          >
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={student.foto} />
-                              <AvatarFallback className="text-xs">
-                                {student.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{student.nama}</p>
-                              {student.kelas && <p className="text-xs text-muted-foreground">{student.kelas}</p>}
-                            </div>
-                            {isSelected && <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />}
-                          </button>
-                        )
-                      })}
-                  </div>
-                </div>
               </>
             ) : (
               /* Fallback to text inputs if no enrolled students */
@@ -645,21 +576,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                     required
                     disabled={isDeadlinePassed}
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="anggota">Nama Anggota <span className="text-destructive">*</span></Label>
-                  <Textarea
-                    id="anggota"
-                    value={anggota}
-                    onChange={(e) => setAnggota(e.target.value)}
-                    placeholder="Masukkan nama anggota (pisahkan dengan koma)"
-                    rows={3}
-                    required
-                    disabled={isDeadlinePassed}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Contoh: Ahmad, Budi, Citra
-                  </p>
                 </div>
               </>
             )}
@@ -686,7 +602,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                 <TabsList className="ios-tab-list mb-4">
                   {submissionComponents.includes('UPLOAD_FILE') && (
                     <TabsTrigger value="file" className="ios-tab-trigger">
-                      <FileUp className="ios-tab-icon" />
+                      <FileText className="ios-tab-icon" />
                       <span className="ios-tab-text">Upload File</span>
                     </TabsTrigger>
                   )}
@@ -728,32 +644,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         label="Link Tugas (Optional)"
                         value={fileUrl}
                         onChange={setFileUrl}
+                        accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                        maxSizeMB={10}
                         description={
                           isDeadlinePassed
                             ? "Deadline sudah lewat"
                             : "Berikan link ke file (Google Drive, OneDrive, dll)"
                         }
                       />
-
-                      <div className="space-y-3 p-4 rounded-xl border border-border/50 bg-muted/30">
-                        <Label className="text-sm font-semibold">Upload File Langsung</Label>
-                        <Input
-                          type="file"
-                          className="bg-background"
-                          accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
-                          onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
-                          disabled={isDeadlinePassed}
-                        />
-                        {uploadedFile && (
-                          <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 p-2 rounded-lg">
-                            <FileUp className="h-3 w-3" />
-                            <span>File dipilih: <strong>{uploadedFile.name}</strong> ({Math.round(uploadedFile.size / 1024)} KB)</span>
-                          </div>
-                        )}
-                        <p className="text-[10px] text-muted-foreground italic">
-                          * Mendukung format PDF, Docx, Zip, Gambar (WebP, JPG, PNG), dll. Maksimal 10MB.
-                        </p>
-                      </div>
                     </div>
                   </TabsContent>
                 )}

@@ -72,7 +72,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [ketua, setKetua] = useState("")
   const [anggota, setAnggota] = useState("")
   const [fileUrl, setFileUrl] = useState("")
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [existingSubmission, setExistingSubmission] = useState<any>(null)
 
   // Scheduled upload state
@@ -89,7 +88,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   // Students for group selection
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
   const [selectedKetua, setSelectedKetua] = useState<string | null>(null)
-  const [selectedAnggota, setSelectedAnggota] = useState<string[]>([])
   const [userGroup, setUserGroup] = useState<any>(null)
 
   // Set custom breadcrumb
@@ -237,24 +235,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     }
   }
 
-  const toggleAnggota = (studentId: string) => {
-    if (studentId === selectedKetua) return // Can't be both ketua and anggota
-    setSelectedAnggota(prev =>
-      prev.includes(studentId)
-        ? prev.filter(id => id !== studentId)
-        : [...prev, studentId]
-    )
-  }
-
   const selectKetua = (studentId: string) => {
     setSelectedKetua(studentId)
-    setSelectedAnggota(prev => prev.filter(id => id !== studentId))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const hasFile = fileUrl || uploadedFile
+  const hasFile = Boolean(fileUrl)
     const hasCode = sourceCode.trim() && sourceCode !== "# Tulis kode Python kamu di sini\nprint('Hello, World!')\n"
     const hasText = textContent.trim()
 
@@ -270,11 +258,25 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     let finalAnggota = anggota
     let finalNamaKelompok = namaKelompok
 
-    if (isKelompok && enrolledStudents.length > 0) {
-      const ketuaStudent = enrolledStudents.find(s => s.id === selectedKetua)
-      const anggotaStudents = enrolledStudents.filter(s => selectedAnggota.includes(s.id))
-      if (ketuaStudent) finalKetua = ketuaStudent.nama
-      if (anggotaStudents.length > 0) finalAnggota = anggotaStudents.map((s: any) => s.nama).join(", ")
+    if (isKelompok) {
+      const group = userGroup
+      finalNamaKelompok = group?.nama || finalNamaKelompok
+
+      const memberIds: string[] = (group?.anggota || []).map((a: any) => a.siswaId)
+      const memberIdSet = new Set(memberIds)
+
+      if (selectedKetua && memberIdSet.has(selectedKetua)) {
+        const ketuaStudent = enrolledStudents.find((s: any) => s.id === selectedKetua)
+        if (ketuaStudent?.nama) finalKetua = ketuaStudent.nama
+      } else {
+        finalKetua = ""
+      }
+
+      const memberNames = enrolledStudents
+        .filter((s: any) => memberIdSet.has(s.id))
+        .map((s: any) => s.nama)
+        .filter(Boolean)
+      finalAnggota = memberNames.join(", ")
     }
 
     if (isKelompok) {
@@ -323,33 +325,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         const endpoint = `/api/asesmen/${asesmenId}/submit`
         const scheduledAtISO = isScheduled && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
 
-        const response = await (async () => {
-          if (uploadedFile) {
-            const form = new FormData()
-            form.append("siswaId", user?.id || "")
-            if (isKelompok) {
-              form.append("namaKelompok", finalNamaKelompok || "")
-              form.append("ketua", finalKetua || "")
-              form.append("anggota", finalAnggota || "")
-            }
-            if (fileUrl) form.append("fileUrl", fileUrl)
-            form.append("file", uploadedFile)
-
-            if (hasCode) {
-              form.append("sourceCode", sourceCode)
-              if (compilerOutput) form.append("output", compilerOutput)
-            }
-            if (hasText) {
-              form.append("textContent", textContent)
-            }
-            if (scheduledAtISO) {
-              form.append("scheduledAt", scheduledAtISO)
-            }
-
-            return fetch(endpoint, { method: "POST", body: form })
-          }
-
-          const payload: Record<string, any> = {
+  const payload: Record<string, any> = {
             siswaId: user?.id,
             namaKelompok: isKelompok ? finalNamaKelompok : null,
             ketua: isKelompok ? finalKetua : null,
@@ -368,12 +344,11 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
             payload.textContent = textContent
           }
 
-          return fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-        })()
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
 
         const responseText = await response.text()
         let responseData: any = null
@@ -397,7 +372,6 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         errorTitle: "Gagal",
         autoCloseMs: 1500,
         onSuccess: () => {
-          setUploadedFile(null)
           setTimeout(() => {
             router.push(`/pbl/${courseId}/${asesmenId}`)
           }, 1500)
@@ -559,32 +533,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                             label=""
                             value={fileUrl}
                             onChange={setFileUrl}
+                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                            maxSizeMB={10}
                             description={
                               isDeadlinePassed
                                 ? "Deadline sudah lewat"
                                 : "Seret file ke sini atau klik untuk memilih file (PDF, Gambar, atau Dokumen)"
                             }
                           />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Upload langsung (tersimpan ke database)</Label>
-                          <Input
-                            type="file"
-                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
-                            onChange={(e) => setUploadedFile(e.target.files?.[0] || null)}
-                            disabled={isDeadlinePassed}
-                          />
-                          {uploadedFile && (
-                            <p className="text-xs text-muted-foreground">
-                              File dipilih:{' '}
-                              <span className="font-medium">{uploadedFile.name}</span>
-                              {' '}({Math.round(uploadedFile.size / 1024)} KB)
-                            </p>
-                          )}
-                          <p className="text-xs text-muted-foreground">
-                            Ini dipakai untuk production (Vercel) agar upload tetap jalan.
-                          </p>
                         </div>
                       </motion.div>
                     </TabsContent>

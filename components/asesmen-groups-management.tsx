@@ -128,7 +128,7 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
 
       if (selectedGroupId === kelompokId) {
         setSelectedGroupId(null)
-        setSelectedMemberIds(new Set())
+  setSelectedMemberIds(new Set())
       }
       await showSuccess("Berhasil", "Kelompok dihapus")
       await fetchAll()
@@ -179,26 +179,6 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
       await fetchAll()
     } catch (e: any) {
       showError("Error", e?.message || "Gagal menghapus anggota")
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const setKetua = async (kelompokId: string, ketuaId: string | null) => {
-    setSaving(true)
-    try {
-      const res = await fetch(`/api/asesmen/${asesmenId}/kelompok/${kelompokId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ketuaId }),
-      })
-      const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || "Gagal mengubah ketua")
-
-      await showSuccess("Berhasil", "Ketua kelompok diperbarui")
-      await fetchAll()
-    } catch (e: any) {
-      showError("Error", e?.message || "Gagal mengubah ketua")
     } finally {
       setSaving(false)
     }
@@ -303,18 +283,6 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
           {selectedGroup ? (
             <>
               <div className="space-y-2">
-                <Label>Ketua Kelompok</Label>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant={selectedGroup.ketuaId ? "default" : "secondary"}>
-                    {selectedGroup.ketuaId
-                      ? (students.find((s) => s.id === selectedGroup.ketuaId)?.nama || selectedGroup.ketuaId)
-                      : "Belum ditentukan"}
-                  </Badge>
-                  <div className="text-xs text-muted-foreground">Pilih ketua dari anggota di bawah.</div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
                 <Label>Anggota ({selectedGroup.anggotaIds.length})</Label>
                 {selectedGroup.anggotaIds.length === 0 ? (
                   <div className="text-sm text-muted-foreground">Belum ada anggota.</div>
@@ -322,37 +290,26 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
                   <div className="space-y-2">
                     {selectedGroup.anggotaIds.map((id) => {
                       const s = students.find((x) => x.id === id)
-                      const isKetua = selectedGroup.ketuaId === id
                       return (
                         <div key={id} className="flex items-center justify-between gap-2 rounded-lg border p-3">
                           <div className="min-w-0">
                             <div className="text-sm font-medium truncate">
-                              {s?.nama || id}{isKetua ? " (Ketua)" : ""}
+                              {s?.nama || id}
                             </div>
                             <div className="text-xs text-muted-foreground truncate">
                               {s?.kelas ? `Kelas ${s.kelas}` : ""}{s?.email ? (s?.kelas ? ` • ${s.email}` : s.email) : ""}
                             </div>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              type="button"
-                              variant={isKetua ? "secondary" : "outline"}
-                              size="sm"
-                              onClick={() => void setKetua(selectedGroup.id, id)}
-                              disabled={saving}
-                            >
-                              Ketua
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => void removeMember(selectedGroup.id, id)}
-                              disabled={saving}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void removeMember(selectedGroup.id, id)}
+                            disabled={saving}
+                            title="Hapus anggota"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       )
                     })}
