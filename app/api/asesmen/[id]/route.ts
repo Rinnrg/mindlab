@@ -182,6 +182,19 @@ export async function GET(
             pengumpulanProyek: true,
           },
         }
+
+        // IMPORTANT: halaman guru (edit/detail) sering butuh data kelompok,
+        // tapi sebelumnya kelompok hanya ikut kalau includeStats=true.
+        // Ini bikin kelompok terlihat "kosong" setelah create.
+        includeOptions.kelompok = {
+          select: {
+            id: true,
+            nama: true,
+            asesmenId: true,
+            ketuaId: true,
+            anggotaIds: true,
+          },
+        }
       }
     }
 
