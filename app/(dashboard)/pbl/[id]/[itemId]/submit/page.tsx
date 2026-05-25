@@ -739,23 +739,45 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                       
                       <div className="space-y-4">
                         <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">
-                          <UserIcon className="h-3 w-3" /> Anggota Tim ({userGroup.anggota.length})
+                          <UserIcon className="h-3 w-3" /> Anggota Tim ({Array.isArray((userGroup as any).anggota) ? (userGroup as any).anggota.length : Array.isArray((userGroup as any).anggotaIds) ? (userGroup as any).anggotaIds.length : 0})
                         </Label>
                         <div className="space-y-3">
-                          {userGroup.anggota.map((a: any) => (
-                            <div key={a.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-background/50 transition-colors">
-                              <Avatar className="h-9 w-9 border border-primary/20">
-                                <AvatarImage src={a.siswa.foto} />
-                                <AvatarFallback className="bg-primary/5 text-primary text-xs">
-                                  {a.siswa.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="min-w-0">
-                                <p className="text-sm font-bold truncate">{a.siswa.nama}</p>
-                                <p className="text-[10px] text-muted-foreground">Siswa Enrollment</p>
+                          {Array.isArray((userGroup as any).anggota) && (userGroup as any).anggota.length > 0 ? (
+                            (userGroup as any).anggota.map((a: any) => (
+                              <div key={a.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-background/50 transition-colors">
+                                <Avatar className="h-9 w-9 border border-primary/20">
+                                  <AvatarImage src={a.siswa.foto} />
+                                  <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                                    {a.siswa.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-bold truncate">{a.siswa.nama}</p>
+                                  <p className="text-[10px] text-muted-foreground">Siswa Enrollment</p>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))
+                          ) : Array.isArray((userGroup as any).anggotaIds) && (userGroup as any).anggotaIds.length > 0 ? (
+                            ((userGroup as any).anggotaIds as string[])
+                              .map((sid: string) => enrolledStudents.find((s: any) => s.id === sid))
+                              .filter(Boolean)
+                              .map((s: any) => (
+                                <div key={s.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-background/50 transition-colors">
+                                  <Avatar className="h-9 w-9 border border-primary/20">
+                                    <AvatarImage src={s.foto} />
+                                    <AvatarFallback className="bg-primary/5 text-primary text-xs">
+                                      {s.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-bold truncate">{s.nama}</p>
+                                    <p className="text-[10px] text-muted-foreground">Siswa Enrollment</p>
+                                  </div>
+                                </div>
+                              ))
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Anggota belum tersedia.</p>
+                          )}
                         </div>
                       </div>
                       

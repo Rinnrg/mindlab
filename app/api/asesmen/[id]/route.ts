@@ -123,6 +123,18 @@ export async function GET(
           soal: true,
         },
       }
+
+      // NOTE: Halaman submit kelompok butuh data kelompok untuk menentukan userGroup.
+      // Untuk menghindari payload besar, kita kirim minimal fields + anggotaIds.
+      includeOptions.kelompok = {
+        select: {
+          id: true,
+          nama: true,
+          asesmenId: true,
+          ketuaId: true,
+          anggotaIds: true,
+        },
+      }
     } else {
       // For teachers/admins - include full data based on params
       // Always include soal and opsi for teachers to see the quiz content
@@ -186,22 +198,29 @@ export async function GET(
       )
     }
 
-    // Populate kelompok.anggota using manual load from array column
+    // Populate kelompok.anggota using manual load from array column.
+    // IMPORTANT: UI submit lama mengharapkan shape: anggota: Array<{ siswaId: string, siswa?: { nama, foto } }>
+    // (bukan hanya Array<User>), supaya kompatibel dengan kode existing.
     if (asesmen.kelompok && asesmen.kelompok.length > 0) {
-      const allUserIds = Array.from(new Set(asesmen.kelompok.flatMap(k => k.anggotaIds)))
+      const allUserIds = Array.from(new Set(asesmen.kelompok.flatMap((k: any) => k.anggotaIds || [])))
       const users = await prisma.user.findMany({
         where: { id: { in: allUserIds } },
         select: {
           id: true,
           nama: true,
           foto: true,
-        }
+        },
       })
-      const userMap = new Map(users.map(u => [u.id, u]))
-      const formattedKelompok = asesmen.kelompok.map(k => ({
+      const userMap = new Map(users.map((u) => [u.id, u]))
+
+      const formattedKelompok = asesmen.kelompok.map((k: any) => ({
         ...k,
-        anggota: k.anggotaIds.map(id => userMap.get(id)).filter(Boolean)
+        anggota: (k.anggotaIds || []).map((uid: string) => ({
+          siswaId: uid,
+          siswa: userMap.get(uid) || null,
+        })),
       }))
+
       ;(asesmen as any).kelompok = formattedKelompok
     }
 
