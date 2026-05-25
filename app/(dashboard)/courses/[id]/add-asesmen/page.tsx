@@ -1691,7 +1691,22 @@ export default function AddAsesmenPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => console.log('=== [Kelompok Debug] groups payload preview:', computeGroupsPayloadDebug())}
+                  onClick={() => {
+                    const membersByGroup: Record<string, string[]> = {}
+                    const ketuaByGroup: Record<string, string> = {}
+                    for (let i = 1; i <= Math.max(1, groupCount); i++) {
+                      const key = String(i)
+                      const members = (selectedGroupMembersByGroup[i] || []).filter(Boolean).map(String)
+                      membersByGroup[key] = members
+                      const ketua = selectedKetuaByGroup[i] || members[0] || ''
+                      if (ketua) ketuaByGroup[key] = String(ketua)
+                    }
+                    console.log('=== [Kelompok Debug] groups payload preview:', {
+                      groupCount,
+                      membersByGroup,
+                      ketuaByGroup,
+                    })
+                  }}
                   className="w-full sm:w-auto rounded-xl px-6 h-10 sm:h-12 font-black text-[10px] sm:text-xs tracking-[0.15em]"
                 >
                   DEBUG LOG

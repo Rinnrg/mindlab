@@ -392,12 +392,14 @@ export default function AddAsesmenPage() {
               ? [{ id: 1, name: "Kelompok 1", memberIds: groupDraft.memberIds, ketuaId: groupDraft.memberIds[0] }]
               : []
 
-            const membersByGroup: Record<number, string[]> = {}
-            const ketuaByGroup: Record<number, string> = {}
+            // IMPORTANT: backend (/api/asesmen POST) expects object keys as strings ("1","2",...)
+            // because it reads membersByGroup[groupNo] where groupNo is a string.
+            const membersByGroup: Record<string, string[]> = {}
+            const ketuaByGroup: Record<string, string> = {}
             for (let i = 0; i < groupsSource.length; i++) {
-              const number = i + 1
-              membersByGroup[number] = groupsSource[i].memberIds
-              ketuaByGroup[number] = groupsSource[i].ketuaId || groupsSource[i].memberIds?.[0] || ""
+              const groupNo = String(i + 1)
+              membersByGroup[groupNo] = groupsSource[i].memberIds
+              ketuaByGroup[groupNo] = groupsSource[i].ketuaId || groupsSource[i].memberIds?.[0] || ""
             }
 
             payload.groups = {
@@ -416,6 +418,20 @@ export default function AddAsesmenPage() {
 
   // Mark asal pembuatan agar bisa difilter antara PBL vs Kursus.
   ;(payload as any).origin = 'PBL'
+
+  // Debug: log payload summary (avoid printing huge base64 fileData)
+  try {
+    console.log('=== [PBL AddAsesmen] POST /api/asesmen payload summary:', {
+      tipe: payload?.tipe,
+      tipePengerjaan: payload?.tipePengerjaan,
+      groupCount: payload?.groups?.groupCount,
+      membersByGroupKeys: payload?.groups?.membersByGroup ? Object.keys(payload.groups.membersByGroup) : [],
+      membersCount: payload?.groups?.membersByGroup
+        ? Object.values(payload.groups.membersByGroup).reduce((n: number, arr: any) => n + (Array.isArray(arr) ? arr.length : 0), 0)
+        : 0,
+      hasFileData: Boolean(payload?.fileData),
+    })
+  } catch {}
 
   const res = await fetch("/api/asesmen", {
           method: "POST",
