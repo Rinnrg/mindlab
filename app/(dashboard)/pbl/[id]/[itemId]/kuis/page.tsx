@@ -15,41 +15,7 @@ import {
   Loader2,
   Clock,
   AlertCircle,
-  CheckCircle,
-  HelpCircle,
-  BookOpen,
-  FileText,
-} from "lucide-react"
-import Link from "next/link"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Switch } from "@/components/ui/switch"
-import { CalendarClock, FileUp } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { useLongPress } from "@/hooks/use-long-press"
-import { ScheduledSubmitDialog } from "@/components/scheduled-submit-dialog"
-
-interface PageProps {
-  params: Promise<{ 
-    id: string
-  itemId: string
-  }>
-}
-
-interface Opsi {
-  id: string
-  teks: string
-  isBenar: boolean
-}
-
-interface Soal {
-  id: string
-  pertanyaan: string
-  gambar?: string
-  bobot: number
-  tipeJawaban: 'PILIHAN_GANDA' | 'ISIAN'
-  opsi: Opsi[]
+              {/* duplicate informative schedule block removed */}
 }
 
 interface Jawaban {

@@ -906,40 +906,7 @@ export default function KuisPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Scheduled Upload Toggle - Informative Section */}
-              <div className="bg-muted/30 border border-border/50 rounded-xl p-3 space-y-3 mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs flex items-center gap-2">
-                      <CalendarClock className="h-3 w-3 text-primary" />
-                      Jadwal Pengumpulan Otomatis
-                    </Label>
-                    <p className="text-[10px] text-muted-foreground">
-                      Kuis akan tersimpan pada waktu yang ditentukan.
-                    </p>
-                  </div>
-                  <Switch
-                    checked={isScheduled}
-                    onCheckedChange={setIsScheduled}
-                  />
-                </div>
-                
-                {isScheduled && (
-                  <div className="pt-1 animate-in slide-in-from-top-2">
-                    <Input
-                      type="datetime-local"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                      className="h-8 text-[10px]"
-                    />
-                    {asesmen?.tgl_selesai && (
-                      <p className="text-[9px] text-muted-foreground mt-1">
-                        Batas akhir: {new Date(asesmen.tgl_selesai).toLocaleString('id-ID')}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* duplicate informative schedule block removed */}
             </CardContent>
           </Card>
         </div>

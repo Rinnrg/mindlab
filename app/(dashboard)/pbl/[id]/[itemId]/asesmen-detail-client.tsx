@@ -1138,13 +1138,11 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Tanggal mengerjakan</TableHead>
-                                <TableHead>Tanggal pengumpulan</TableHead>
-                                <TableHead className="text-right">Aksi</TableHead>
-                              </TableRow>
+                                  <TableHead>Nama</TableHead>
+                                  <TableHead>Email</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead className="text-right">Aksi</TableHead>
+                                </TableRow>
                             </TableHeader>
                             <TableBody>
                               {items.map((it: any) => {
@@ -1161,18 +1159,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                     <TableCell className="font-medium">{it.siswa.nama}</TableCell>
                                     <TableCell className="text-muted-foreground">{it.siswa.email}</TableCell>
                                     <TableCell>{statusBadge}</TableCell>
-                                    <TableCell>
-                                      {it.startedAt
-                                        ? new Date(it.startedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                        : '-'
-                                      }
-                                    </TableCell>
-                                    <TableCell>
-                                      {it.submittedAt
-                                        ? new Date(it.submittedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-                                        : '-'
-                                      }
-                                    </TableCell>
+                                    {/* tanggal columns removed per request */}
                                     <TableCell className="text-right">
                                       <Button
                                         variant="outline"
