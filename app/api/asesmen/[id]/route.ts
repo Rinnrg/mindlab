@@ -183,6 +183,21 @@ export async function GET(
           },
         }
 
+        // Include minimal submissions for recap table even on fast path.
+        // IMPORTANT: scheduled submissions are stored as status=PENDING with future tgl_unggah,
+        // and should still appear in teacher recap.
+        includeOptions.pengumpulanProyek = {
+          include: {
+            siswa: {
+              select: {
+                id: true,
+                nama: true,
+                email: true,
+              },
+            },
+          },
+        }
+
         // IMPORTANT: halaman guru (edit/detail) sering butuh data kelompok,
         // tapi sebelumnya kelompok hanya ikut kalau includeStats=true.
         // Ini bikin kelompok terlihat "kosong" setelah create.
