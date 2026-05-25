@@ -47,6 +47,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useLongPress } from "@/hooks/use-long-press"
+import { ScheduledSubmitDialog } from "@/components/scheduled-submit-dialog"
 
 interface PageProps {
   params: Promise<{
@@ -77,6 +79,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   // Scheduled upload state
   const [isScheduled, setIsScheduled] = useState(false)
   const [scheduledDate, setScheduledDate] = useState("")
+  const [scheduledDialogOpen, setScheduledDialogOpen] = useState(false)
 
   // Compiler state
   const [submitMode, setSubmitMode] = useState<"file" | "compiler" | "text">("file")
@@ -397,6 +400,95 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     })
   }
 
+  const getSubmissionPayload = () => {
+    const hasFile = Boolean(fileUrl)
+    const hasCode = sourceCode.trim() && sourceCode !== "# Tulis kode Python kamu di sini\nprint('Hello, World!')\n"
+    const hasText = textContent.trim()
+
+    const isKelompok = asesmen?.tipePengerjaan === 'KELOMPOK'
+
+    // Determine final ketua/anggota values
+    let finalKetua = ketua
+    let finalAnggota = anggota
+    let finalNamaKelompok = namaKelompok
+
+    if (isKelompok) {
+      const group = userGroup
+      finalNamaKelompok = group?.nama || finalNamaKelompok
+
+      const memberIds: string[] = Array.isArray(group?.anggotaIds)
+        ? group.anggotaIds
+        : (group?.anggota || []).map((a: any) => a.siswaId)
+      const memberIdSet = new Set(memberIds)
+
+      if (selectedKetua && memberIdSet.has(selectedKetua)) {
+        const ketuaStudent = enrolledStudents.find((s: any) => s.id === selectedKetua)
+        if (ketuaStudent?.nama) finalKetua = ketuaStudent.nama
+      } else {
+        finalKetua = ""
+      }
+
+      const memberNames = enrolledStudents
+        .filter((s: any) => memberIdSet.has(s.id))
+        .map((s: any) => s.nama)
+        .filter(Boolean)
+      finalAnggota = memberNames.join(", ")
+    }
+
+    const payload: Record<string, any> = {
+      siswaId: user?.id,
+      namaKelompok: isKelompok ? finalNamaKelompok : null,
+      ketua: isKelompok ? finalKetua : null,
+      anggota: isKelompok ? finalAnggota : null,
+    }
+    if (hasFile) payload.fileUrl = fileUrl
+    if (hasCode) {
+      payload.sourceCode = sourceCode
+      payload.output = compilerOutput
+    }
+    if (hasText) payload.textContent = textContent
+    return { payload, isKelompok, finalNamaKelompok, finalKetua }
+  }
+
+  const submitWithScheduledAt = async (scheduledAtISO?: string) => {
+    const { payload, isKelompok, finalNamaKelompok, finalKetua } = getSubmissionPayload()
+
+    if (isKelompok && (!finalNamaKelompok || !finalKetua)) {
+      showError("Error", "Silakan lengkapi informasi kelompok (nama kelompok dan ketua)")
+      return
+    }
+
+    const endpoint = `/api/asesmen/${asesmenId}/submit`
+    const finalPayload = { ...payload, scheduledAt: scheduledAtISO }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(finalPayload),
+    })
+
+    const responseText = await response.text()
+    let responseData: any = null
+    try {
+      responseData = responseText ? JSON.parse(responseText) : null
+    } catch {
+      responseData = null
+    }
+    if (!response.ok) {
+      const message = responseData?.error || responseText || 'Gagal mengumpulkan tugas'
+      const details = responseData?.details
+      throw new Error(details ? `${message} (${details})` : message)
+    }
+  }
+
+  const scheduleLongPressBind = useLongPress({
+    thresholdMs: 600,
+    onLongPress: () => {
+      if (isDeadlinePassed) return
+      setScheduledDialogOpen(true)
+    },
+  })
+
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -421,6 +513,41 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     <div className="w-full py-6 sm:py-8 space-y-8 max-w-5xl mx-auto">
       <AlertComponent />
       <ActionFeedback />
+
+      <ScheduledSubmitDialog
+        open={scheduledDialogOpen}
+        onOpenChange={setScheduledDialogOpen}
+        deadline={asesmen?.tgl_selesai ? new Date(asesmen.tgl_selesai) : null}
+        initialDate={scheduledDate}
+        onConfirm={async (iso) => {
+          setScheduledDialogOpen(false)
+          setIsScheduled(true)
+          // Keep local input aligned with chosen schedule
+          try {
+            const d = new Date(iso)
+            const tzOffset = d.getTimezoneOffset() * 60000
+            const localISOTime = new Date(d.getTime() - tzOffset).toISOString().slice(0, 16)
+            setScheduledDate(localISOTime)
+          } catch {}
+
+          setSubmitting(true)
+          await execute(
+            async () => submitWithScheduledAt(iso),
+            {
+              loadingMessage: existingSubmission ? 'Menjadwalkan pembaruan...' : 'Menjadwalkan pengumpulan...',
+              successTitle: 'Berhasil!',
+              successDescription: 'Pengumpulan berhasil dijadwalkan',
+              errorTitle: 'Gagal',
+              autoCloseMs: 1500,
+              onSuccess: () => {
+                setTimeout(() => {
+                  router.push(`/pbl/${courseId}/${asesmenId}`)
+                }, 1500)
+              },
+            }
+          ).finally(() => setSubmitting(false))
+        }}
+      />
 
       {/* Header - iOS Glass Style */}
       <motion.div 
@@ -693,6 +820,12 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </AnimatePresence>
                 </Tabs>
 
+                <div className="pt-2">
+                  <p className="text-xs text-muted-foreground">
+                    Tips: tahan tombol <span className="font-medium">Kirim</span> untuk membuka dialog pengumpulan terjadwal.
+                  </p>
+                </div>
+
                 <Separator className="bg-border/30" />
 
                 {/* Actions */}
@@ -802,6 +935,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                                 key={`ketua-${student.id}`}
                                 type="button"
                                 onClick={() => selectKetua(student.id)}
+                                {...scheduleLongPressBind}
                                 disabled={isDeadlinePassed}
                                 className={`flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${
                                   isSelected
