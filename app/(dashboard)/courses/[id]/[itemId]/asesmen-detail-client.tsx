@@ -33,6 +33,7 @@ import {
   Plus,
   Loader2,
   Eye,
+  Trash2,
   ClipboardList,
   BookOpen,
   FileUp,
@@ -1299,7 +1300,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                           {asesmen.tipePengerjaan === 'KELOMPOK' && (
                             <>
                               <TableHead>Ketua</TableHead>
-                              <TableHead>Anggota</TableHead>
                             </>
                           )}
                           <TableHead>Tanggal Upload</TableHead>
@@ -1326,7 +1326,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                             {asesmen.tipePengerjaan === 'KELOMPOK' && (
                               <>
                                 <TableCell>{pengumpulan.ketua || '-'}</TableCell>
-                                <TableCell>{pengumpulan.anggota || '-'}</TableCell>
                               </>
                             )}
                             <TableCell>
@@ -1348,12 +1347,47 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               )}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  Lihat Detail
-                                </Link>
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button variant="ghost" size="sm" asChild>
+                                  <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
+                                    <Eye className="mr-2 h-4 w-4" />
+                                    Detail
+                                  </Link>
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={async () => {
+                                    const ok = await confirm('Hapus pengumpulan?', {
+                                      description: 'Ini akan menghapus pengumpulan sehingga siswa/kelompok bisa mengisi ulang.',
+                                      confirmText: 'Hapus',
+                                      cancelText: 'Batal',
+                                      type: 'warning',
+                                    })
+                                    if (!ok) return
+
+                                    const res = await fetch(`/api/pengumpulan/${pengumpulan.id}?userId=${user.id}&userRole=${user.role}`, {
+                                      method: 'DELETE',
+                                    })
+                                    const data = await res.json().catch(() => null)
+                                    if (!res.ok) {
+                                      alert(data?.error || 'Gagal menghapus')
+                                      return
+                                    }
+
+                                    setAsesmen((prev: any) => {
+                                      if (!prev) return prev
+                                      return {
+                                        ...prev,
+                                        pengumpulanProyek: (prev.pengumpulanProyek || []).filter((p: any) => p.id !== pengumpulan.id),
+                                      }
+                                    })
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Hapus
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}

@@ -217,19 +217,53 @@ export async function PUT(
   }
 }
 
-// DELETE pengumpulan
+// DELETE pengumpulan (allow resubmission)
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id } = await params
+  const { id } = await params
+  if (!id || id === "undefined" || id === "null") {
+    return NextResponse.json(
+      { error: "ID pengumpulan tidak valid" },
+      { status: 400 }
+    )
+  }
 
-    await prisma.pengumpulanProyek.delete({
-      where: { id }
+  try {
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+    const userRole = searchParams.get('userRole')
+
+    if (!userId || !userRole) {
+      return NextResponse.json(
+        { error: 'userId dan userRole diperlukan' },
+        { status: 400 }
+      )
+    }
+    if (userRole !== 'GURU' && userRole !== 'ADMIN') {
+      return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 })
+    }
+
+    const pengumpulan = await prisma.pengumpulanProyek.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        asesmenId: true,
+        asesmen: { select: { id: true, guruId: true } },
+      },
     })
 
-    return NextResponse.json({ message: 'Pengumpulan berhasil dihapus' })
+    if (!pengumpulan) {
+      return NextResponse.json({ error: 'Pengumpulan tidak ditemukan' }, { status: 404 })
+    }
+
+    if (userRole === 'GURU' && pengumpulan.asesmen?.guruId && pengumpulan.asesmen.guruId !== userId) {
+      return NextResponse.json({ error: 'Tidak diizinkan' }, { status: 403 })
+    }
+
+    await prisma.pengumpulanProyek.delete({ where: { id } })
+    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting pengumpulan:', error)
     return NextResponse.json(
@@ -238,3 +272,4 @@ export async function DELETE(
     )
   }
 }
+
