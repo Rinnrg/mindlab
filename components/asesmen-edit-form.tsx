@@ -217,6 +217,21 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
       
       // Set form data
       const asesmen = asesmenData.asesmen
+
+      // Be tolerant to older/newer API shapes
+      const normalizedTipePengerjaan =
+        (asesmen?.tipePengerjaan ?? (asesmen as any)?.tipe_pengerjaan ?? '').toString() || ''
+
+      // Support lampiran from legacy field or from relation `file` if present
+      const normalizedLampiran =
+        (asesmen?.lampiran ?? (asesmen as any)?.file?.url ?? (asesmen as any)?.fileUrl ?? '').toString() || ''
+
+      const normalizedSubmissionComponents = (() => {
+        const raw = (asesmen as any)?.submissionComponents
+        if (Array.isArray(raw)) return raw
+        // Backward compatibility: older data used only UPLOAD_FILE for TUGAS
+        return asesmen?.tipe === 'TUGAS' ? ['UPLOAD_FILE'] : []
+      })()
       
       // Helper: format Date ke string datetime-local (waktu lokal, bukan UTC)
       const toLocalDatetimeString = (dateStr: string) => {
@@ -240,18 +255,16 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
         nama: asesmen.nama || "",
         deskripsi: asesmen.deskripsi || "",
         tipe: asesmen.tipe || "",
-        tipePengerjaan: asesmen.tipePengerjaan || "",
+  tipePengerjaan: normalizedTipePengerjaan,
         tgl_mulai: tglMulaiFormatted,
         tgl_selesai: tglSelesaiFormatted,
         durasi: asesmen.durasi?.toString() || "",
-        lampiran: asesmen.lampiran || "",
+  lampiran: normalizedLampiran,
         courseId: asesmen.courseId || "",
         antiCurang: !!asesmen.antiCurang,
         acakSoal: !!asesmen.acakSoal,
         acakJawaban: !!asesmen.acakJawaban,
-        submissionComponents: Array.isArray(asesmen.submissionComponents) 
-          ? asesmen.submissionComponents 
-          : (asesmen.tipe === 'TUGAS' ? ['UPLOAD_FILE'] : []),
+  submissionComponents: normalizedSubmissionComponents as any,
       })
 
       // Set kelasTarget from asesmen data
@@ -658,6 +671,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                         <input
                           ref={importExcelRef}
                           type="file"
+                          aria-label="Import soal dari Excel"
                           accept=".xlsx,.xls"
                           className="hidden"
                           onChange={async (e) => {
