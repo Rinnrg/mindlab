@@ -498,6 +498,42 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   }}
                   className="w-full"
                 >
+                  {/* Scheduled submission */}
+                  <div className="mt-2 mb-6 p-4 rounded-2xl border border-border/40 bg-muted/10">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CalendarClock className="h-4 w-4 text-primary" />
+                          <p className="font-semibold">Pengumpulan terjadwal</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Jika diaktifkan, tugas akan berstatus <span className="font-medium">pending</span> dan otomatis terkumpul saat waktunya tiba.
+                        </p>
+                      </div>
+                      <div className="pt-1">
+                        <Switch checked={isScheduled} onCheckedChange={setIsScheduled} />
+                      </div>
+                    </div>
+
+                    {isScheduled && (
+                      <div className="mt-4 grid gap-2">
+                        <Label htmlFor="scheduledAt">Tanggal & waktu</Label>
+                        <Input
+                          id="scheduledAt"
+                          type="datetime-local"
+                          value={scheduledDate}
+                          onChange={(e) => setScheduledDate(e.target.value)}
+                          disabled={isDeadlinePassed}
+                        />
+                        {asesmen?.tgl_selesai && (
+                          <p className="text-xs text-muted-foreground">
+                            Maksimal: {new Date(asesmen.tgl_selesai).toLocaleString('id-ID')}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <TabsList className="ios-tab-list w-full max-w-xl mx-auto mb-8 overflow-x-auto flex-nowrap">
                     {asesmen.submissionComponents.includes("UPLOAD_FILE") && (
                       <TabsTrigger value="file" className="ios-tab-trigger">
