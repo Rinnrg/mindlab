@@ -929,7 +929,7 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                       <CardDescription>Buat, ubah, dan atur anggota kelompok untuk tugas ini.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <AsesmenGroupsManagement asesmenId={asesmenId} courseId={formData.courseId || courseId} />
+                      <AsesmenGroupsManagement asesmenId={asesmenId} courseId={courseId || formData.courseId} />
                     </CardContent>
                   </Card>
                 )}
