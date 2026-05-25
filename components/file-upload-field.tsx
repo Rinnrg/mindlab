@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -45,9 +45,15 @@ export function FileUploadField({
     onChange?.(next)
     onFileUpload?.(next || null)
   }
-  const [uploadType, setUploadType] = useState<'link' | 'file'>('link')
+  const [uploadType, setUploadType] = useState<'link' | 'file'>(resolvedValue ? 'file' : 'link')
   const [isUploading, setIsUploading] = useState(false)
   const [fileName, setFileName] = useState<string>('')
+  const [linkUnavailable, setLinkUnavailable] = useState<string | null>(null)
+
+  // Keep tab selection reasonable when value changes externally (edit/load/clear)
+  useEffect(() => {
+    setUploadType(resolvedValue ? 'file' : 'link')
+  }, [resolvedValue])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -114,6 +120,22 @@ export function FileUploadField({
   // Old versions stored base64 data URLs directly; treat them as invalid here.
   const isLegacyDataURL = resolvedValue && resolvedValue.startsWith('data:')
 
+  const checkHead = async () => {
+    if (!resolvedValue || isLegacyDataURL) return
+    try {
+      // Try HEAD first; if blocked by CORS, fall back gracefully.
+      const res = await fetch(resolvedValue, { method: 'HEAD' })
+      if (res.status === 404) {
+        setLinkUnavailable('File tidak ditemukan (404). Silakan upload ulang.')
+      } else {
+        setLinkUnavailable(null)
+      }
+    } catch {
+      // Ignore network/CORS errors. We'll only show explicit 404.
+      setLinkUnavailable(null)
+    }
+  }
+
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
@@ -165,10 +187,17 @@ export function FileUploadField({
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-xs text-blue-600 hover:underline"
+                        onClick={() => {
+                          // best-effort check; doesn't block opening
+                          void checkHead()
+                        }}
                       >
                         Lihat file
                       </a>
                     )}
+                    {linkUnavailable ? (
+                      <p className="text-xs text-destructive mt-1">{linkUnavailable}</p>
+                    ) : null}
                   </div>
                 </div>
                 <Button

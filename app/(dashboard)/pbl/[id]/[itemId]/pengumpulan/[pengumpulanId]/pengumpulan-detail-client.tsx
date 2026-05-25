@@ -42,6 +42,7 @@ import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface PengumpulanDetailClientProps {
   courseId: string
@@ -73,6 +74,32 @@ export default function PengumpulanDetailClient({
     (pengumpulan as any)?.asesmen?.tipePengerjaan === 'KELOMPOK'
       ? 'Kelompok'
       : 'Individu'
+
+  const isKelompok = (pengumpulan as any)?.asesmen?.tipePengerjaan === 'KELOMPOK'
+  const kelompokNama = (pengumpulan as any)?.namaKelompok || (pengumpulan as any)?.kelompok?.nama || ""
+  const kelompokKetua = (pengumpulan as any)?.ketua || (pengumpulan as any)?.kelompok?.ketua || ""
+  const kelompokAnggota =
+    (pengumpulan as any)?.kelompok?.anggota ||
+    (pengumpulan as any)?.asesmenKelompok?.anggota ||
+    (pengumpulan as any)?.anggota ||
+    []
+
+  const anggotaNames: string[] = React.useMemo(() => {
+    if (!kelompokAnggota) return []
+    // Bisa berupa string "A, B" (legacy) atau array relasi
+    if (typeof kelompokAnggota === "string") {
+      return kelompokAnggota
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    }
+
+    if (!Array.isArray(kelompokAnggota)) return []
+
+    return kelompokAnggota
+      .map((a: any) => a?.siswa?.nama || a?.nama || a?.siswaNama)
+      .filter(Boolean)
+  }, [kelompokAnggota])
 
   const hasSintaks = !!pengumpulan.asesmen.sintak
 
@@ -512,6 +539,48 @@ export default function PengumpulanDetailClient({
                   )}
                 </div>
               </div>
+
+              {isKelompok && (
+                <>
+                  <Separator />
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Struktur Kelompok</h4>
+                    <div className="space-y-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        <span>
+                          Nama Kelompok: <strong>{kelompokNama || "-"}</strong>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>
+                          Ketua: <strong>{kelompokKetua || "-"}</strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    {anggotaNames.length > 0 ? (
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Anggota ({anggotaNames.length})</Label>
+                        <ul className="space-y-1">
+                          {anggotaNames.map((name) => (
+                            <li key={name} className="text-sm text-muted-foreground">• {name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <Alert className="rounded-xl">
+                        <Info className="h-4 w-4" />
+                        <AlertDescription className="text-xs">
+                          List anggota belum tersedia pada data pengumpulan. Jika seharusnya ada, pastikan API detail pengumpulan
+                          menyertakan relasi <code>kelompok.anggota.siswa</code>.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

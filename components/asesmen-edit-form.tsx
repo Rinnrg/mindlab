@@ -946,18 +946,6 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                   </CardContent>
                 </Card>
 
-                {formData.tipePengerjaan === 'KELOMPOK' && (
-                  <Card className="ios-glass-card border-border/30 rounded-2xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base">Manajemen Kelompok</CardTitle>
-                      <CardDescription>Buat, ubah, dan atur anggota kelompok untuk tugas ini.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <AsesmenGroupsManagement asesmenId={asesmenId} courseId={courseId || formData.courseId} />
-                    </CardContent>
-                  </Card>
-                )}
-
                 <Card className="ios-glass-card border-border/30 rounded-2xl overflow-hidden shadow-xl">
                   <CardHeader className="bg-muted/30 border-b border-border/30 pb-4">
                     <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -1078,6 +1066,18 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                     </div>
                   </CardContent>
                 </Card>
+
+                {formData.tipePengerjaan === 'KELOMPOK' && (
+                  <Card className="ios-glass-card border-border/30 rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Manajemen Kelompok</CardTitle>
+                      <CardDescription>Buat, ubah, dan atur anggota kelompok untuk tugas ini.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <AsesmenGroupsManagement asesmenId={asesmenId} courseId={courseId || formData.courseId} />
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             )}
           </div>
