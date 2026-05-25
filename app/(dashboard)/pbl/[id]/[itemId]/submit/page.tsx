@@ -190,7 +190,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
           if (asesmenData.tipePengerjaan === 'KELOMPOK') {
             // Check if student belongs to a pre-defined group
             const myGroup = asesmenData.kelompok?.find((k: any) => 
-              k.anggota.some((a: any) => a.siswaId === user.id)
+              Array.isArray(k.anggotaIds)
+                ? k.anggotaIds.includes(user.id)
+                : (k.anggota || []).some((a: any) => a.siswaId === user.id)
             )
             
             if (myGroup) {
@@ -270,7 +272,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
       const group = userGroup
       finalNamaKelompok = group?.nama || finalNamaKelompok
 
-      const memberIds: string[] = (group?.anggota || []).map((a: any) => a.siswaId)
+      const memberIds: string[] = Array.isArray(group?.anggotaIds)
+        ? group.anggotaIds
+        : (group?.anggota || []).map((a: any) => a.siswaId)
       const memberIdSet = new Set(memberIds)
 
       if (selectedKetua && memberIdSet.has(selectedKetua)) {

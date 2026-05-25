@@ -77,8 +77,13 @@ export default function PengumpulanDetailClient({
 
   const isKelompok = (pengumpulan as any)?.asesmen?.tipePengerjaan === 'KELOMPOK'
   const kelompokNama = (pengumpulan as any)?.namaKelompok || (pengumpulan as any)?.kelompok?.nama || ""
-  const kelompokKetua = (pengumpulan as any)?.ketua || (pengumpulan as any)?.kelompok?.ketua || ""
+  const kelompokKetua =
+    (pengumpulan as any)?.ketua ||
+    (pengumpulan as any)?.kelompok?.ketua?.nama ||
+    (pengumpulan as any)?.kelompok?.ketua ||
+    ""
   const kelompokAnggota =
+    (pengumpulan as any)?.kelompokAnggota ||
     (pengumpulan as any)?.kelompok?.anggota ||
     (pengumpulan as any)?.asesmenKelompok?.anggota ||
     (pengumpulan as any)?.anggota ||
@@ -97,7 +102,7 @@ export default function PengumpulanDetailClient({
     if (!Array.isArray(kelompokAnggota)) return []
 
     return kelompokAnggota
-      .map((a: any) => a?.siswa?.nama || a?.nama || a?.siswaNama)
+  .map((a: any) => a?.siswa?.nama || a?.nama || a?.siswaNama)
       .filter(Boolean)
   }, [kelompokAnggota])
 
