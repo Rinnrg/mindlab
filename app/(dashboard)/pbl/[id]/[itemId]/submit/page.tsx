@@ -800,37 +800,10 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <Label className="text-xs font-bold text-primary">Anggota</Label>
-                        <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
-                          {enrolledStudents
-                            .filter(s => s.id !== selectedKetua)
-                            .map((student) => {
-                              const isSelected = selectedAnggota.includes(student.id)
-                              return (
-                                <button
-                                  key={`anggota-${student.id}`}
-                                  type="button"
-                                  onClick={() => toggleAnggota(student.id)}
-                                  disabled={isDeadlinePassed}
-                                  className={`flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${
-                                    isSelected
-                                      ? 'border-primary bg-primary/10 shadow-sm'
-                                      : 'border-border/30 hover:border-primary/50'
-                                  }`}
-                                >
-                                  <Avatar className="h-8 w-8">
-                                    <AvatarImage src={student.foto} />
-                                    <AvatarFallback className="text-[10px]">
-                                      {student.nama?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <p className="text-xs font-medium truncate flex-1">{student.nama}</p>
-                                  {isSelected && <CheckCircle2 className="h-3 w-3 text-primary" />}
-                                </button>
-                              )
-                            })}
-                        </div>
+                      <div className="space-y-1">
+                        <p className="text-[11px] text-muted-foreground">
+                          Anggota diambil otomatis dari kelompok yang sudah ditetapkan guru.
+                        </p>
                       </div>
                     </div>
                   ) : (
