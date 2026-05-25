@@ -10,11 +10,26 @@ export async function GET(
 
 		const kelompok = await prisma.kelompok.findMany({
 			where: { asesmenId },
-			orderBy: { createdAt: 'asc' },
+			orderBy: { nama: 'asc' },
 		})
 
 		return NextResponse.json({ kelompok })
 	} catch (e: any) {
+		const message = String(e?.message || '')
+		const isDbDown =
+			message.includes("Can't reach database server") ||
+			message.includes('ECONNREFUSED') ||
+			message.includes('ENOTFOUND')
+		if (isDbDown) {
+			return NextResponse.json(
+				{
+					error: 'Database tidak dapat diakses',
+					details: e?.message,
+					code: 'DB_UNREACHABLE',
+				},
+				{ status: 503 }
+			)
+		}
 		return NextResponse.json(
 			{ error: 'Gagal mengambil kelompok', details: e?.message },
 			{ status: 500 }

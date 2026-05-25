@@ -36,6 +36,8 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
   const [groups, setGroups] = React.useState<Group[]>([])
   const [students, setStudents] = React.useState<Student[]>([])
 
+  const [lastLoadError, setLastLoadError] = React.useState<string | null>(null)
+
   const [newGroupName, setNewGroupName] = React.useState("")
   const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(null)
   const [selectedMemberIds, setSelectedMemberIds] = React.useState<Set<string>>(new Set())
@@ -59,6 +61,7 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
   const fetchAll = React.useCallback(async () => {
     try {
       setLoading(true)
+  setLastLoadError(null)
 
       const [gRes, sRes] = await Promise.all([
         fetch(`/api/asesmen/${asesmenId}/kelompok`),
@@ -66,8 +69,10 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
       ])
 
       if (!gRes.ok) {
-        const err = await gRes.json().catch(() => null)
-        throw new Error(err?.error || "Gagal mengambil data kelompok")
+  const err = await gRes.json().catch(() => null)
+  const msg = err?.error || "Gagal mengambil data kelompok"
+  const details = err?.details ? `\n${String(err.details)}` : ''
+  throw new Error(String(msg) + details)
       }
       const gData = await gRes.json().catch(() => null)
       setGroups((gData?.kelompok || gData?.groups || []) as Group[])
@@ -83,6 +88,7 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
         setStudents([])
       }
     } catch (e: any) {
+  setLastLoadError(e?.message || "Gagal memuat manajemen kelompok")
       showError("Error", e?.message || "Gagal memuat manajemen kelompok")
     } finally {
       setLoading(false)
@@ -195,6 +201,20 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
   return (
     <div className="space-y-4">
       <AlertComponent />
+
+      {lastLoadError ? (
+        <Card className="p-4 border border-destructive/30 bg-destructive/5">
+          <div className="space-y-2">
+            <div className="text-sm font-semibold text-destructive">Gagal mengambil kelompok</div>
+            <div className="text-xs text-muted-foreground whitespace-pre-wrap">{lastLoadError}</div>
+            <div className="pt-1">
+              <Button type="button" variant="outline" size="sm" onClick={() => void fetchAll()}>
+                Muat Ulang
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       {!courseId ? (
         <div className="text-sm text-muted-foreground">

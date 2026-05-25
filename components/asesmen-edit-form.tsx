@@ -566,6 +566,16 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                   rows={2}
                   className="min-h-[64px]"
                 />
+
+                <Separator />
+
+                <FileUploadField
+                  label="Lampiran"
+                  value={formData.lampiran}
+                  onChange={(v) => setFormData((prev) => ({ ...prev, lampiran: v }))}
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.rar,image/*,video/*"
+                  description="Opsional. Bisa link URL atau upload file; saat edit akan menampilkan lampiran yang sudah tersimpan."
+                />
               </CardContent>
             </Card>
 
