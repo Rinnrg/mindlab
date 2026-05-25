@@ -30,7 +30,8 @@ export async function uploadToSupabase(
 
   console.log(`Uploading file ${fileName} (${buffer.length} bytes, type: ${fileType}) to Supabase Storage...`)
 
-  const uploadUrl = `${supabaseUrl}/storage/v1/object/upload/upload/${uniquePath}`
+  // Upload endpoint: /storage/v1/object/<bucket>/<path>
+  const uploadUrl = `${supabaseUrl}/storage/v1/object/upload/${uniquePath}`
 
   const response = await fetch(uploadUrl, {
     method: 'POST',
@@ -49,6 +50,7 @@ export async function uploadToSupabase(
   }
 
   // Object is successfully uploaded, return the public URL
+  // Public endpoint: /storage/v1/object/public/<bucket>/<path>
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/upload/${uniquePath}`
   console.log(`File uploaded successfully. Public URL: ${publicUrl}`)
   return publicUrl
