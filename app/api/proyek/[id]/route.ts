@@ -8,43 +8,88 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const proyek = await prisma.pBL.findUnique({
-      where: { id },
-      include: {
-        guru: {
-          select: {
-            id: true,
-            nama: true,
-            email: true,
+    // NOTE: beberapa schema memakai relasi `pengajar` (bukan `guru`).
+    // Kita coba query dengan `pengajar` dulu, lalu fallback ke `guru` supaya API tetap jalan
+    // meski schema berbeda antar environment.
+    let proyek: any = null
+    try {
+      proyek = await prisma.pBL.findUnique({
+        where: { id },
+        include: {
+          pengajar: {
+            select: {
+              id: true,
+              nama: true,
+              email: true,
+            },
           },
-        },
-        kelompok: {
-          include: {
-            anggota: {
-              include: {
-                siswa: {
-                  select: {
-                    id: true,
-                    nama: true,
-                    kelas: true,
+          kelompok: {
+            include: {
+              anggota: {
+                include: {
+                  siswa: {
+                    select: {
+                      id: true,
+                      nama: true,
+                      kelas: true,
+                    },
                   },
                 },
               },
-            },
-            _count: {
-              select: {
-                anggota: true,
+              _count: {
+                select: {
+                  anggota: true,
+                },
               },
             },
           },
-        },
-        _count: {
-          select: {
-            kelompok: true,
+          _count: {
+            select: {
+              kelompok: true,
+            },
           },
         },
-      },
-    })
+      })
+    } catch (e) {
+      // fallback schema lama
+      proyek = await prisma.pBL.findUnique({
+        where: { id },
+        include: {
+          guru: {
+            select: {
+              id: true,
+              nama: true,
+              email: true,
+            },
+          },
+          kelompok: {
+            include: {
+              anggota: {
+                include: {
+                  siswa: {
+                    select: {
+                      id: true,
+                      nama: true,
+                      kelas: true,
+                    },
+                  },
+                },
+              },
+              _count: {
+                select: {
+                  anggota: true,
+                },
+              },
+            },
+          },
+          _count: {
+            select: {
+              kelompok: true,
+            },
+          },
+        },
+      })
+    }
 
     if (!proyek) {
       return NextResponse.json(

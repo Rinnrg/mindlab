@@ -90,6 +90,14 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [selectedKetua, setSelectedKetua] = useState<string | null>(null)
   const [userGroup, setUserGroup] = useState<any>(null)
 
+  const allowedKetuaStudents = useMemo(() => {
+    if (!userGroup || !Array.isArray(userGroup.anggota)) return []
+    const memberIds = new Set(
+      (userGroup.anggota || []).map((a: any) => a.siswaId).filter(Boolean)
+    )
+    return enrolledStudents.filter((s: any) => memberIds.has(s.id))
+  }, [userGroup, enrolledStudents])
+
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
     {
@@ -772,7 +780,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                       <div className="space-y-3">
                         <Label className="text-xs font-bold text-primary">Ketua (Pilih satu)</Label>
                         <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
-                          {enrolledStudents.map((student) => {
+                          {allowedKetuaStudents.map((student) => {
                             const isSelected = selectedKetua === student.id
                             return (
                               <button
