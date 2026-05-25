@@ -1,0 +1,37 @@
+name: Process scheduled submissions
+
+on:
+  schedule:
+  # Every minute (GitHub may delay slightly depending on load)
+  - cron: '*/1 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    # Use GitHub Environment so we can read Environment secrets/vars.
+    # Set this to the environment name where you stored CRON_SECRET + PROD_BASE_URL.
+    environment: production
+    steps:
+      - name: Call cron endpoint
+        env:
+          # Prefer Environment secret/vars. Fallback to repo secrets if you used those instead.
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          PROD_BASE_URL: ${{ vars.PROD_BASE_URL || secrets.PROD_BASE_URL }}
+        run: |
+          if [ -z "$PROD_BASE_URL" ]; then
+            echo "Missing vars.PROD_BASE_URL (or secrets.PROD_BASE_URL) (e.g. https://<your-domain>)" >&2
+            exit 1
+          fi
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Missing secrets.CRON_SECRET (Environment secret recommended)" >&2
+            exit 1
+          fi
+
+          CRON_URL="$PROD_BASE_URL/api/cron/process-pengumpulan"
+          echo "Calling: $CRON_URL"
+          curl -sS --fail --show-error -X POST "$CRON_URL" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "content-type: application/json" \
+            --data '{}' \
+            | tee /dev/stderr

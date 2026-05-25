@@ -1,4 +1,4 @@
-# Vercel Cron - Pengumpulan Terjadwal
+# GitHub Actions Cron - Pengumpulan Terjadwal
 
 Endpoint yang dipanggil cron:
 
@@ -11,17 +11,39 @@ Endpoint ini akan memproses semua `PengumpulanProyek` yang:
 
 Lalu mengubah status menjadi `VALIDATED`.
 
-## Konfigurasi di Vercel
+## Konfigurasi dengan GitHub Actions
 
-Repo ini menggunakan `vercel.json` untuk mengaktifkan Vercel Cron (setiap 1 menit):
+Karena Vercel Cron berbayar, repo ini bisa menjalankan cron menggunakan **GitHub Actions Schedule**.
 
-- File: `vercel.json`
+Workflow akan memanggil endpoint berikut secara periodik:
 
-## Environment Variable
+- `POST /api/cron/process-pengumpulan`
 
-Tambahkan env var berikut di Vercel (Project Settings → Environment Variables):
+## Secret & Environment Variable
+
+Ada 2 cara, pilih salah satu:
+
+### Opsi A (disarankan): GitHub **Environment**
+
+Repo → **Settings → Environments** → buat/ pilih environment (mis. `production`), lalu set:
+
+- **Environment secret**: `CRON_SECRET`
+- **Environment variable**: `PROD_BASE_URL` (contoh: `https://domain-kamu.vercel.app`)
+
+Workflow sudah diarahkan untuk memakai `environment: production`.
+
+### Opsi B: GitHub **Repository secrets**
+
+Repo → **Settings → Secrets and variables → Actions**
 
 - `CRON_SECRET`
+- `PROD_BASE_URL`
+
+Nilai `CRON_SECRET` harus sama dengan env var `CRON_SECRET` yang kamu set di Vercel Project (Production).
+
+`PROD_BASE_URL` dipakai oleh workflow untuk membentuk URL endpoint cron:
+
+- `${PROD_BASE_URL}/api/cron/process-pengumpulan`
 
 Dan pastikan cron request mengirim header:
 
@@ -29,5 +51,7 @@ Dan pastikan cron request mengirim header:
 
 ### Catatan penting
 
-- Vercel Cron akan memanggil endpoint sesuai schedule pada environment Production.
+- Workflow ini dijadwalkan **setiap 1 menit**. GitHub Actions kadang bisa delay beberapa menit, tapi akan tetap jalan.
+- Env `CRON_SECRET` di **Vercel tetap perlu** (dipakai untuk validasi header `x-cron-secret`).
+- Karena **Vercel Cron berbayar**, pastikan `vercel.json` tidak berisi konfigurasi `crons`.
 - Kalau ingin testing manual, lakukan `POST` ke endpoint dengan header `x-cron-secret`.
