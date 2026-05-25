@@ -63,6 +63,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Ensure the Course exists (untuk kasus PBL, Course dibuat otomatis dengan ID yang sama dengan PBL).
+    const existingCourse = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: { id: true },
+    })
+
+    if (!existingCourse) {
+      return NextResponse.json(
+        { error: 'Kursus/PBL tidak ditemukan (courseId tidak valid)' },
+        { status: 404 }
+      )
+    }
+
     // Process file if provided
     let finalLampiran = lampiran || null
     if (fileData) {

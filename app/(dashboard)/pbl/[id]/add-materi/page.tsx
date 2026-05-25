@@ -90,23 +90,26 @@ export default function AddMateriPage() {
           fileSize = file.size
         }
 
+        // Catatan penting:
+        // Di backend, setiap PBL otomatis dibuatkan record Course dengan ID yang sama (lihat `app/api/proyek/route.ts`).
+        // Jadi agar materi PBL tersimpan di tabel `Materi` (dan relasinya ke Course), kita POST ke `/api/materi`
+        // dengan `courseId = pblId` dan tandai origin = "PBL".
         const payload = {
           judul: judul.trim(),
           deskripsi: deskripsi.trim() || null,
           kelasTarget: selectedKelas,
-          // Backend `/api/proyek/[id]` hanya butuh `id` dari URL.
-          // Jangan kirim `courseId` karena ini bukan materi course.
           lampiran: fileName || null,
           fileData: fileData || null,
           fileName: fileName || null,
           fileType: fileType || null,
           fileSize: fileSize || null,
+          courseId: pblId,
           sintak: sintak || null,
-          isMaterialOnly: true,
+          origin: "PBL",
         }
 
-        const res = await fetch(`/api/proyek/${pblId}`, {
-          method: "PUT",
+        const res = await fetch(`/api/materi`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         })
