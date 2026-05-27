@@ -70,9 +70,9 @@ export async function POST(
       select: { id: true },
     })
 
-    // Calculate score and save answers
-    let totalSkor = 0
-    let totalBobot = 0
+    // Calculate score and save answers using formula: (jumlahBenar / jumlahSoal) * 100
+    let totalQuestions = 0
+    let correctCount = 0
 
     const result = await prisma.$transaction(async (tx) => {
       // Create nilai record first
@@ -90,44 +90,46 @@ export async function POST(
       for (const jawabanItem of jawaban) {
         const soal = asesmen.soal.find(s => s.id === jawabanItem.soalId)
         if (!soal) continue
-
-        totalBobot += soal.bobot
+        // Count questions and correct answers (only fully correct answers count)
+        totalQuestions += 1
 
         let isBenar: boolean | null = null
-        let skorDidapat = 0
+        let skorDidapat: number | null = null
 
-        // Auto-grade for multiple choice
         if (soal.tipeJawaban === 'PILIHAN_GANDA') {
           const selectedOpsi = soal.opsi.find(o => o.id === jawabanItem.jawaban)
           if (selectedOpsi) {
             isBenar = selectedOpsi.isBenar
             if (isBenar) {
-              skorDidapat = soal.bobot
-              totalSkor += skorDidapat
+              correctCount += 1
+              skorDidapat = 1 // normalized per-question correctness
+            } else {
+              skorDidapat = 0
             }
+          } else {
+            skorDidapat = 0
           }
-        }
-        // For essay questions, mark as null (to be graded manually)
-        else if (soal.tipeJawaban === 'ISIAN') {
-          isBenar = null // Will be graded manually by teacher
-          skorDidapat = 0 // Will be updated by teacher
+        } else if (soal.tipeJawaban === 'ISIAN') {
+          // Essay / isian - mark as pending (null) and will be graded by teacher
+          isBenar = null
+          skorDidapat = null
         }
 
-        // Save answer
+        // Save answer (skorDidapat uses normalized per-question scale)
         await tx.jawabanSiswa.create({
           data: {
             siswaId,
             soalId: soal.id,
             jawaban: jawabanItem.jawaban,
             isBenar,
-            skorDidapat: skorDidapat > 0 ? skorDidapat : null,
+            skorDidapat: skorDidapat,
             nilaiId: nilaiRecord.id,
           }
         })
       }
 
-      // Calculate final score (0-100)
-      const finalSkor = totalBobot > 0 ? (totalSkor / totalBobot) * 100 : 0
+      // Calculate final score (0-100) using count of correct answers over total questions
+      const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
 
       // Update nilai record
       await tx.nilai.update({
@@ -136,7 +138,7 @@ export async function POST(
       })
 
       // Mark attempt submitted
-  await tx.kuisAttempt.update({
+      await tx.kuisAttempt.update({
         where: { id: attempt.id },
         data: { submittedAt: scheduledAt ? new Date(scheduledAt) : new Date() },
       })
@@ -144,8 +146,8 @@ export async function POST(
       return {
         nilaiId: nilaiRecord.id,
         skor: finalSkor,
-        totalSkor,
-        totalBobot,
+        correctCount,
+        totalQuestions,
       }
     })
 

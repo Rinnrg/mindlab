@@ -56,21 +56,21 @@ export async function PATCH(
         })
       }
 
-      // Recalculate total score for this Nilai
+      // Recalculate total score for this Nilai using formula: (jumlahBenar / jumlahSoal) * 100
       const allJawaban = await tx.jawabanSiswa.findMany({
         where: { nilaiId },
         include: { soal: true }
       })
 
-      let totalSkor = 0
-      let totalBobot = 0
+      let totalQuestions = 0
+      let correctCount = 0
 
       for (const j of allJawaban) {
-        totalBobot += j.soal.bobot
-        totalSkor += j.skorDidapat || 0
+        totalQuestions += 1
+        if (j.isBenar === true) correctCount += 1
       }
 
-      const finalSkor = totalBobot > 0 ? (totalSkor / totalBobot) * 100 : 0
+      const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
 
       await tx.nilai.update({
         where: { id: nilaiId },
