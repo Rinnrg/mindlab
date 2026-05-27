@@ -72,9 +72,12 @@ export async function PATCH(
 
       const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
 
+      // Round to nearest integer (0-100) before saving
+      const roundedSkor = Math.round(finalSkor)
+
       await tx.nilai.update({
         where: { id: nilaiId },
-        data: { skor: Math.round(finalSkor * 100) / 100 }
+        data: { skor: roundedSkor }
       })
     })
 

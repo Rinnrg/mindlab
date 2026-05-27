@@ -131,10 +131,12 @@ export async function POST(
       // Calculate final score (0-100) using count of correct answers over total questions
       const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
 
-      // Update nilai record
+      // Round to nearest integer (0-100) and update nilai record
+      const roundedSkor = Math.round(finalSkor)
+
       await tx.nilai.update({
         where: { id: nilaiRecord.id },
-        data: { skor: Math.round(finalSkor * 100) / 100 }
+        data: { skor: roundedSkor }
       })
 
       // Mark attempt submitted
@@ -145,7 +147,7 @@ export async function POST(
 
       return {
         nilaiId: nilaiRecord.id,
-        skor: finalSkor,
+        skor: roundedSkor,
         correctCount,
         totalQuestions,
       }
