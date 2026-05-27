@@ -1143,6 +1143,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   <TableHead>Nama</TableHead>
                                   <TableHead>Email</TableHead>
                                   <TableHead>Status</TableHead>
+                                  <TableHead>Status Mengerjakan</TableHead>
                                   <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -1161,6 +1162,13 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                     <TableCell className="font-medium">{it.siswa.nama}</TableCell>
                                     <TableCell className="text-muted-foreground">{it.siswa.email}</TableCell>
                                     <TableCell>{statusBadge}</TableCell>
+                                    <TableCell>
+                                      {status === 'SELESAI' ? (
+                                        <Badge className="bg-green-600">Selesai</Badge>
+                                      ) : (
+                                        <Badge className="bg-blue-600">Belum mengerjakan</Badge>
+                                      )}
+                                    </TableCell>
                                     {/* tanggal columns removed per request */}
                                     <TableCell className="text-right">
                                       <Button
