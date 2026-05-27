@@ -1462,12 +1462,11 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Nama Siswa</TableHead>
-                            <TableHead>Nilai</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Tanggal</TableHead>
-                            <TableHead className="text-right">Aksi</TableHead>
-                          </TableRow>
+                                <TableHead>Nama Siswa</TableHead>
+                                <TableHead>Nilai</TableHead>
+                                <TableHead>Tanggal</TableHead>
+                                <TableHead className="text-right">Aksi</TableHead>
+                              </TableRow>
                         </TableHeader>
                         <TableBody>
                           {asesmen.nilai.map((nilai: any) => (
@@ -1478,19 +1477,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   {nilai.skor}
                                 </Badge>
                               </TableCell>
-                              <TableCell>
-                                {nilai.skor >= 75 ? (
-                                  <Badge variant="default" className="bg-green-500">
-                                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                                    Lulus
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="secondary">
-                                    <XCircle className="mr-1 h-3 w-3" />
-                                    Belum Lulus
-                                  </Badge>
-                                )}
-                              </TableCell>
+                              {/* Status column removed per request */}
                               <TableCell>
                                 {new Date(nilai.tanggal).toLocaleDateString('id-ID', {
                                   day: 'numeric',

@@ -1152,7 +1152,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               <TableRow>
                                 <TableHead>Nama</TableHead>
                                 <TableHead>Email</TableHead>
-                                <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -1170,7 +1169,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   <TableRow key={it.siswa.id}>
                                     <TableCell className="font-medium">{it.siswa.nama}</TableCell>
                                     <TableCell className="text-muted-foreground">{it.siswa.email}</TableCell>
-                                    <TableCell>{statusBadge}</TableCell>
+                                    {/* Status column removed per request */}
                                     {/* tanggal columns removed per request */}
                                     <TableCell className="text-right">
                                       <Button
@@ -1471,10 +1470,9 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       <div className="min-w-[500px] px-6">
                       <Table>
                         <TableHeader>
-                          <TableRow>
+                            <TableRow>
                             <TableHead>Nama Siswa</TableHead>
                             <TableHead>Nilai</TableHead>
-                            <TableHead>Status</TableHead>
                             <TableHead>Tanggal</TableHead>
                             <TableHead className="text-right">Aksi</TableHead>
                           </TableRow>
@@ -1488,19 +1486,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   {nilai.skor}
                                 </Badge>
                               </TableCell>
-                              <TableCell>
-                                {nilai.skor >= 75 ? (
-                                  <Badge variant="default" className="bg-green-500">
-                                    <CheckCircle2 className="mr-1 h-3 w-3" />
-                                    Lulus
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="secondary">
-                                    <XCircle className="mr-1 h-3 w-3" />
-                                    Belum Lulus
-                                  </Badge>
-                                )}
-                              </TableCell>
+                              {/* Status column removed per request */}
                               <TableCell>
                                 {new Date(nilai.tanggal).toLocaleDateString('id-ID', {
                                   day: 'numeric',
