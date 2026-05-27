@@ -1294,7 +1294,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {asesmen.pengumpulanProyek && asesmen.pengumpulanProyek.map((pengumpulan: any) => (
+                        {asesmen.pengumpulanProyek && asesmen.pengumpulanProyek.slice().sort((a: any, b: any) => new Date(a.tgl_unggah).getTime() - new Date(b.tgl_unggah).getTime()).map((pengumpulan: any) => (
                           <TableRow key={pengumpulan.id}>
                             <TableCell>
                               {asesmen.tipePengerjaan === 'KELOMPOK' && (
@@ -1315,7 +1315,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               </>
                             )}
                             <TableCell>
-                              {new Date(pengumpulan.tgl_unggah).toLocaleDateString('id-ID', {
+                              {new Date(pengumpulan.tgl_unggah).toLocaleString('id-ID', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
@@ -1477,7 +1477,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {asesmen.nilai.map((nilai: any) => (
+                          {asesmen.nilai.slice().sort((a: any, b: any) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime()).map((nilai: any) => (
                             <TableRow key={nilai.id}>
                               <TableCell className="font-medium">{nilai.siswa.nama}</TableCell>
                               <TableCell>
@@ -1487,10 +1487,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               </TableCell>
                               {/* Status column removed per request */}
                               <TableCell>
-                                {new Date(nilai.tanggal).toLocaleDateString('id-ID', {
+                                {new Date(nilai.tanggal).toLocaleString('id-ID', {
                                   day: 'numeric',
                                   month: 'short',
                                   year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
                                 })}
                               </TableCell>
                               <TableCell className="text-right">
