@@ -84,6 +84,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         const queryParams = new URLSearchParams({
           userId: user.id,
           userRole: user.role,
+          // Request detailed stats for teachers/admins so "Rekap" tab includes nilai/pengumpulan
+          ...(user.role !== 'SISWA' ? { includeStats: 'true' } : {}),
         })
         
         console.log(`Fetching asesmen ${asesmenId} for user ${user.id} (${user.role})`)

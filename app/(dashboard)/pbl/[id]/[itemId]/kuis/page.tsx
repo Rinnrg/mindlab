@@ -15,11 +15,8 @@ import {
   Loader2,
   Clock,
   AlertCircle,
-  CheckCircle,
-  HelpCircle,
-  BookOpen,
-  FileText,
-} from "lucide-react"
+              {/* duplicate informative schedule block removed */}
+}
 
 interface Jawaban {
   soalId: string

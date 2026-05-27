@@ -93,6 +93,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         const queryParams = new URLSearchParams({
           userId: user.id,
           userRole: user.role,
+          ...(user.role !== 'SISWA' ? { includeStats: 'true' } : {}),
         })
         
         console.log(`Fetching asesmen ${asesmenId} for user ${user.id} (${user.role})`)
