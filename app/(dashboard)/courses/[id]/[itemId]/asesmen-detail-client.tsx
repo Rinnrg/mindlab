@@ -1296,7 +1296,10 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               <TableHead>Ketua</TableHead>
                             </>
                           )}
+                          <TableHead>Kelas</TableHead>
                           <TableHead>Tanggal Upload</TableHead>
+                          <TableHead>Benar</TableHead>
+                          <TableHead>Salah</TableHead>
                           <TableHead>Nilai</TableHead>
                           <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
@@ -1322,6 +1325,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                 <TableCell>{pengumpulan.ketua || '-'}</TableCell>
                               </>
                             )}
+                            <TableCell className="text-sm text-muted-foreground">{pengumpulan.siswa?.kelas || '-'}</TableCell>
                             <TableCell>
                               {new Date(pengumpulan.tgl_unggah).toLocaleString('id-ID', {
                                 day: 'numeric',
@@ -1332,17 +1336,23 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               })}
                             </TableCell>
                             <TableCell>
+                              {Array.isArray(pengumpulan.jawabanSiswa) ? pengumpulan.jawabanSiswa.filter((j: any) => j.isBenar === true).length : '-'}
+                            </TableCell>
+                            <TableCell>
+                              {Array.isArray(pengumpulan.jawabanSiswa) ? pengumpulan.jawabanSiswa.filter((j: any) => j.isBenar === false).length : '-'}
+                            </TableCell>
+                            <TableCell>
                               {pengumpulan.nilai ? (
-                                <Badge variant={pengumpulan.nilai >= 75 ? 'default' : 'secondary'}>
+                                <Badge className="bg-blue-600 text-white">
                                   {pengumpulan.nilai}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline">Belum dinilai</Badge>
+                                <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Belum dinilai</Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
-                                <Button variant="ghost" size="sm" asChild>
+                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
                                   <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     Detail
@@ -1477,31 +1487,21 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       <div className="min-w-[500px] px-6">
                       <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead>Nama Siswa</TableHead>
-                                <TableHead>Nilai</TableHead>
-                                <TableHead>Benar</TableHead>
-                                <TableHead>Salah</TableHead>
-                                <TableHead>Tanggal</TableHead>
-                            <TableHead className="text-right">Aksi</TableHead>
-                          </TableRow>
-                        </TableHeader>
+                              <TableRow>
+                                  <TableHead>Nama Siswa</TableHead>
+                                  <TableHead>Kelas</TableHead>
+                                  <TableHead>Tanggal</TableHead>
+                                  <TableHead>Benar</TableHead>
+                                  <TableHead>Salah</TableHead>
+                                  <TableHead>Nilai</TableHead>
+                              <TableHead className="text-right">Aksi</TableHead>
+                            </TableRow>
+                          </TableHeader>
                         <TableBody>
                           {asesmen.nilai.slice().sort((a: any, b: any) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime()).map((nilai: any) => (
                             <TableRow key={nilai.id}>
                               <TableCell className="font-medium">{nilai.siswa.nama}</TableCell>
-                              <TableCell>
-                                <Badge variant={nilai.skor >= 75 ? 'default' : 'secondary'}>
-                                  {nilai.skor}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === true).length : 0}
-                              </TableCell>
-                              <TableCell>
-                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === false).length : 0}
-                              </TableCell>
-                              {/* Status column removed per request */}
+                              <TableCell className="text-sm text-muted-foreground">{nilai.siswa?.kelas || '-'}</TableCell>
                               <TableCell>
                                 {new Date(nilai.tanggal).toLocaleString('id-ID', {
                                   day: 'numeric',
@@ -1511,9 +1511,24 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   minute: '2-digit',
                                 })}
                               </TableCell>
+                              <TableCell>
+                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === true).length : 0}
+                              </TableCell>
+                              <TableCell>
+                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === false).length : 0}
+                              </TableCell>
+                              <TableCell>
+                                {typeof nilai.skor === 'number' ? (
+                                  <Badge className="bg-blue-600 text-white">
+                                    {nilai.skor}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Sedang di review</Badge>
+                                )}
+                              </TableCell>
                               <TableCell className="text-right">
                                 {nilai.attemptId ? (
-                                  <Button variant="ghost" size="sm" asChild>
+                                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
                                     <Link href={`/courses/${courseId}/${asesmenId}/kuis-attempts/${nilai.attemptId}`}>
                                       <Eye className="mr-2 h-4 w-4" />
                                       Detail & Nilai
