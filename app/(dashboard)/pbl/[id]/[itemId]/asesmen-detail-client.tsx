@@ -1472,6 +1472,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                           <TableRow>
                                 <TableHead>Nama Siswa</TableHead>
                                 <TableHead>Nilai</TableHead>
+                                <TableHead>Benar</TableHead>
+                                <TableHead>Salah</TableHead>
                                 <TableHead>Tanggal</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                               </TableRow>
@@ -1484,6 +1486,12 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                 <Badge variant={nilai.skor >= 75 ? 'default' : 'secondary'}>
                                   {nilai.skor}
                                 </Badge>
+                              </TableCell>
+                              <TableCell>
+                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === true).length : 0}
+                              </TableCell>
+                              <TableCell>
+                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === false).length : 0}
                               </TableCell>
                               {/* Status column removed per request */}
                               <TableCell>
