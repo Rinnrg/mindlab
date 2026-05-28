@@ -128,11 +128,14 @@ export async function POST(
         })
       }
 
-      // Calculate final score (0-100) using count of correct answers over total questions
-      const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
 
-      // Round to nearest integer (0-100) and update nilai record
-      const roundedSkor = Math.round(finalSkor)
+  // Calculate final score using fixed total of 30 questions
+  // Nilai = (jumlahBenar / 30) * 100
+  const TOTAL_QUESTIONS = 30
+  const finalSkor = (correctCount / TOTAL_QUESTIONS) * 100
+
+  // Round to nearest integer (0-100)
+  const roundedSkor = Math.round(finalSkor)
 
       await tx.nilai.update({
         where: { id: nilaiRecord.id },

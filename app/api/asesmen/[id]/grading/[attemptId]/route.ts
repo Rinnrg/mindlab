@@ -70,10 +70,12 @@ export async function PATCH(
         if (j.isBenar === true) correctCount += 1
       }
 
-      const finalSkor = totalQuestions > 0 ? (correctCount / totalQuestions) * 100 : 0
+  // Calculate final score using fixed total of 30 questions
+  const TOTAL_QUESTIONS = 30
+  const finalSkor = (correctCount / TOTAL_QUESTIONS) * 100
 
-      // Round to nearest integer (0-100) before saving
-      const roundedSkor = Math.round(finalSkor)
+  // Round to nearest integer (0-100) before saving
+  const roundedSkor = Math.round(finalSkor)
 
       await tx.nilai.update({
         where: { id: nilaiId },
