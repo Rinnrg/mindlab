@@ -20,7 +20,11 @@ export async function GET(
             judul: true,
           },
         },
-        // Include nilai for KUIS
+        // Include soal (with opsi) to build per-question columns
+        soal: {
+          include: { opsi: true }
+        },
+        // Include nilai for KUIS and include jawabanSiswa so we can export per-soal answers
         nilai: {
           include: {
             siswa: {
@@ -30,6 +34,9 @@ export async function GET(
                 email: true,
               },
             },
+            jawabanSiswa: {
+              include: { soal: true }
+            }
           },
           orderBy: [
             { siswa: { kelas: 'asc' } },
@@ -60,21 +67,53 @@ export async function GET(
     let filename = ''
 
     if (asesmen.tipe === 'KUIS') {
-      // Prepare data for KUIS
-      excelData = asesmen.nilai.map((nilai, index) => ({
-        'No': index + 1,
-        'Nama Siswa': nilai.siswa.nama,
-        'Kelas': nilai.siswa.kelas || '-',
-        'Email': nilai.siswa.email,
-        'Nilai': nilai.skor,
-        'Tanggal Pengerjaan': new Date(nilai.tanggal).toLocaleDateString('id-ID', {
-          day: '2-digit',
-          month: '2-digit', 
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      }))
+      // Prepare data for KUIS with per-question answers, counts of benar/salah, and total nilai
+      const questions = Array.isArray(asesmen.soal) ? asesmen.soal : []
+
+      excelData = asesmen.nilai.map((nilai: any, index: number) => {
+        const row: any = {
+          'No': index + 1,
+          'Nama Siswa': nilai.siswa.nama,
+          'Kelas': nilai.siswa.kelas || '-',
+          'Email': nilai.siswa.email,
+        }
+
+        // Map answers per question
+        const jawabanArr = Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa : []
+        let benarCount = 0
+        let salahCount = 0
+
+        for (let qIndex = 0; qIndex < questions.length; qIndex++) {
+          const q = questions[qIndex]
+          const j = jawabanArr.find((item: any) => item.soal && item.soal.id === q.id)
+          let answerVal = ''
+          if (j) {
+            // Prefer readable option text if available
+            if (typeof j.jawaban === 'string' && q && Array.isArray(q.opsi)) {
+              const opt = q.opsi.find((o: any) => o.id === j.jawaban)
+              answerVal = opt ? opt.teks : String(j.jawaban)
+            } else {
+              answerVal = j.jawaban != null ? String(j.jawaban) : ''
+            }
+
+            if (j.isBenar === true) benarCount += 1
+            else if (j.isBenar === false) salahCount += 1
+          }
+
+          row[`Soal ${qIndex + 1}`] = answerVal
+        }
+
+        row['Benar'] = benarCount
+        row['Salah'] = salahCount
+        row['Nilai'] = nilai.skor
+        row['Tanggal Pengerjaan'] = nilai.tanggal ? new Date(nilai.tanggal).toLocaleDateString('id-ID', {
+          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        }) : ''
+
+        return row
+      })
+
+      // Build sheet name and filename
       sheetName = 'Nilai Kuis'
       filename = `Nilai_Kuis_${asesmen.nama.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`
     } else if (asesmen.tipe === 'TUGAS') {
@@ -130,14 +169,23 @@ export async function GET(
     // Set column widths based on type
     let columnWidths: any[]
     if (asesmen.tipe === 'KUIS') {
+      const qCount = Array.isArray(asesmen.soal) ? asesmen.soal.length : 0
       columnWidths = [
         { wch: 5 },  // No
         { wch: 25 }, // Nama Siswa
         { wch: 15 }, // Kelas
         { wch: 30 }, // Email
-        { wch: 10 }, // Nilai
-        { wch: 20 }, // Tanggal Pengerjaan
       ]
+
+      // Per-question columns
+      for (let i = 0; i < qCount; i++) columnWidths.push({ wch: 25 })
+
+      // Benar, Salah, Nilai, Tanggal
+      columnWidths.push({ wch: 8 }) // Benar
+      columnWidths.push({ wch: 8 }) // Salah
+      columnWidths.push({ wch: 10 }) // Nilai
+      columnWidths.push({ wch: 20 }) // Tanggal Pengerjaan
+    } else if (asesmen.tipePengerjaan === 'KELOMPOK') {
     } else if (asesmen.tipePengerjaan === 'KELOMPOK') {
       columnWidths = [
         { wch: 5 },  // No

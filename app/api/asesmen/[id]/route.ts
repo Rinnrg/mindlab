@@ -77,12 +77,18 @@ export async function GET(
         where: {
           siswaId: userId,
         },
-        select: {
-          id: true,
-          skor: true,
-          tanggal: true,
-          siswaId: true,
-        },
+        // Include student's answers so the client can show per-question stats (isBenar, jawaban)
+        include: {
+          jawabanSiswa: {
+            select: {
+              id: true,
+              jawaban: true,
+              isBenar: true,
+              skorDidapat: true,
+              soalId: true,
+            }
+          }
+        }
       }
       
       includeOptions.pengumpulanProyek = {
@@ -112,7 +118,7 @@ export async function GET(
             select: {
               id: true,
               teks: true,
-              // isBenar is excluded for security
+              isBenar: true,
             }
           }
         }
@@ -155,6 +161,16 @@ export async function GET(
                 email: true,
                 foto: true,
                 kelas: true,
+              }
+            },
+            // Include student answers so teacher rekap/detail can show benar/salah
+            jawabanSiswa: {
+              select: {
+                id: true,
+                jawaban: true,
+                isBenar: true,
+                skorDidapat: true,
+                soalId: true,
               }
             }
           }

@@ -18,6 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Separator } from "@/components/ui/separator"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { 
   FileText, 
   Upload, 
@@ -56,6 +57,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
   const [studentNilai, setStudentNilai] = useState<any>(null)
   const [studentPengumpulan, setStudentPengumpulan] = useState<any>(null)
   const [showPdfViewer, setShowPdfViewer] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [activeTab, setActiveTab] = useState("info")
   const [tabKey, setTabKey] = useState(0) // For re-render animation
   const { confirm, AlertComponent } = useAdaptiveAlert()
@@ -152,6 +154,14 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
 
     fetchAsesmen()
   }, [user, authLoading, router, asesmenId, courseId])
+
+  const studentAnswerStats = useMemo(() => {
+    const jawaban = studentNilai?.jawabanSiswa ?? studentPengumpulan?.jawabanSiswa ?? []
+    if (!Array.isArray(jawaban)) return { benar: 0, salah: 0, total: 0 }
+    const benar = jawaban.filter((j: any) => j.isBenar === true).length
+    const salah = jawaban.filter((j: any) => j.isBenar === false).length
+    return { benar, salah, total: jawaban.length }
+  }, [studentNilai, studentPengumpulan])
 
   const isTeacherOrAdmin = user && (user.role === 'GURU' || user.role === 'ADMIN')
   const isStudent = user && user.role === 'SISWA'
@@ -795,13 +805,17 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       </div>
                       <div className="text-right space-y-1">
                         <p className="text-sm text-muted-foreground">Nilai Anda</p>
-                        <div className="text-3xl font-bold">
+                        <div className="text-3xl font-bold flex items-center justify-end gap-3">
                           <Badge 
                             variant={studentNilai.skor >= 75 ? 'default' : 'secondary'}
                             className="text-xl px-4 py-2"
                           >
                             {studentNilai.skor}
                           </Badge>
+                          <Button size="sm" variant="outline" onClick={() => setShowDetailModal(true)}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Lihat detail
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -988,12 +1002,18 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                           <div className="flex items-center gap-4">
                             <div>
                               <p className="text-sm font-medium mb-1">Nilai Anda:</p>
-                              <Badge 
-                                variant={studentPengumpulan.nilai >= 75 ? 'default' : 'secondary'}
-                                className="text-2xl px-4 py-2 font-bold"
-                              >
-                                {studentPengumpulan.nilai}
-                              </Badge>
+                              <div className="flex items-center gap-3">
+                                <Badge 
+                                  variant={studentPengumpulan.nilai >= 75 ? 'default' : 'secondary'}
+                                  className="text-2xl px-4 py-2 font-bold"
+                                >
+                                  {studentPengumpulan.nilai}
+                                </Badge>
+                                <Button size="sm" variant="outline" onClick={() => setShowDetailModal(true)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Lihat detail
+                                </Button>
+                              </div>
                             </div>
                             <div className="flex items-start gap-2">
                               {studentPengumpulan.nilai >= 75 ? (
@@ -1544,6 +1564,90 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
         }
         isTeacherOrAdmin={!!isTeacherOrAdmin}
       />
+        {/* Detail modal for student answers stats */}
+        <Dialog open={showDetailModal} onOpenChange={setShowDetailModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Detail Penilaian</DialogTitle>
+              <DialogDescription>
+                Rincian jumlah jawaban benar dan salah pada penilaian Anda.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 mt-2">
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                <div>
+                  <p className="text-sm text-muted-foreground">Benar</p>
+                  <p className="text-xl font-bold">{studentAnswerStats.benar}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Salah</p>
+                  <p className="text-xl font-bold">{studentAnswerStats.salah}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Soal</p>
+                  <p className="text-xl font-bold">{studentAnswerStats.total}</p>
+                </div>
+              </div>
+
+              {/* Per-soal breakdown */}
+              <div className="space-y-4">
+                {(asesmen.soal || []).map((soal: any, idx: number) => {
+                  const jawaban = (studentNilai?.jawabanSiswa || studentPengumpulan?.jawabanSiswa || []).find((j: any) => j.soalId === soal.id)
+                  const selected = jawaban ? jawaban.jawaban : null
+                  const isBenar = jawaban ? jawaban.isBenar : null
+                  return (
+                    <div key={soal.id} className="p-4 bg-background border border-border/50 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div className="max-w-[70%]">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-semibold bg-slate-100 px-2 py-1 rounded">Soal {idx + 1}</span>
+                            <span className="text-sm text-muted-foreground">{soal.tipeJawaban === 'PILIHAN_GANDA' ? 'Pilihan Ganda' : 'Isian'}</span>
+                          </div>
+                          <p className="text-sm leading-relaxed">{soal.pertanyaan}</p>
+                        </div>
+                        <div className="text-right">
+                          {isBenar === true && <Badge className="bg-green-600">BENAR</Badge>}
+                          {isBenar === false && <Badge className="bg-red-500">SALAH</Badge>}
+                          {isBenar === null && <Badge variant="outline" className="text-muted-foreground">Belum Dinilai</Badge>}
+                        </div>
+                      </div>
+
+                      {soal.tipeJawaban === 'PILIHAN_GANDA' && (
+                        <div className="mt-3 space-y-2">
+                          {soal.opsi && soal.opsi.map((o: any) => {
+                            const isSelected = selected === o.id
+                            return (
+                              <div key={o.id} className={`p-2 rounded-md border ${isSelected ? 'border-primary bg-primary/10' : 'border-border/20'}`}>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-3 h-3 rounded-full ${o.isBenar ? 'bg-green-500' : 'bg-transparent border border-border/30'}`} />
+                                    <div className={`${isSelected ? 'font-medium' : 'text-muted-foreground'}`}>{o.teks}</div>
+                                  </div>
+                                  <div>
+                                    {o.isBenar && <span className="text-xs text-green-700 border border-green-200 px-2 py-1 rounded">Kunci</span>}
+                                    {isSelected && <span className="text-xs ml-2 text-blue-700">Jawaban Anda</span>}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+
+                      {soal.tipeJawaban === 'ISIAN' && (
+                        <div className="mt-3">
+                          <p className="text-sm text-muted-foreground">Jawaban Anda:</p>
+                          <div className="p-3 bg-muted rounded mt-1 whitespace-pre-wrap">{jawaban ? jawaban.jawaban : <em className="text-muted-foreground">Tidak ada jawaban</em>}</div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
   )
 }
