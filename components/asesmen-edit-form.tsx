@@ -284,20 +284,26 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
     }
   }
 
-  const handleAddSoal = () => {
-    // Langsung tambahkan soal kosong baru ke list tanpa validasi
-    setSoalList([...soalList, {
+  const handleAddSoal = (tipe: 'PILIHAN_GANDA' | 'ISIAN' = 'PILIHAN_GANDA') => {
+    // Tambahkan soal kosong baru sesuai tipe jawaban
+    const base: Soal = {
       pertanyaan: "",
       gambar: "",
       bobot: 10,
-      tipeJawaban: 'PILIHAN_GANDA',
-      opsi: [
+      tipeJawaban: tipe,
+      opsi: [],
+    }
+
+    if (tipe === 'PILIHAN_GANDA') {
+      base.opsi = [
         { teks: "", isBenar: false },
         { teks: "", isBenar: false },
         { teks: "", isBenar: false },
         { teks: "", isBenar: false },
       ]
-    }])
+    }
+
+    setSoalList([...soalList, base])
 
     scrollToLastSoal()
   }
@@ -901,10 +907,34 @@ export function AsesmenEditForm({ asesmenId, courseId }: AsesmenEditFormProps) {
                 ))}
 
                 <div className="flex justify-center py-2">
-                  <Button type="button" onClick={handleAddSoal} className="w-fit px-10" variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Soal
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button type="button" className="w-fit px-6" variant="outline">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Tambah Soal
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="center" className="w-[220px] p-2">
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => handleAddSoal('PILIHAN_GANDA')}
+                          className="justify-start"
+                        >
+                          Pilihan Ganda
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => handleAddSoal('ISIAN')}
+                          className="justify-start"
+                        >
+                          Essay / Isian
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             )}
