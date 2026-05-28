@@ -75,13 +75,18 @@ export async function POST(
     let correctCount = 0
 
     const result = await prisma.$transaction(async (tx) => {
-      // Create nilai record first
+      // Determine submission time: prefer waktuSelesai, then scheduledAt, else now
+      const submitTime = (typeof waktuSelesai === 'string' && waktuSelesai.trim())
+        ? new Date(waktuSelesai)
+        : (scheduledAt ? new Date(scheduledAt) : new Date())
+
+      // Create nilai record first (tanggal follows submitTime)
       const nilaiRecord = await tx.nilai.create({
         data: {
           siswaId,
           asesmenId,
           skor: 0, // Will update later
-          tanggal: scheduledAt ? new Date(scheduledAt) : new Date(),
+          tanggal: isNaN(submitTime.getTime()) ? new Date() : submitTime,
           attemptId: attempt.id,
         }
       })
@@ -145,7 +150,7 @@ export async function POST(
       // Mark attempt submitted
       await tx.kuisAttempt.update({
         where: { id: attempt.id },
-        data: { submittedAt: scheduledAt ? new Date(scheduledAt) : new Date() },
+        data: { submittedAt: isNaN(submitTime.getTime()) ? new Date() : submitTime },
       })
 
       return {

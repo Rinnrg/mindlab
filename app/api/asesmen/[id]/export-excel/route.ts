@@ -106,8 +106,8 @@ export async function GET(
         row['Benar'] = benarCount
         row['Salah'] = salahCount
         row['Nilai'] = nilai.skor
-        row['Tanggal Pengerjaan'] = nilai.tanggal ? new Date(nilai.tanggal).toLocaleDateString('id-ID', {
-          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        row['Tanggal Pengerjaan'] = nilai.tanggal ? new Date(nilai.tanggal).toLocaleString('id-ID', {
+          day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         }) : ''
 
         return row
@@ -124,9 +124,9 @@ export async function GET(
           'Nama Kelompok': pengumpulan.namaKelompok || '-',
           'Ketua': pengumpulan.ketua || '-',
           'Anggota': pengumpulan.anggota || '-',
-          'Tanggal Upload': new Date(pengumpulan.tgl_unggah).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: '2-digit', 
+          'Tanggal Upload': new Date(pengumpulan.tgl_unggah).toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'short', 
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
@@ -140,9 +140,9 @@ export async function GET(
           'Nama Siswa': pengumpulan.siswa?.nama || '-',
           'Kelas': pengumpulan.siswa?.kelas || '-',
           'Email': pengumpulan.siswa?.email || '-',
-          'Tanggal Upload': new Date(pengumpulan.tgl_unggah).toLocaleDateString('id-ID', {
-            day: '2-digit',
-            month: '2-digit', 
+          'Tanggal Upload': new Date(pengumpulan.tgl_unggah).toLocaleString('id-ID', {
+            day: 'numeric',
+            month: 'short', 
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
