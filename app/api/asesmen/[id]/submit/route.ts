@@ -217,7 +217,8 @@ export async function POST(
 
       const { uploadToSupabase } = await import('@/lib/supabase')
       try {
-        uploadedFileUrl = await uploadToSupabase(fileBuffer, fileNameToSave, fileTypeToSave)
+        const prefix = `${asesmen.courseId || 'unknown_course'}/${id}/submissions`
+        uploadedFileUrl = await uploadToSupabase(fileBuffer, fileNameToSave, fileTypeToSave, prefix)
       } catch (uploadError: any) {
         console.error('Supabase upload failed for student submission:', uploadError)
         return NextResponse.json(

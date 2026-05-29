@@ -139,7 +139,8 @@ export async function PUT(
       if (fileData) {
         const { uploadToSupabase } = await import('@/lib/supabase')
         try {
-          finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+          const prefix = `proyek/${id}/lampiran`
+          finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '', prefix)
         } catch (uploadError: any) {
           console.error('Supabase upload failed:', uploadError)
           return NextResponse.json(
@@ -202,7 +203,8 @@ export async function PUT(
       if (fileData) {
         const { uploadToSupabase } = await import('@/lib/supabase')
         try {
-          const publicUrl = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+          const prefix = `proyek/${id}/lampiran`
+          const publicUrl = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '', prefix)
           fileUpdate = {
             fileData: null,
             fileName: fileName || null,

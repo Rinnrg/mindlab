@@ -81,7 +81,8 @@ export async function POST(request: NextRequest) {
     if (fileData) {
       const { uploadToSupabase } = await import('@/lib/supabase')
       try {
-        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+        const prefix = `course/${courseId}/materi`
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '', prefix)
       } catch (uploadError: any) {
         console.error('Supabase upload failed:', uploadError)
         return NextResponse.json(

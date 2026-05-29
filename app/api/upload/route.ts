@@ -39,9 +39,13 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Upload to Supabase Storage
-    const { uploadToSupabase } = await import('@/lib/supabase')
-    const url = await uploadToSupabase(buffer, file.name, file.type)
+  // Optional pathPrefix field to organize files
+  const rawPrefix = formData.get('pathPrefix')
+  const pathPrefix = rawPrefix && typeof rawPrefix === 'string' ? rawPrefix : undefined
+
+  // Upload to Supabase Storage
+  const { uploadToSupabase } = await import('@/lib/supabase')
+  const url = await uploadToSupabase(buffer, file.name, file.type, pathPrefix)
 
     return NextResponse.json({ 
       url,

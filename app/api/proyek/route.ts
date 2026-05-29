@@ -133,22 +133,10 @@ export async function POST(request: NextRequest) {
     // Extract selectedClasses for enrollment
     const { selectedClasses } = body
 
-    // Process file if provided
-    let finalLampiran = lampiran || null
-    if (fileData) {
-      const { uploadToSupabase } = await import('@/lib/supabase')
-      try {
-        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
-      } catch (uploadError: any) {
-        console.error('Supabase upload failed:', uploadError)
-        return NextResponse.json(
-          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
-          { status: 500 }
-        )
-      }
-    }
+  // Process file if provided - will upload after creating the proyek to include proyek id in prefix
+  let finalLampiran = lampiran || null
 
-    const proyek = await prisma.$transaction(async (tx) => {
+  const proyek = await prisma.$transaction(async (tx) => {
       // Create the project
       const newProyek = await tx.pBL.create({
         data: {
@@ -218,6 +206,23 @@ export async function POST(request: NextRequest) {
 
       return newProyek
     })
+
+    // If fileData provided, upload to structured path and update proyek.lampiran
+    if (fileData) {
+      try {
+        const { uploadToSupabase } = await import('@/lib/supabase')
+        const prefix = `proyek/${proyek.id}/lampiran`
+        const publicUrl = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '', prefix)
+        await prisma.pBL.update({ where: { id: proyek.id }, data: { lampiran: publicUrl } })
+        proyek.lampiran = publicUrl
+      } catch (uploadError: any) {
+        console.error('Supabase upload failed during proyek creation:', uploadError)
+        return NextResponse.json(
+          { error: 'Gagal mengupload file ke Supabase Storage: ' + (uploadError.message || String(uploadError)) },
+          { status: 500 }
+        )
+      }
+    }
 
     return NextResponse.json({ pbl: proyek }, { status: 201 })
   } catch (error) {

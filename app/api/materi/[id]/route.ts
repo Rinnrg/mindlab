@@ -57,9 +57,13 @@ export async function PUT(
     // Process file if provided
     let finalLampiran = lampiran
     if (fileData) {
+      // Load existing materi to find its courseId
+      const existing = await prisma.materi.findUnique({ where: { id }, select: { courseId: true } })
+      const cid = existing?.courseId || 'unknown'
       const { uploadToSupabase } = await import('@/lib/supabase')
       try {
-        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '')
+        const prefix = `course/${cid}/materi`
+        finalLampiran = await uploadToSupabase(fileData, fileName || 'lampiran', fileType || '', prefix)
       } catch (uploadError: any) {
         console.error('Supabase upload failed:', uploadError)
         return NextResponse.json(
