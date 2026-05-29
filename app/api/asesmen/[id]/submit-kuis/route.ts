@@ -70,23 +70,18 @@ export async function POST(
       select: { id: true },
     })
 
-    // Calculate score and save answers using formula: (jumlahBenar / jumlahSoal) * 100
-    let totalQuestions = 0
-    let correctCount = 0
+    // Calculate score and save answers
+    let totalSkor = 0
+    let totalBobot = 0
 
     const result = await prisma.$transaction(async (tx) => {
-      // Determine submission time: prefer waktuSelesai, then scheduledAt, else now
-      const submitTime = (typeof waktuSelesai === 'string' && waktuSelesai.trim())
-        ? new Date(waktuSelesai)
-        : (scheduledAt ? new Date(scheduledAt) : new Date())
-
-      // Create nilai record first (tanggal follows submitTime)
+      // Create nilai record first
       const nilaiRecord = await tx.nilai.create({
         data: {
           siswaId,
           asesmenId,
           skor: 0, // Will update later
-          tanggal: isNaN(submitTime.getTime()) ? new Date() : submitTime,
+          tanggal: scheduledAt ? new Date(scheduledAt) : new Date(),
           attemptId: attempt.id,
         }
       })
@@ -95,69 +90,62 @@ export async function POST(
       for (const jawabanItem of jawaban) {
         const soal = asesmen.soal.find(s => s.id === jawabanItem.soalId)
         if (!soal) continue
-        // Count questions and correct answers (only fully correct answers count)
-        totalQuestions += 1
+
+        totalBobot += soal.bobot
 
         let isBenar: boolean | null = null
-        let skorDidapat: number | null = null
+        let skorDidapat = 0
 
+        // Auto-grade for multiple choice
         if (soal.tipeJawaban === 'PILIHAN_GANDA') {
           const selectedOpsi = soal.opsi.find(o => o.id === jawabanItem.jawaban)
           if (selectedOpsi) {
             isBenar = selectedOpsi.isBenar
             if (isBenar) {
-              correctCount += 1
-              skorDidapat = 1 // normalized per-question correctness
-            } else {
-              skorDidapat = 0
+              skorDidapat = soal.bobot
+              totalSkor += skorDidapat
             }
-          } else {
-            skorDidapat = 0
           }
-        } else if (soal.tipeJawaban === 'ISIAN') {
-          // Essay / isian - mark as pending (null) and will be graded by teacher
-          isBenar = null
-          skorDidapat = null
+        }
+        // For essay questions, mark as null (to be graded manually)
+        else if (soal.tipeJawaban === 'ISIAN') {
+          isBenar = null // Will be graded manually by teacher
+          skorDidapat = 0 // Will be updated by teacher
         }
 
-        // Save answer (skorDidapat uses normalized per-question scale)
+        // Save answer
         await tx.jawabanSiswa.create({
           data: {
             siswaId,
             soalId: soal.id,
             jawaban: jawabanItem.jawaban,
             isBenar,
-            skorDidapat: skorDidapat,
+            skorDidapat: skorDidapat > 0 ? skorDidapat : null,
             nilaiId: nilaiRecord.id,
           }
         })
       }
 
+      // Calculate final score (0-100)
+      const finalSkor = totalBobot > 0 ? (totalSkor / totalBobot) * 100 : 0
 
-  // Calculate final score using fixed total of 30 questions
-  // Nilai = (jumlahBenar / 30) * 100
-  const TOTAL_QUESTIONS = 30
-  const finalSkor = (correctCount / TOTAL_QUESTIONS) * 100
-
-  // Round to nearest integer (0-100)
-  const roundedSkor = Math.round(finalSkor)
-
+      // Update nilai record
       await tx.nilai.update({
         where: { id: nilaiRecord.id },
-        data: { skor: roundedSkor }
+        data: { skor: Math.round(finalSkor * 100) / 100 }
       })
 
       // Mark attempt submitted
-      await tx.kuisAttempt.update({
+  await tx.kuisAttempt.update({
         where: { id: attempt.id },
-        data: { submittedAt: isNaN(submitTime.getTime()) ? new Date() : submitTime },
+        data: { submittedAt: scheduledAt ? new Date(scheduledAt) : new Date() },
       })
 
       return {
         nilaiId: nilaiRecord.id,
-        skor: roundedSkor,
-        correctCount,
-        totalQuestions,
+        skor: finalSkor,
+        totalSkor,
+        totalBobot,
       }
     })
 

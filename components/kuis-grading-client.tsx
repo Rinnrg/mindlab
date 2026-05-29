@@ -139,44 +139,6 @@ export default function KuisGradingClient({ courseId, asesmenId, attempt, module
                     {attempt.submittedAt ? new Date(attempt.submittedAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '-'}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-muted-foreground">
-                    <Check className="mr-2 h-4 w-4 text-green-600" />
-                    Benar
-                  </div>
-                  <span className="font-medium">
-                    {(() => {
-                      const counts = (attempt.nilai && attempt.nilai[0] && Array.isArray(attempt.nilai[0].jawabanSiswa))
-                        ? attempt.nilai[0].jawabanSiswa.reduce((acc: any, j: any) => {
-                            if (j.isBenar === true) acc.benar += 1
-                            else if (j.isBenar === false) acc.salah += 1
-                            return acc
-                          }, { benar: 0, salah: 0 })
-                        : { benar: 0, salah: 0 }
-
-                      return counts.benar
-                    })()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-muted-foreground">
-                    <X className="mr-2 h-4 w-4 text-red-600" />
-                    Salah
-                  </div>
-                  <span className="font-medium">
-                    {(() => {
-                      const counts = (attempt.nilai && attempt.nilai[0] && Array.isArray(attempt.nilai[0].jawabanSiswa))
-                        ? attempt.nilai[0].jawabanSiswa.reduce((acc: any, j: any) => {
-                            if (j.isBenar === true) acc.benar += 1
-                            else if (j.isBenar === false) acc.salah += 1
-                            return acc
-                          }, { benar: 0, salah: 0 })
-                        : { benar: 0, salah: 0 }
-
-                      return counts.salah
-                    })()}
-                  </span>
-                </div>
               </div>
             </CardContent>
           </Card>

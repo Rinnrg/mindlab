@@ -56,30 +56,25 @@ export async function PATCH(
         })
       }
 
-      // Recalculate total score for this Nilai using formula: (jumlahBenar / jumlahSoal) * 100
+      // Recalculate total score for this Nilai
       const allJawaban = await tx.jawabanSiswa.findMany({
         where: { nilaiId },
         include: { soal: true }
       })
 
-      let totalQuestions = 0
-      let correctCount = 0
+      let totalSkor = 0
+      let totalBobot = 0
 
       for (const j of allJawaban) {
-        totalQuestions += 1
-        if (j.isBenar === true) correctCount += 1
+        totalBobot += j.soal.bobot
+        totalSkor += j.skorDidapat || 0
       }
 
-  // Calculate final score using fixed total of 30 questions
-  const TOTAL_QUESTIONS = 30
-  const finalSkor = (correctCount / TOTAL_QUESTIONS) * 100
-
-  // Round to nearest integer (0-100) before saving
-  const roundedSkor = Math.round(finalSkor)
+      const finalSkor = totalBobot > 0 ? (totalSkor / totalBobot) * 100 : 0
 
       await tx.nilai.update({
         where: { id: nilaiId },
-        data: { skor: roundedSkor }
+        data: { skor: Math.round(finalSkor * 100) / 100 }
       })
     })
 

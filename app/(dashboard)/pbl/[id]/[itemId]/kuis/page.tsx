@@ -19,9 +19,36 @@ import {
   HelpCircle,
   BookOpen,
   FileText,
-  CalendarClock,
-  FileUp,
 } from "lucide-react"
+import Link from "next/link"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Switch } from "@/components/ui/switch"
+import { CalendarClock, FileUp } from "lucide-react"
+import { Input } from "@/components/ui/input"
+
+interface PageProps {
+  params: Promise<{ 
+    id: string
+  itemId: string
+  }>
+}
+
+interface Opsi {
+  id: string
+  teks: string
+  isBenar: boolean
+}
+
+interface Soal {
+  id: string
+  pertanyaan: string
+  gambar?: string
+  bobot: number
+  tipeJawaban: 'PILIHAN_GANDA' | 'ISIAN'
+  opsi: Opsi[]
+}
 
 interface Jawaban {
   soalId: string
@@ -91,14 +118,6 @@ export default function KuisPage({ params }: PageProps) {
   // Scheduled upload state
   const [isScheduled, setIsScheduled] = useState(false)
   const [scheduledDate, setScheduledDate] = useState("")
-  const [scheduledDialogOpen, setScheduledDialogOpen] = useState(false)
-
-  const scheduleLongPressBind = useLongPress({
-    thresholdMs: 600,
-    onLongPress: () => {
-      setScheduledDialogOpen(true)
-    },
-  })
 
   // Set custom breadcrumb
   const breadcrumbItems = useMemo(() => [
@@ -212,6 +231,76 @@ export default function KuisPage({ params }: PageProps) {
           // Check if already submitted
           if (asesmenData.nilai && asesmenData.nilai.length > 0) {
             setHasSubmitted(true)
+          }
+          
+          // Process soal - apply shuffling if enabled
+          let processedSoal = asesmenData.soal || []
+          
+          // Acak soal jika diaktifkan
+          if (asesmenData.acakSoal && user?.id) {
+            const seed = `${user.id}-${asesmenId}-soal`
+            processedSoal = shuffleArray(processedSoal, seed)
+          }
+          
+          // Acak jawaban jika diaktifkan
+          if (asesmenData.acakJawaban && user?.id) {
+            processedSoal = processedSoal.map((soal: Soal) => {
+              if (soal.tipeJawaban === 'PILIHAN_GANDA' && soal.opsi && soal.opsi.length > 0) {
+                const seed = `${user.id}-${asesmenId}-opsi-${soal.id}`
+                return {
+                  ...soal,
+                  opsi: shuffleArray(soal.opsi, seed)
+                }
+              }
+              return soal
+            })
+          }
+          
+          setShuffledSoal(processedSoal)
+          
+          // Initialize jawaban array
+          if (processedSoal.length > 0) {
+            setJawaban(processedSoal.map((s: Soal) => ({
+              soalId: s.id,
+              jawaban: ''
+            })))
+          }
+          
+          // Start timer if durasi is set
+          if (asesmenData.durasi && asesmenData.durasi > 0) {
+            const durasiSeconds = Number(asesmenData.durasi) * 60
+            setDurasiMenit(Number(asesmenData.durasi))
+
+            // Cek apakah sudah ada start time di sessionStorage (untuk handle refresh)
+            const storageKey = `kuis_start_${asesmenId}`
+            const savedStartTime = sessionStorage.getItem(storageKey)
+            
+            let start: Date
+            if (savedStartTime) {
+              start = new Date(savedStartTime)
+            } else {
+              start = new Date()
+              sessionStorage.setItem(storageKey, start.toISOString())
+            }
+            setStartTime(start)
+
+            // Hitung sisa waktu berdasarkan selisih waktu sekarang dan start time
+            const elapsedSeconds = Math.floor((Date.now() - start.getTime()) / 1000)
+            const remaining = durasiSeconds - elapsedSeconds
+
+            if (remaining <= 0) {
+              // Waktu sudah habis
+              setTimeLeft(0)
+              setTimeExpired(true)
+            } else {
+              setTimeLeft(remaining)
+            }
+          }
+          
+          // Restore leave count from sessionStorage
+          const savedLeaveCount = sessionStorage.getItem(`kuis_leave_${asesmenId}`)
+          if (savedLeaveCount) {
+            setLeaveCount(parseInt(savedLeaveCount))
           }
         } else {
           router.push(`/pbl/${courseId}`)
@@ -412,11 +501,8 @@ export default function KuisPage({ params }: PageProps) {
       if (isScheduled && scheduledDate) {
         const selected = new Date(scheduledDate)
         const now = new Date()
-        // allow past dates only if same calendar month/year as now
-        if (selected.getFullYear() !== now.getFullYear() || selected.getMonth() !== now.getMonth()) {
-          if (selected <= now) {
-            throw new Error("Waktu terjadwal harus berada di bulan yang sama dengan sekarang atau masa depan.")
-          }
+        if (selected <= now) {
+          throw new Error("Waktu terjadwal harus di masa depan.")
         }
         if (asesmen?.tgl_selesai && selected > new Date(asesmen.tgl_selesai)) {
           throw new Error("Waktu terjadwal tidak boleh melewati deadline.")
@@ -817,9 +903,41 @@ export default function KuisPage({ params }: PageProps) {
                 )}
               </div>
 
-              <p className="text-[10px] text-muted-foreground mt-2">
-                Tips: tahan tombol <span className="font-medium">Kumpulkan Kuis</span> untuk memilih jadwal.
-              </p>
+              {/* Scheduled Upload Toggle - Informative Section */}
+              <div className="bg-muted/30 border border-border/50 rounded-xl p-3 space-y-3 mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs flex items-center gap-2">
+                      <CalendarClock className="h-3 w-3 text-primary" />
+                      Jadwal Pengumpulan Otomatis
+                    </Label>
+                    <p className="text-[10px] text-muted-foreground">
+                      Kuis akan tersimpan pada waktu yang ditentukan.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isScheduled}
+                    onCheckedChange={setIsScheduled}
+                    size="sm"
+                  />
+                </div>
+                
+                {isScheduled && (
+                  <div className="pt-1 animate-in slide-in-from-top-2">
+                    <Input
+                      type="datetime-local"
+                      value={scheduledDate}
+                      onChange={(e) => setScheduledDate(e.target.value)}
+                      className="h-8 text-[10px]"
+                    />
+                    {asesmen?.tgl_selesai && (
+                      <p className="text-[9px] text-muted-foreground mt-1">
+                        Batas akhir: {new Date(asesmen.tgl_selesai).toLocaleString('id-ID')}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>

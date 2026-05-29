@@ -77,18 +77,12 @@ export async function GET(
         where: {
           siswaId: userId,
         },
-        // Include student's answers so the client can show per-question stats (isBenar, jawaban)
-        include: {
-          jawabanSiswa: {
-            select: {
-              id: true,
-              jawaban: true,
-              isBenar: true,
-              skorDidapat: true,
-              soalId: true,
-            }
-          }
-        }
+        select: {
+          id: true,
+          skor: true,
+          tanggal: true,
+          siswaId: true,
+        },
       }
       
       includeOptions.pengumpulanProyek = {
@@ -118,7 +112,7 @@ export async function GET(
             select: {
               id: true,
               teks: true,
-              isBenar: true,
+              // isBenar is excluded for security
             }
           }
         }
@@ -127,18 +121,6 @@ export async function GET(
       includeOptions._count = {
         select: {
           soal: true,
-        },
-      }
-
-      // NOTE: Halaman submit kelompok butuh data kelompok untuk menentukan userGroup.
-      // Untuk menghindari payload besar, kita kirim minimal fields + anggotaIds.
-      includeOptions.kelompok = {
-        select: {
-          id: true,
-          nama: true,
-          asesmenId: true,
-          ketuaId: true,
-          anggotaIds: true,
         },
       }
     } else {
@@ -162,16 +144,6 @@ export async function GET(
                 foto: true,
                 kelas: true,
               }
-            },
-            // Include student answers so teacher rekap/detail can show benar/salah
-            jawabanSiswa: {
-              select: {
-                id: true,
-                jawaban: true,
-                isBenar: true,
-                skorDidapat: true,
-                soalId: true,
-              }
             }
           }
         }
@@ -183,6 +155,7 @@ export async function GET(
                 id: true,
                 nama: true,
                 email: true,
+                kelas: true,
               }
             }
           }
@@ -196,34 +169,6 @@ export async function GET(
             soal: true,
             nilai: true,
             pengumpulanProyek: true,
-          },
-        }
-
-        // Include minimal submissions for recap table even on fast path.
-        // IMPORTANT: scheduled submissions are stored as status=PENDING with future tgl_unggah,
-        // and should still appear in teacher recap.
-        includeOptions.pengumpulanProyek = {
-          include: {
-            siswa: {
-              select: {
-                id: true,
-                nama: true,
-                email: true,
-              },
-            },
-          },
-        }
-
-        // IMPORTANT: halaman guru (edit/detail) sering butuh data kelompok,
-        // tapi sebelumnya kelompok hanya ikut kalau includeStats=true.
-        // Ini bikin kelompok terlihat "kosong" setelah create.
-        includeOptions.kelompok = {
-          select: {
-            id: true,
-            nama: true,
-            asesmenId: true,
-            ketuaId: true,
-            anggotaIds: true,
           },
         }
       }
@@ -242,29 +187,22 @@ export async function GET(
       )
     }
 
-    // Populate kelompok.anggota using manual load from array column.
-    // IMPORTANT: UI submit lama mengharapkan shape: anggota: Array<{ siswaId: string, siswa?: { nama, foto } }>
-    // (bukan hanya Array<User>), supaya kompatibel dengan kode existing.
+    // Populate kelompok.anggota using manual load from array column
     if (asesmen.kelompok && asesmen.kelompok.length > 0) {
-      const allUserIds = Array.from(new Set(asesmen.kelompok.flatMap((k: any) => k.anggotaIds || [])))
+      const allUserIds = Array.from(new Set(asesmen.kelompok.flatMap(k => k.anggotaIds)))
       const users = await prisma.user.findMany({
         where: { id: { in: allUserIds } },
         select: {
           id: true,
           nama: true,
           foto: true,
-        },
+        }
       })
-      const userMap = new Map(users.map((u) => [u.id, u]))
-
-      const formattedKelompok = asesmen.kelompok.map((k: any) => ({
+      const userMap = new Map(users.map(u => [u.id, u]))
+      const formattedKelompok = asesmen.kelompok.map(k => ({
         ...k,
-        anggota: (k.anggotaIds || []).map((uid: string) => ({
-          siswaId: uid,
-          siswa: userMap.get(uid) || null,
-        })),
+        anggota: k.anggotaIds.map(id => userMap.get(id)).filter(Boolean)
       }))
-
       ;(asesmen as any).kelompok = formattedKelompok
     }
 

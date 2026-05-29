@@ -1152,7 +1152,6 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               <TableRow>
                                 <TableHead>Nama</TableHead>
                                 <TableHead>Email</TableHead>
-                                <TableHead>Status Mengerjakan</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -1170,13 +1169,7 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                   <TableRow key={it.siswa.id}>
                                     <TableCell className="font-medium">{it.siswa.nama}</TableCell>
                                     <TableCell className="text-muted-foreground">{it.siswa.email}</TableCell>
-                                    <TableCell>
-                                      {status === 'SELESAI' ? (
-                                        <Badge className="bg-green-600">Selesai</Badge>
-                                      ) : (
-                                        <Badge className="bg-blue-600">Belum mengerjakan</Badge>
-                                      )}
-                                    </TableCell>
+                                    {/* Status column removed per request */}
                                     {/* tanggal columns removed per request */}
                                     <TableCell className="text-right">
                                       <Button
@@ -1227,6 +1220,42 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       </div>
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Informasi Kelompok untuk TUGAS KELOMPOK */}
+            {asesmen.tipe === 'TUGAS' && asesmen.tipePengerjaan === 'KELOMPOK' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Daftar Kelompok</CardTitle>
+                  <CardDescription>Daftar kelompok dan status pengumpulan</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {(!asesmen.kelompok || asesmen.kelompok.length === 0) ? (
+                    <p className="text-center text-muted-foreground py-8">Belum ada kelompok dibuat</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {asesmen.kelompok.map((k: any) => {
+                        const submitted = (asesmen.pengumpulanProyek || []).some((p: any) => (p.kelompokId === k.id) || (p.namaKelompok && p.namaKelompok === k.nama))
+                        return (
+                          <div key={k.id} className="flex items-center justify-between p-3 rounded-lg border bg-background">
+                            <div>
+                              <div className="font-medium">{k.nama}</div>
+                              <div className="text-sm text-muted-foreground">{(k.anggota || []).map((a: any) => a.nama).filter(Boolean).join(', ')}</div>
+                            </div>
+                            <div>
+                              {submitted ? (
+                                <Badge className="bg-green-600">Sudah Mengumpulkan</Badge>
+                              ) : (
+                                <Badge className="bg-blue-600">Belum Mengumpulkan</Badge>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -1296,16 +1325,14 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               <TableHead>Ketua</TableHead>
                             </>
                           )}
-                          <TableHead>Kelas</TableHead>
                           <TableHead>Tanggal Upload</TableHead>
-                          <TableHead>Benar</TableHead>
-                          <TableHead>Salah</TableHead>
+                          <TableHead>Kelas</TableHead>
                           <TableHead>Nilai</TableHead>
                           <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {asesmen.pengumpulanProyek && asesmen.pengumpulanProyek.slice().sort((a: any, b: any) => new Date(a.tgl_unggah).getTime() - new Date(b.tgl_unggah).getTime()).map((pengumpulan: any) => (
+                        {asesmen.pengumpulanProyek && asesmen.pengumpulanProyek.map((pengumpulan: any) => (
                           <TableRow key={pengumpulan.id}>
                             <TableCell>
                               {asesmen.tipePengerjaan === 'KELOMPOK' && (
@@ -1325,9 +1352,8 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                                 <TableCell>{pengumpulan.ketua || '-'}</TableCell>
                               </>
                             )}
-                            <TableCell className="text-sm text-muted-foreground">{pengumpulan.siswa?.kelas || '-'}</TableCell>
                             <TableCell>
-                              {new Date(pengumpulan.tgl_unggah).toLocaleString('id-ID', {
+                              {new Date(pengumpulan.tgl_unggah).toLocaleDateString('id-ID', {
                                 day: 'numeric',
                                 month: 'short',
                                 year: 'numeric',
@@ -1336,23 +1362,20 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                               })}
                             </TableCell>
                             <TableCell>
-                              {Array.isArray(pengumpulan.jawabanSiswa) ? pengumpulan.jawabanSiswa.filter((j: any) => j.isBenar === true).length : '-'}
-                            </TableCell>
-                            <TableCell>
-                              {Array.isArray(pengumpulan.jawabanSiswa) ? pengumpulan.jawabanSiswa.filter((j: any) => j.isBenar === false).length : '-'}
+                              {pengumpulan.siswa?.kelas || pengumpulan.kelas || '-'}
                             </TableCell>
                             <TableCell>
                               {pengumpulan.nilai ? (
-                                <Badge className="bg-blue-600 text-white">
+                                <Badge variant={pengumpulan.nilai >= 75 ? 'default' : 'secondary'}>
                                   {pengumpulan.nilai}
                                 </Badge>
                               ) : (
-                                <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Belum dinilai</Badge>
+                                <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Sedang di review</Badge>
                               )}
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex justify-end gap-2">
-                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
+                                <Button variant="ghost" size="sm" asChild>
                                   <Link href={`/courses/${courseId}/${asesmenId}/${pengumpulan.id}`}>
                                     <Eye className="mr-2 h-4 w-4" />
                                     Detail
@@ -1487,48 +1510,33 @@ export default function AsesmenDetailClient({ courseId, asesmenId }: AsesmenDeta
                       <div className="min-w-[500px] px-6">
                       <Table>
                         <TableHeader>
-                              <TableRow>
-                                  <TableHead>Nama Siswa</TableHead>
-                                  <TableHead>Kelas</TableHead>
-                                  <TableHead>Tanggal</TableHead>
-                                  <TableHead>Benar</TableHead>
-                                  <TableHead>Salah</TableHead>
-                                  <TableHead>Nilai</TableHead>
-                              <TableHead className="text-right">Aksi</TableHead>
-                            </TableRow>
-                          </TableHeader>
+                            <TableRow>
+                            <TableHead>Nama Siswa</TableHead>
+                            <TableHead>Nilai</TableHead>
+                            <TableHead>Tanggal</TableHead>
+                            <TableHead className="text-right">Aksi</TableHead>
+                          </TableRow>
+                        </TableHeader>
                         <TableBody>
-                          {asesmen.nilai.slice().sort((a: any, b: any) => new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime()).map((nilai: any) => (
+                          {asesmen.nilai.map((nilai: any) => (
                             <TableRow key={nilai.id}>
                               <TableCell className="font-medium">{nilai.siswa.nama}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">{nilai.siswa?.kelas || '-'}</TableCell>
                               <TableCell>
-                                {new Date(nilai.tanggal).toLocaleString('id-ID', {
+                                <Badge variant={nilai.skor >= 75 ? 'default' : 'secondary'}>
+                                  {nilai.skor}
+                                </Badge>
+                              </TableCell>
+                              {/* Status column removed per request */}
+                              <TableCell>
+                                {new Date(nilai.tanggal).toLocaleDateString('id-ID', {
                                   day: 'numeric',
                                   month: 'short',
                                   year: 'numeric',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
                                 })}
-                              </TableCell>
-                              <TableCell>
-                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === true).length : 0}
-                              </TableCell>
-                              <TableCell>
-                                {Array.isArray(nilai.jawabanSiswa) ? nilai.jawabanSiswa.filter((j: any) => j.isBenar === false).length : 0}
-                              </TableCell>
-                              <TableCell>
-                                {typeof nilai.skor === 'number' ? (
-                                  <Badge className="bg-blue-600 text-white">
-                                    {nilai.skor}
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-blue-500 border-blue-200 bg-blue-50">Sedang di review</Badge>
-                                )}
                               </TableCell>
                               <TableCell className="text-right">
                                 {nilai.attemptId ? (
-                                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" asChild>
+                                  <Button variant="ghost" size="sm" asChild>
                                     <Link href={`/courses/${courseId}/${asesmenId}/kuis-attempts/${nilai.attemptId}`}>
                                       <Eye className="mr-2 h-4 w-4" />
                                       Detail & Nilai
