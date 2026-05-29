@@ -191,12 +191,27 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
 
           // Fetch enrolled students for group selection
           if (asesmenData.tipePengerjaan === 'KELOMPOK') {
-            // Check if student belongs to a pre-defined group
-            const myGroup = asesmenData.kelompok?.find((k: any) => 
-              Array.isArray(k.anggotaIds)
-                ? k.anggotaIds.includes(user.id)
-                : (k.anggota || []).some((a: any) => a.siswaId === user.id)
-            )
+              // Ensure kelompok data is available (teachers may have created groups; student GET may not include kelompok)
+              if (asesmenData.tipePengerjaan === 'KELOMPOK' && !Array.isArray(asesmenData.kelompok)) {
+                try {
+                  const kRes = await fetch(`/api/asesmen/${asesmenId}/kelompok`)
+                  if (kRes.ok) {
+                    const kData = await kRes.json().catch(() => null)
+                    asesmenData.kelompok = kData?.kelompok || []
+                  } else {
+                    asesmenData.kelompok = []
+                  }
+                } catch (err) {
+                  asesmenData.kelompok = []
+                }
+              }
+
+              // Check if student belongs to a pre-defined group
+              const myGroup = asesmenData.kelompok?.find((k: any) => 
+                Array.isArray(k.anggotaIds)
+                  ? k.anggotaIds.includes(user.id)
+                  : (k.anggota || []).some((a: any) => a.siswaId === user.id)
+              )
             
             if (myGroup) {
               setUserGroup(myGroup)
