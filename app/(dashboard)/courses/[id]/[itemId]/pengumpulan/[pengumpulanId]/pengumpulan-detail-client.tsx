@@ -27,6 +27,7 @@ import {
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
+import { Switch } from "@/components/ui/switch"
 
 interface Props {
   courseId: string
@@ -49,6 +50,7 @@ export default function PengumpulanDetailClient({ courseId, asesmenId, pengumpul
   const [catatan, setCatatan] = React.useState<string>("")
   const [feedback, setFeedback] = React.useState<string>("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [pushToShowcase, setPushToShowcase] = React.useState<boolean>(false)
 
   React.useEffect(() => {
     if (isLoading) return
@@ -79,6 +81,11 @@ export default function PengumpulanDetailClient({ courseId, asesmenId, pengumpul
 
     load()
   }, [user, isLoading, courseId, asesmenId, pengumpulanId, router])
+
+  React.useEffect(() => {
+    if (!pengumpulan) return
+    setPushToShowcase(pengumpulan.status === 'VALIDATED')
+  }, [pengumpulan])
 
   const fileHref = React.useMemo(() => {
     if (!pengumpulan) return null
@@ -298,11 +305,19 @@ export default function PengumpulanDetailClient({ courseId, asesmenId, pengumpul
               <Separator />
 
               <div className="flex flex-col gap-2">
-                <Button onClick={() => onSave(false)} disabled={isSubmitting}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Switch checked={pushToShowcase} onCheckedChange={(v: boolean) => setPushToShowcase(v)} />
+                    <div className="text-sm">
+                      <div className="font-semibold">Masuk ke Showcase</div>
+                      <div className="text-xs text-muted-foreground">Jika aktif, saat menyimpan nilai tugas akan masuk ke profil showcase siswa.</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Status saat ini: <strong>{isValidated ? 'Ter-showcase' : 'Belum divalidasi'}</strong></div>
+                </div>
+
+                <Button onClick={() => onSave(pushToShowcase)} disabled={isSubmitting}>
                   <Save className="mr-2 h-4 w-4" /> Simpan Nilai
-                </Button>
-                <Button onClick={() => onSave(true)} disabled={isSubmitting} variant={isValidated ? "secondary" : "default"}>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> {isValidated ? "Sudah divalidasi" : "Validasi & Masukkan Showcase"}
                 </Button>
               </div>
 

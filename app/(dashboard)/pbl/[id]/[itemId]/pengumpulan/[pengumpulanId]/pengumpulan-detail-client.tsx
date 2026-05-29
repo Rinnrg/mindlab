@@ -38,6 +38,7 @@ import {
   TableRow 
 } from "@/components/ui/table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
@@ -69,6 +70,7 @@ export default function PengumpulanDetailClient({
   const [feedback, setFeedback] = React.useState<string>(pengumpulan.feedback || "")
   const [showPdf, setShowPdf] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [pushToShowcase, setPushToShowcase] = React.useState<boolean>(pengumpulan.status === 'VALIDATED')
 
   const pengerjaanLabel =
     (pengumpulan as any)?.asesmen?.tipePengerjaan === 'KELOMPOK'
@@ -498,22 +500,27 @@ export default function PengumpulanDetailClient({
               </div>
 
               <div className="flex flex-col gap-3 pt-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={pushToShowcase}
+                      onCheckedChange={(v: boolean) => setPushToShowcase(v)}
+                    />
+                    <div className="text-sm">
+                      <div className="font-semibold">Masuk ke Showcase</div>
+                      <div className="text-xs text-muted-foreground">Jika aktif, saat menyimpan nilai tugas akan masuk ke profil showcase siswa.</div>
+                    </div>
+                  </div>
+                  <div className="text-sm text-muted-foreground">Status saat ini: <strong>{pengumpulan.status === 'VALIDATED' ? 'Ter-showcase' : pengumpulan.status === 'DINILAI' ? 'Sudah Dinilai' : 'Belum Dinilai'}</strong></div>
+                </div>
+
                 <Button 
-                  onClick={() => onSaveGrade(false)} 
+                  onClick={() => onSaveGrade(pushToShowcase)} 
                   disabled={isSubmitting}
                   className="w-full h-11 rounded-xl gap-2"
                 >
                   <Save className="h-4 w-4" />
                   Simpan Nilai
-                </Button>
-                <Button 
-                  variant="secondary"
-                  onClick={() => onSaveGrade(true)} 
-                  disabled={isSubmitting}
-                  className="w-full h-11 rounded-xl gap-2 border-primary/20 bg-primary/10 hover:bg-primary/20 text-primary"
-                >
-                  <Trophy className="h-4 w-4" />
-                  Validasi & Showcase
                 </Button>
               </div>
 
