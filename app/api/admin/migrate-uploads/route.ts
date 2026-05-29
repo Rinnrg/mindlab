@@ -12,21 +12,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-  const url = new URL(request.url)
-  const dryRun = url.searchParams.get('dryRun') === '1'
+    const url = new URL(request.url)
+    const dryRun = url.searchParams.get('dryRun') === '1'
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://noltlnkzgishtptqzpqd.supabase.co'
 
     // 1) Gather candidate DB fields that contain URLs referencing files
     const pbls = await prisma.pBL.findMany({ select: { id: true, lampiran: true } })
     const materis = await prisma.materi.findMany({ select: { id: true, lampiran: true, courseId: true } })
-    const proyek = await prisma.pBL.findMany({ select: { id: true, lampiran: true } })
+    const courses = await prisma.course.findMany({ select: { id: true, gambar: true } })
     const pengumpulans = await prisma.pengumpulanProyek.findMany({ select: { id: true, fileUrl: true, fileName: true, asesmenId: true } })
 
-    const allRefs: { table: string; id: string; url?: string | null }[] = []
+    const allRefs: { table: string; id: string; url?: string | null; extra?: any }[] = []
     pbls.forEach(p => allRefs.push({ table: 'pbl', id: p.id, url: p.lampiran }))
-    materi.forEach(m => allRefs.push({ table: 'materi', id: m.id, url: m.lampiran }))
-    proyek.forEach(p => allRefs.push({ table: 'proyek', id: p.id, url: p.lampiran }))
-    pengumpulans.forEach(p => allRefs.push({ table: 'pengumpulan', id: p.id, url: p.fileUrl }))
+    materis.forEach(m => allRefs.push({ table: 'materi', id: m.id, url: m.lampiran, extra: { courseId: m.courseId } }))
+    courses.forEach(c => allRefs.push({ table: 'course', id: c.id, url: c.gambar }))
+    pengumpulans.forEach(p => allRefs.push({ table: 'pengumpulan', id: p.id, url: p.fileUrl, extra: { asesmenId: p.asesmenId, fileName: p.fileName } }))
 
     // Helper: detect if URL is already in bucket
     const isInBucket = (u?: string | null) => {
@@ -50,7 +50,19 @@ export async function POST(request: NextRequest) {
         const size = Number(res.headers.get('content-length') || 0)
         const contentType = res.headers.get('content-type') || 'application/octet-stream'
         const fname = r.url.split('/').pop() || `${r.id}`
-        const prefix = r.table === 'materi' ? `course/${r.id}/materi` : `${r.table}/${r.id}`
+
+        // Determine a sensible prefix so files are not placed at bucket root
+        let prefix = `${r.table}/${r.id}`
+        if (r.table === 'materi') {
+          // place materi under its course folder
+          const courseId = r.extra?.courseId || r.id
+          prefix = `course/${courseId}/materi`
+        } else if (r.table === 'course') {
+          prefix = `course/${r.id}/gambar`
+        } else if (r.table === 'pengumpulan') {
+          const asesmenId = r.extra?.asesmenId || r.id
+          prefix = `course_submissions/${asesmenId}`
+        }
 
         migrationCandidates.push({ id: r.id, table: r.table, old: r.url, fname, size, contentType, prefix })
 
@@ -59,12 +71,14 @@ export async function POST(request: NextRequest) {
           const publicUrl = await uploadToSupabase(buf, fname, contentType, prefix)
 
           // Update DB depending on table
-          if (r.table === 'pbl' || r.table === 'proyek') {
+          if (r.table === 'pbl') {
             await prisma.pBL.update({ where: { id: r.id }, data: { lampiran: publicUrl } })
           } else if (r.table === 'materi') {
             await prisma.materi.update({ where: { id: r.id }, data: { lampiran: publicUrl } })
           } else if (r.table === 'pengumpulan') {
             await prisma.pengumpulanProyek.update({ where: { id: r.id }, data: { fileUrl: publicUrl } })
+          } else if (r.table === 'course') {
+            await prisma.course.update({ where: { id: r.id }, data: { gambar: publicUrl } })
           }
 
           migrated.push({ id: r.id, table: r.table, old: r.url, new: publicUrl })

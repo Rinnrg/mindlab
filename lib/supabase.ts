@@ -28,7 +28,10 @@ export async function uploadToSupabase(
   // Sanitize filename: replace spaces and special characters with underscores
   const cleanName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_')
   // Build structured path when prefix is provided
-  const prefix = pathPrefix ? String(pathPrefix).replace(/(^\/+|\/+$/g, '') : ''
+  let prefix = pathPrefix ? String(pathPrefix) : ''
+  // Trim leading/trailing slashes without regex (avoid bundler/serialization issues)
+  while (prefix.startsWith('/')) prefix = prefix.slice(1)
+  while (prefix.endsWith('/')) prefix = prefix.slice(0, -1)
   const uniquePath = prefix ? `${prefix}/${Date.now()}-${cleanName}` : `${Date.now()}-${cleanName}`
 
   console.log(`Uploading file ${fileName} (${buffer.length} bytes, type: ${fileType}) to Supabase Storage...`)
