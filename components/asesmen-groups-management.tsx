@@ -41,11 +41,23 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
   const [newGroupName, setNewGroupName] = React.useState("")
   const [selectedGroupId, setSelectedGroupId] = React.useState<string | null>(null)
   const [selectedMemberIds, setSelectedMemberIds] = React.useState<Set<string>>(new Set())
+  const [groupNameEdit, setGroupNameEdit] = React.useState<string>("")
+  const [selectedKetuaId, setSelectedKetuaId] = React.useState<string | null>(null)
 
   const selectedGroup = React.useMemo(
     () => groups.find((g) => g.id === selectedGroupId) || null,
     [groups, selectedGroupId]
   )
+
+  React.useEffect(() => {
+    if (selectedGroup) {
+      setGroupNameEdit(selectedGroup.nama || "")
+      setSelectedKetuaId(selectedGroup.ketuaId || null)
+    } else {
+      setGroupNameEdit("")
+      setSelectedKetuaId(null)
+    }
+  }, [selectedGroup])
 
   const membersInAnyGroup = React.useMemo(() => {
     const set = new Set<string>()
@@ -145,6 +157,31 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
     }
   }
 
+  const saveGroupChanges = async () => {
+    if (!selectedGroupId) return
+    setSaving(true)
+    try {
+      const body: any = {}
+      if (typeof groupNameEdit === 'string') body.nama = groupNameEdit
+      if (selectedKetuaId !== undefined) body.ketuaId = selectedKetuaId
+
+      const res = await fetch(`/api/asesmen/${asesmenId}/kelompok/${selectedGroupId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error || 'Gagal menyimpan perubahan kelompok')
+
+      await showSuccess('Berhasil', 'Perubahan kelompok disimpan')
+      await fetchAll()
+    } catch (e: any) {
+      showError('Error', e?.message || 'Gagal menyimpan perubahan kelompok')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const addMembers = async () => {
     if (!selectedGroupId) return
     const ids = Array.from(selectedMemberIds)
@@ -197,7 +234,6 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
       </div>
     )
   }
-
   return (
     <div className="space-y-4">
       <AlertComponent />
@@ -217,9 +253,7 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
       ) : null}
 
       {!courseId ? (
-        <div className="text-sm text-muted-foreground">
-          Pilih course terlebih dulu untuk memuat daftar siswa.
-        </div>
+        <div className="text-sm text-muted-foreground">Pilih course terlebih dulu untuk memuat daftar siswa.</div>
       ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
@@ -302,39 +336,90 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
 
           {selectedGroup ? (
             <>
-              <div className="space-y-2">
-                <Label>Anggota ({selectedGroup.anggotaIds.length})</Label>
-                {selectedGroup.anggotaIds.length === 0 ? (
-                  <div className="text-sm text-muted-foreground">Belum ada anggota.</div>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedGroup.anggotaIds.map((id) => {
-                      const s = students.find((x) => x.id === id)
+              <div className="space-y-3">
+                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 space-y-3">
+                  <div className="text-center">
+                    <p className="text-xs text-primary font-bold uppercase tracking-widest mb-1">Nama Kelompok</p>
+                  </div>
+                  <Input
+                    value={groupNameEdit}
+                    onChange={(e) => setGroupNameEdit(e.target.value)}
+                    placeholder="Contoh: Kelompok 1"
+                    className="rounded-xl border-primary/20 bg-background/60 h-11 font-bold text-center"
+                    disabled={saving}
+                    aria-label="Nama kelompok"
+                  />
+                  <p className="text-[10px] text-primary/70 text-center">
+                    Nama ini akan dipakai saat pengumpulan.
+                  </p>
+                </div>
+
+                <div>
+                  <Label className="text-xs font-bold text-primary">Ketua (Pilih satu)</Label>
+                  <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
+                    {(selectedGroup.anggotaIds || []).map((sid) => {
+                      const student = students.find((s) => s.id === sid)
+                      if (!student) return null
+                      const isSelected = selectedKetuaId === student.id
                       return (
-                        <div key={id} className="flex items-center justify-between gap-2 rounded-lg border p-3">
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium truncate">
-                              {s?.nama || id}
-                            </div>
-                            <div className="text-xs text-muted-foreground truncate">
-                              {s?.kelas ? `Kelas ${s.kelas}` : ""}{s?.email ? (s?.kelas ? ` • ${s.email}` : s.email) : ""}
-                            </div>
+                        <button
+                          key={`ketua-${student.id}`}
+                          type="button"
+                          onClick={() => setSelectedKetuaId(student.id)}
+                          disabled={saving}
+                          className={`flex items-center gap-3 p-2 rounded-xl border transition-all text-left ${isSelected ? 'border-primary bg-primary/20 shadow-sm' : 'border-border/30 hover:border-primary/50'}`}
+                        >
+                          <div className="h-8 w-8 rounded-full bg-muted/10 flex items-center justify-center overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={student.foto || ''} alt={student.nama || ''} className="h-8 w-8 object-cover" />
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => void removeMember(selectedGroup.id, id)}
-                            disabled={saving}
-                            title="Hapus anggota"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+                          <p className="text-xs font-bold truncate flex-1">{student.nama}</p>
+                          {isSelected && <span className="text-primary text-sm">★</span>}
+                        </button>
                       )
                     })}
                   </div>
-                )}
+                  <p className="text-[11px] text-muted-foreground mt-1">Ketua wajib dipilih untuk pengumpulan kelompok.</p>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-2">Anggota ({selectedGroup.anggotaIds.length})</Label>
+                  <div className="space-y-3">
+                    {selectedGroup.anggotaIds.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">Belum ada anggota.</p>
+                    ) : (
+                      (selectedGroup.anggotaIds as string[]).map((aId) => {
+                        const a = students.find((x) => x.id === aId)
+                        return (
+                          <div key={aId} className="flex items-center gap-3 p-2 rounded-xl hover:bg-background/50 transition-colors">
+                            <div className="h-9 w-9 rounded-full overflow-hidden border border-primary/20">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={a?.foto || ''} alt={a?.nama || ''} className="h-9 w-9 object-cover" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold truncate">{a?.nama || aId}</p>
+                              <p className="text-[10px] text-muted-foreground">Siswa Enrollment</p>
+                            </div>
+                            <div className="ml-auto">
+                              <Button type="button" variant="ghost" size="sm" onClick={() => void removeMember(selectedGroup.id, aId)} disabled={saving} title="Hapus anggota">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <Button type="button" onClick={() => void saveGroupChanges()} disabled={saving || !groupNameEdit.trim()}>
+                    Simpan Perubahan
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => { setSelectedGroupId(null); setSelectedMemberIds(new Set()) }}>
+                    Tutup
+                  </Button>
+                </div>
               </div>
 
               <Separator />

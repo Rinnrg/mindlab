@@ -92,6 +92,74 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   const [enrolledStudents, setEnrolledStudents] = useState<any[]>([])
   const [selectedKetua, setSelectedKetua] = useState<string | null>(null)
   const [userGroup, setUserGroup] = useState<any>(null)
+  const [usePreviousGroupId, setUsePreviousGroupId] = useState<string | null>(null)
+
+  const previousGroups = useMemo(() => {
+    if (!asesmen || !Array.isArray(asesmen.pengumpulanProyek)) return []
+    const map = new Map<string, any>()
+    for (const p of asesmen.pengumpulanProyek) {
+      const key = p.kelompokId || (`name:${p.namaKelompok || ''}`)
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          kelompokId: p.kelompokId || null,
+          namaKelompok: p.namaKelompok || null,
+          ketua: p.ketua || null,
+          anggota: p.anggota || null,
+          submittedBy: p.siswaId || null,
+          raw: p,
+        })
+      }
+    }
+    return Array.from(map.values())
+  }, [asesmen])
+
+  // Previous submissions across the same course (grouped by asesmen)
+  const [previousByAsesmen, setPreviousByAsesmen] = useState<Record<string, any>>({})
+  const [selectedAsesmenChecks, setSelectedAsesmenChecks] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    if (!courseId) return
+    let cancelled = false
+    const fetchPrev = async () => {
+      try {
+        const res = await fetch(`/api/pengumpulan?proyekId=${courseId}`)
+        if (!res.ok) return
+        const data = await res.json().catch(() => null)
+        if (cancelled) return
+        const items = data?.pengumpulan || []
+        // group by asesmen
+        const map: Record<string, any> = {}
+        for (const p of items) {
+          const a = p.asesmen || { id: p.asesmenId, nama: p.asesmenNama }
+          const aid = a?.id || String(p.asesmenId || 'unknown')
+          if (!map[aid]) map[aid] = { asesmenId: aid, nama: a?.nama || `Asesmen ${aid}`, groups: new Map() }
+          const key = p.kelompokId || (`name:${p.namaKelompok || ''}`)
+          if (!map[aid].groups.has(key)) {
+            map[aid].groups.set(key, {
+              key,
+              kelompokId: p.kelompokId || null,
+              namaKelompok: p.namaKelompok || null,
+              ketua: p.ketua || null,
+              anggota: p.anggota || null,
+              submittedBy: p.siswaId || null,
+              raw: p,
+            })
+          }
+        }
+        // convert groups map to arrays
+        const final: Record<string, any> = {}
+        for (const k of Object.keys(map)) {
+          final[k] = { asesmenId: map[k].asesmenId, nama: map[k].nama, groups: Array.from(map[k].groups.values()) }
+        }
+        setPreviousByAsesmen(final)
+      } catch (err) {
+        // ignore
+      }
+    }
+    void fetchPrev()
+    return () => { cancelled = true }
+  }, [courseId])
 
   const allowedKetuaStudents = useMemo(() => {
     if (!userGroup || !Array.isArray(userGroup.anggota)) return []
@@ -920,6 +988,75 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
+                    {Object.keys(previousByAsesmen).length > 0 && (
+                      <div className="space-y-3">
+                        <Label className="text-xs font-bold text-primary">Gunakan kelompok dari pengumpulan sebelumnya (pilih bab/LKPD)</Label>
+                        <div className="space-y-2">
+                          {Object.values(previousByAsesmen).map((pa: any) => (
+                            <div key={pa.asesmenId} className="flex items-center gap-3">
+                              <input
+                                id={`prev-${pa.asesmenId}`}
+                                type="checkbox"
+                                checked={!!selectedAsesmenChecks[pa.asesmenId]}
+                                onChange={(e) => setSelectedAsesmenChecks((prev) => ({ ...prev, [pa.asesmenId]: e.target.checked }))}
+                                className="mt-0.5"
+                              />
+                              <label htmlFor={`prev-${pa.asesmenId}`} className="text-sm">
+                                {pa.nama}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Show groups for checked asesmen */}
+                        {Object.values(previousByAsesmen).map((pa: any) => (
+                          selectedAsesmenChecks[pa.asesmenId] ? (
+                            <div key={`groups-${pa.asesmenId}`} className="pt-2">
+                              <div className="text-xs text-muted-foreground font-semibold mb-2">Kelompok dari {pa.nama}</div>
+                              <div className="grid grid-cols-1 gap-2">
+                                {pa.groups.map((g: any) => (
+                                  <div key={g.key} className="flex items-center justify-between rounded-xl border p-3">
+                                    <div>
+                                      <div className="font-medium text-sm">{g.namaKelompok || 'Kelompok'}</div>
+                                      <div className="text-xs text-muted-foreground">Ketua: {g.ketua || '-'}</div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        className="btn btn-sm"
+                                        onClick={() => {
+                                          // apply this group
+                                          const pg = g
+                                          const groupObj: any = {
+                                            nama: pg.namaKelompok || pg.kelompokId || 'Kelompok',
+                                            anggota: Array.isArray(pg.anggota) ? pg.anggota : undefined,
+                                            anggotaIds: Array.isArray(pg.anggota) ? pg.anggota.map((a: any) => a.siswaId).filter(Boolean) : undefined,
+                                            ketuaId: undefined,
+                                          }
+                                          if (pg.ketua) {
+                                            const ket = enrolledStudents.find((s: any) => s.nama === pg.ketua || s.id === pg.ketua)
+                                            if (ket) groupObj.ketuaId = ket.id
+                                          }
+                                          setUserGroup(groupObj)
+                                          setNamaKelompok(pg.namaKelompok || '')
+                                          if (groupObj.ketuaId) setSelectedKetua(String(groupObj.ketuaId))
+                                          if (pg.anggota && Array.isArray(pg.anggota)) {
+                                            const names = pg.anggota.map((a: any) => a.nama || a.siswa?.nama).filter(Boolean)
+                                            setAnggota(names.join(', '))
+                                          }
+                                        }}
+                                      >
+                                        Gunakan
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null
+                        ))}
+                      </div>
+                    )}
                   {userGroup ? (
                     /* Pre-assigned Group View */
                     <div className="space-y-6">
