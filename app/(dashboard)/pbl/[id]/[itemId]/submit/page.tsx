@@ -121,7 +121,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
   useEffect(() => {
     if (!courseId) return
     let cancelled = false
-    const fetchPrev = async () => {
+    const fetchPreviousGroups = async () => {
       try {
         const res = await fetch(`/api/pengumpulan?proyekId=${courseId}`)
         if (!res.ok) return
@@ -157,7 +157,9 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
         // ignore
       }
     }
-    void fetchPrev()
+    void fetchPreviousGroups()
+    // expose for manual reload via button
+    ;(window as any).__fetchPreviousGroups = fetchPreviousGroups
     return () => { cancelled = true }
   }, [courseId])
 
@@ -988,7 +990,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
-                    {Object.keys(previousByAsesmen).length > 0 && (
+                    {Object.keys(previousByAsesmen).length > 0 ? (
                       <div className="space-y-3">
                         <Label className="text-xs font-bold text-primary">Gunakan kelompok dari pengumpulan sebelumnya (pilih bab/LKPD)</Label>
                         <div className="space-y-2">
@@ -1056,7 +1058,19 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                           ) : null
                         ))}
                       </div>
-                    )}
+                    ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Belum ada pengumpulan sebelumnya atau data belum dimuat.</p>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => (window as any).__fetchPreviousGroups?.()}>Muat ulang kelompok sebelumnya</Button>
+                      <Button size="sm" onClick={() => {
+                        // quick debug: open console tip
+                        // eslint-disable-next-line no-console
+                        console.info('Jalankan window.__fetchPreviousGroups() di console untuk memaksa reload')
+                      }}>Bantuan</Button>
+                    </div>
+                  </div>
+                )}
                   {userGroup ? (
                     /* Pre-assigned Group View */
                     <div className="space-y-6">
