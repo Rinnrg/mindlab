@@ -42,6 +42,7 @@ export default function AddMateriPage() {
   const [loadingKelas, setLoadingKelas] = React.useState(true)
 
   const [file, setFile] = React.useState<File | null>(null)
+  const [lampiran, setLampiran] = React.useState<string>("")
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   React.useEffect(() => {
@@ -98,11 +99,8 @@ export default function AddMateriPage() {
           judul: judul.trim(),
           deskripsi: deskripsi.trim() || null,
           kelasTarget: selectedKelas,
-          lampiran: fileName || null,
-          fileData: fileData || null,
-          fileName: fileName || null,
-          fileType: fileType || null,
-          fileSize: fileSize || null,
+          lampiran: lampiran?.trim() ? lampiran.trim() : (fileName || null),
+          ...(lampiran?.trim() ? {} : { fileData: fileData || null, fileName: fileName || null, fileType: fileType || null, fileSize: fileSize || null }),
           courseId: pblId,
           sintak: sintak || null,
           origin: "PBL",
@@ -202,7 +200,22 @@ export default function AddMateriPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="file">Lampiran (opsional)</Label>
+              <Label htmlFor="lampiran">Lampiran (URL) (opsional)</Label>
+              <Input id="lampiran" value={lampiran} onChange={(e) => setLampiran(e.target.value)} placeholder="https://youtu.be/... atau https://www.youtube.com/watch?v=..." />
+              {lampiran && (lampiran.includes("youtube.com") || lampiran.includes("youtu.be")) && (
+                <div className="mt-2 aspect-video overflow-hidden rounded-md">
+                  <iframe
+                    title="YouTube preview"
+                    className="w-full h-full"
+                    src={lampiran.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+
+              <Label htmlFor="file">Ganti / Upload File (opsional)</Label>
               <Input
                 id="file"
                 type="file"

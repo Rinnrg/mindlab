@@ -123,6 +123,7 @@ export default function AddAsesmenPage() {
 
   const [tipePengerjaan, setTipePengerjaan] = React.useState<"INDIVIDU" | "KELOMPOK">("INDIVIDU")
   const [file, setFile] = React.useState<File | null>(null)
+  const [lampiran, setLampiran] = React.useState<string>("")
 
   // TUGAS builder state (drag-drop toolbox)
   const [submissionComponents, setSubmissionComponents] = React.useState<SubmissionComponentType[]>(["UPLOAD_FILE"])
@@ -534,11 +535,13 @@ export default function AddAsesmenPage() {
               ketuaByGroup: selectedKetuaByGroup,
             }
           }
-          payload.lampiran = fileName
-          payload.fileData = fileData
-          payload.fileName = fileName
-          payload.fileType = fileType
-          payload.fileSize = fileSize
+          payload.lampiran = lampiran?.trim() ? lampiran.trim() : fileName
+          if (!lampiran?.trim()) {
+            payload.fileData = fileData
+            payload.fileName = fileName
+            payload.fileType = fileType
+            payload.fileSize = fileSize
+          }
         }
 
   // Mark asal pembuatan agar bisa difilter antara PBL vs Kursus.
@@ -1371,7 +1374,22 @@ export default function AddAsesmenPage() {
                       )}
 
                       <div className="space-y-2">
-                        <Label htmlFor="file">Lampiran (opsional)</Label>
+                        <Label htmlFor="lampiran">Lampiran (URL) (opsional)</Label>
+                        <Input id="lampiran" value={lampiran} onChange={(e) => setLampiran(e.target.value)} placeholder="https://youtu.be/... atau https://www.youtube.com/watch?v=..." />
+                        {lampiran && (lampiran.includes("youtube.com") || lampiran.includes("youtu.be")) && (
+                          <div className="mt-2 aspect-video overflow-hidden rounded-md">
+                            <iframe
+                              title="YouTube preview"
+                              className="w-full h-full"
+                              src={lampiran.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
+                          </div>
+                        )}
+
+                        <Label htmlFor="file">Ganti / Upload File (opsional)</Label>
                         <Input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] || null)} />
                         {file && <p className="text-xs text-muted-foreground">Dipilih: {file.name}</p>}
                       </div>
