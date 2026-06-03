@@ -990,6 +990,20 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
+                    {/* Debug / diagnostic info to help find missing "Gunakan" buttons */}
+                    <div className="mb-2 text-xs text-muted-foreground flex items-center justify-between">
+                      <div>Debug: isKelompok={String(isKelompok)} · previousAsesmenCount={Object.keys(previousByAsesmen).length}</div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => window.open(`/api/pengumpulan?proyekId=${courseId}`, '_blank')}
+                          className="text-xs text-primary underline"
+                        >
+                          Buka API pengumpulan
+                        </button>
+                        <button type="button" onClick={() => (window as any).__fetchPreviousGroups?.()} className="text-xs text-primary underline">Muat Ulang</button>
+                      </div>
+                    </div>
                     {Object.keys(previousByAsesmen).length > 0 ? (
                       <div className="space-y-3">
                         <Label className="text-xs font-bold text-primary">Gunakan kelompok dari pengumpulan sebelumnya (pilih bab/LKPD)</Label>
