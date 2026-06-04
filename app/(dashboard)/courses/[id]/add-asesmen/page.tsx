@@ -38,6 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/lib/auth-context"
 import * as XLSX from 'xlsx'
+import { PreviousGroupsSelector } from '@/components/previous-groups-selector'
 
 async function uploadPublicFile(file: File): Promise<string> {
   const form = new FormData()
@@ -1151,7 +1152,24 @@ export default function AddAsesmenPage() {
                     Tambah Soal
                   </Button>
                 </div>
+                {/* Reuse previous groups helper */}
+                <div className="px-4 sm:px-6 py-4">
+                  <div className="p-3 border rounded">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm font-medium">Gunakan kelompok dari pengumpulan sebelumnya</div>
+                      <Button size="sm" variant="outline" onClick={() => window.open(`/api/pengumpulan?proyekId=${courseId}`, '_blank')}>Buka API</Button>
+                    </div>
+                    <div className="mt-3">
+                      <PreviousGroupsSelector courseId={courseId || ''} students={enrolledStudents} onApplyGroup={(g) => {
+                        // apply into group 1 as a simple merge
+                        setSelectedGroupMembersByGroup((prev) => ({ ...prev, 1: g.anggotaIds || (g.anggota || []).map((a: any) => a.siswaId).filter(Boolean) }))
+                        if (g.ketuaId) setSelectedKetuaByGroup((prev) => ({ ...prev, 1: g.ketuaId }))
+                      }} />
+                    </div>
+                  </div>
+                </div>
               </div>
+              
             )}
 
             {tipe === "TUGAS" && (

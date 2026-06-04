@@ -114,54 +114,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
     return Array.from(map.values())
   }, [asesmen])
 
-  // Previous submissions across the same course (grouped by asesmen)
-  const [previousByAsesmen, setPreviousByAsesmen] = useState<Record<string, any>>({})
-  const [selectedAsesmenChecks, setSelectedAsesmenChecks] = useState<Record<string, boolean>>({})
-
-  useEffect(() => {
-    if (!courseId) return
-    let cancelled = false
-    const fetchPreviousGroups = async () => {
-      try {
-        const res = await fetch(`/api/pengumpulan?proyekId=${courseId}`)
-        if (!res.ok) return
-        const data = await res.json().catch(() => null)
-        if (cancelled) return
-        const items = data?.pengumpulan || []
-        // group by asesmen
-        const map: Record<string, any> = {}
-        for (const p of items) {
-          const a = p.asesmen || { id: p.asesmenId, nama: p.asesmenNama }
-          const aid = a?.id || String(p.asesmenId || 'unknown')
-          if (!map[aid]) map[aid] = { asesmenId: aid, nama: a?.nama || `Asesmen ${aid}`, groups: new Map() }
-          const key = p.kelompokId || (`name:${p.namaKelompok || ''}`)
-          if (!map[aid].groups.has(key)) {
-            map[aid].groups.set(key, {
-              key,
-              kelompokId: p.kelompokId || null,
-              namaKelompok: p.namaKelompok || null,
-              ketua: p.ketua || null,
-              anggota: p.anggota || null,
-              submittedBy: p.siswaId || null,
-              raw: p,
-            })
-          }
-        }
-        // convert groups map to arrays
-        const final: Record<string, any> = {}
-        for (const k of Object.keys(map)) {
-          final[k] = { asesmenId: map[k].asesmenId, nama: map[k].nama, groups: Array.from(map[k].groups.values()) }
-        }
-        setPreviousByAsesmen(final)
-      } catch (err) {
-        // ignore
-      }
-    }
-    void fetchPreviousGroups()
-    // expose for manual reload via button
-    ;(window as any).__fetchPreviousGroups = fetchPreviousGroups
-    return () => { cancelled = true }
-  }, [courseId])
+  // previous-groups moved to teacher add/edit form
 
   const allowedKetuaStudents = useMemo(() => {
     if (!userGroup || !Array.isArray(userGroup.anggota)) return []
@@ -781,53 +734,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         className="space-y-4"
                       >
                         {existingSubmissionFileHref && (
-                          <Alert className="rounded-2xl">
-                            <AlertDescription>
-                              File tersimpan di sistem:{' '}
-                              <a
-                                className="underline"
-                                href={existingSubmissionFileHref}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                Download / Lihat
-                              </a>
-                            </AlertDescription>
-                          </Alert>
-                        )}
-                        <div className="p-8 border-2 border-dashed border-border/50 rounded-3xl bg-muted/20 hover:bg-muted/30 transition-colors">
-                          <FileUploadField
-                            label=""
-                            value={fileUrl}
-                            onChange={setFileUrl}
-                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
-                            maxSizeMB={10}
-                            description={
-                              isDeadlinePassed
-                                ? "Deadline sudah lewat"
-                                : "Seret file ke sini atau klik untuk memilih file (PDF, Gambar, atau Dokumen)"
-                            }
-                          />
-                        </div>
-                      </motion.div>
-                    </TabsContent>
-                    )}
-
-                    {asesmen.submissionComponents.includes("COMPILER") && (
-                    <TabsContent value="compiler" key="compiler-tab" className="mt-0 focus-visible:outline-none">
-                      <motion.div
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        className="space-y-4"
-                      >
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Terminal className="h-4 w-4 text-primary" />
-                              <Label className="font-bold">Python Workspace</Label>
-                            </div>
-                            <Button
+                          {/* previous-groups removed; teacher add/edit asesmen will host 'Gunakan kelompok sebelumnya' */}
                               type="button"
                               size="sm"
                               variant="secondary"
@@ -990,101 +897,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
-                    {/* Debug / diagnostic info to help find missing "Gunakan" buttons */}
-                    <div className="mb-2 text-xs text-muted-foreground flex items-center justify-between">
-                      <div>Debug: isKelompok={String(isKelompok)} · previousAsesmenCount={Object.keys(previousByAsesmen).length}</div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => window.open(`/api/pengumpulan?proyekId=${courseId}`, '_blank')}
-                          className="text-xs text-primary underline"
-                        >
-                          Buka API pengumpulan
-                        </button>
-                        <button type="button" onClick={() => (window as any).__fetchPreviousGroups?.()} className="text-xs text-primary underline">Muat Ulang</button>
-                      </div>
-                    </div>
-                    {Object.keys(previousByAsesmen).length > 0 ? (
-                      <div className="space-y-3">
-                        <Label className="text-xs font-bold text-primary">Gunakan kelompok dari pengumpulan sebelumnya (pilih bab/LKPD)</Label>
-                        <div className="space-y-2">
-                          {Object.values(previousByAsesmen).map((pa: any) => (
-                            <div key={pa.asesmenId} className="flex items-center gap-3">
-                              <input
-                                id={`prev-${pa.asesmenId}`}
-                                type="checkbox"
-                                checked={!!selectedAsesmenChecks[pa.asesmenId]}
-                                onChange={(e) => setSelectedAsesmenChecks((prev) => ({ ...prev, [pa.asesmenId]: e.target.checked }))}
-                                className="mt-0.5"
-                              />
-                              <label htmlFor={`prev-${pa.asesmenId}`} className="text-sm">
-                                {pa.nama}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Show groups for checked asesmen */}
-                        {Object.values(previousByAsesmen).map((pa: any) => (
-                          selectedAsesmenChecks[pa.asesmenId] ? (
-                            <div key={`groups-${pa.asesmenId}`} className="pt-2">
-                              <div className="text-xs text-muted-foreground font-semibold mb-2">Kelompok dari {pa.nama}</div>
-                              <div className="grid grid-cols-1 gap-2">
-                                {pa.groups.map((g: any) => (
-                                  <div key={g.key} className="flex items-center justify-between rounded-xl border p-3">
-                                    <div>
-                                      <div className="font-medium text-sm">{g.namaKelompok || 'Kelompok'}</div>
-                                      <div className="text-xs text-muted-foreground">Ketua: {g.ketua || '-'}</div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                      <button
-                                        type="button"
-                                        className="btn btn-sm"
-                                        onClick={() => {
-                                          // apply this group
-                                          const pg = g
-                                          const groupObj: any = {
-                                            nama: pg.namaKelompok || pg.kelompokId || 'Kelompok',
-                                            anggota: Array.isArray(pg.anggota) ? pg.anggota : undefined,
-                                            anggotaIds: Array.isArray(pg.anggota) ? pg.anggota.map((a: any) => a.siswaId).filter(Boolean) : undefined,
-                                            ketuaId: undefined,
-                                          }
-                                          if (pg.ketua) {
-                                            const ket = enrolledStudents.find((s: any) => s.nama === pg.ketua || s.id === pg.ketua)
-                                            if (ket) groupObj.ketuaId = ket.id
-                                          }
-                                          setUserGroup(groupObj)
-                                          setNamaKelompok(pg.namaKelompok || '')
-                                          if (groupObj.ketuaId) setSelectedKetua(String(groupObj.ketuaId))
-                                          if (pg.anggota && Array.isArray(pg.anggota)) {
-                                            const names = pg.anggota.map((a: any) => a.nama || a.siswa?.nama).filter(Boolean)
-                                            setAnggota(names.join(', '))
-                                          }
-                                        }}
-                                      >
-                                        Gunakan
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ) : null
-                        ))}
-                      </div>
-                    ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground">Belum ada pengumpulan sebelumnya atau data belum dimuat.</p>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline" onClick={() => (window as any).__fetchPreviousGroups?.()}>Muat ulang kelompok sebelumnya</Button>
-                      <Button size="sm" onClick={() => {
-                        // quick debug: open console tip
-                        // eslint-disable-next-line no-console
-                        console.info('Jalankan window.__fetchPreviousGroups() di console untuk memaksa reload')
-                      }}>Bantuan</Button>
-                    </div>
-                  </div>
-                )}
+                    {/* previous-group UI removed from student submit page; teacher add/edit asesmen will provide reuse controls */}
                   {userGroup ? (
                     /* Pre-assigned Group View */
                     <div className="space-y-6">

@@ -31,6 +31,7 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import * as XLSX from 'xlsx'
+import { PreviousGroupsSelector } from '@/components/previous-groups-selector'
 
 async function uploadPublicFile(file: File): Promise<string> {
   const form = new FormData()
@@ -1242,6 +1243,23 @@ export default function AddAsesmenPage() {
                   <div className="text-sm text-muted-foreground">Tidak ada siswa terdaftar di kursus ini.</div>
                 ) : (
                   <div className="space-y-4">
+                    {/* Reuse previous groups from other pengumpulan (per-asesmen) */}
+                    <div className="p-3 border rounded space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">Gunakan kelompok dari pengumpulan sebelumnya</div>
+                        <Button size="sm" variant="outline" onClick={() => window.open(`/api/pengumpulan?proyekId=${courseId}`, '_blank')}>Buka API</Button>
+                      </div>
+                      <PreviousGroupsSelector courseId={courseId} students={students} onApplyGroup={(g) => {
+                        // insert as a new built group
+                        setBuiltGroups((prev) => {
+                          const nextId = prev.length + 1
+                          return [
+                            { id: nextId, name: g.nama || `Kelompok ${nextId}`, memberIds: g.anggotaIds || (g.anggota || []).map((a: any) => a.siswaId).filter(Boolean), ketuaId: g.ketuaId },
+                            ...prev,
+                          ]
+                        })
+                      }} />
+                    </div>
                     {/* List kelompok yang sudah terbentuk (muncul di atas list siswa) */}
                     {builtGroups.length > 0 && (
                       <div className="space-y-2">
@@ -1415,3 +1433,4 @@ export default function AddAsesmenPage() {
     </div>
   )
 }
+
