@@ -57,11 +57,11 @@ interface PageProps {
   }>
 }
 
-export default function SubmitAsesmenPage({ params }: PageProps) {
+export default function SubmitAsesmenPage({ params }: any) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
-  const resolvedParams = use(params)
-  const { id: courseId, itemId: asesmenId } = resolvedParams
+  const resolvedParams = use(params as any)
+  const { id: courseId, itemId: asesmenId } = resolvedParams as any
   const { confirm, error: showError, AlertComponent } = useAdaptiveAlert()
   const { execute, ActionFeedback } = useAsyncAction()
 
@@ -132,7 +132,7 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
       icon: <BookOpen className="h-4 w-4" />
     },
     {
-      label: 'Loading...', // Will be replaced by smart-breadcrumb
+      label: 'Loading...', 
       href: `/pbl/${courseId}?tab=assessments`,
       icon: <BookOpen className="h-4 w-4" />
     },
@@ -734,41 +734,45 @@ export default function SubmitAsesmenPage({ params }: PageProps) {
                         className="space-y-4"
                       >
                         {existingSubmissionFileHref && (
-                          {/* previous-groups removed; teacher add/edit asesmen will host 'Gunakan kelompok sebelumnya' */}
-                              type="button"
-                              size="sm"
-                              variant="secondary"
-                              onClick={handleRunCode}
-                              disabled={isRunning || !sourceCode.trim()}
-                              className="rounded-xl gap-2 shadow-sm border border-primary/20"
-                            >
-                              {isRunning ? (
-                                <><Loader2 className="h-3.5 w-3.5 animate-spin" />Menjalankan...</>
-                              ) : (
-                                <><Play className="h-3.5 w-3.5 fill-primary text-primary" />Run Code</>
-                              )}
-                            </Button>
-                          </div>
-                          
-                          <div className="border border-border/30 rounded-2xl overflow-hidden shadow-inner">
-                            <Editor
-                              height="350px"
-                              language="python"
-                              value={sourceCode}
-                              onChange={(val) => setSourceCode(val || "")}
-                              theme="vs-dark"
-                              options={{
-                                minimap: { enabled: false },
-                                fontSize: 14,
-                                lineNumbers: "on",
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true,
-                                padding: { top: 16, bottom: 16 },
-                                readOnly: isDeadlinePassed,
-                              }}
-                            />
-                          </div>
-                        </div>
+                          <>
+                            <div className="flex items-center gap-3">
+                              <a href={existingSubmissionFileHref} target="_blank" rel="noreferrer" className="text-sm underline">Lihat/Unduh file sebelumnya</a>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="secondary"
+                                onClick={handleRunCode}
+                                disabled={isRunning || !sourceCode.trim()}
+                                className="rounded-xl gap-2 shadow-sm border border-primary/20"
+                              >
+                                {isRunning ? (
+                                  <><Loader2 className="h-3.5 w-3.5 animate-spin" />Menjalankan...</>
+                                ) : (
+                                  <><Play className="h-3.5 w-3.5 fill-primary text-primary" />Run Code</>
+                                )}
+                              </Button>
+                            </div>
+
+                            <div className="border border-border/30 rounded-2xl overflow-hidden shadow-inner">
+                              <Editor
+                                height="350px"
+                                language="python"
+                                value={sourceCode}
+                                onChange={(val) => setSourceCode(val || "")}
+                                theme="vs-dark"
+                                options={{
+                                  minimap: { enabled: false },
+                                  fontSize: 14,
+                                  lineNumbers: "on",
+                                  scrollBeyondLastLine: false,
+                                  automaticLayout: true,
+                                  padding: { top: 16, bottom: 16 },
+                                  readOnly: isDeadlinePassed,
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
 
                         {compilerOutput && (
                           <motion.div 
