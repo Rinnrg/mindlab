@@ -727,67 +727,38 @@ export default function SubmitAsesmenPage({ params }: any) {
                   <AnimatePresence mode="wait">
                     {asesmen.submissionComponents.includes("UPLOAD_FILE") && (
                       <TabsContent value="file" key="file-tab" className="mt-0 focus-visible:outline-none">
-                      <motion.div
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 10 }}
-                        className="space-y-4"
-                      >
-                        {existingSubmissionFileHref && (
-                          <>
-                            <div className="flex items-center gap-3">
-                              <a href={existingSubmissionFileHref} target="_blank" rel="noreferrer" className="text-sm underline">Lihat/Unduh file sebelumnya</a>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                onClick={handleRunCode}
-                                disabled={isRunning || !sourceCode.trim()}
-                                className="rounded-xl gap-2 shadow-sm border border-primary/20"
-                              >
-                                {isRunning ? (
-                                  <><Loader2 className="h-3.5 w-3.5 animate-spin" />Menjalankan...</>
-                                ) : (
-                                  <><Play className="h-3.5 w-3.5 fill-primary text-primary" />Run Code</>
-                                )}
-                              </Button>
-                            </div>
+                        <div className="space-y-4">
+                          {existingSubmissionFileHref && (
+                            <Alert className="bg-primary/5 border-primary/20">
+                              <AlertDescription className="flex items-center gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-primary" />
+                                File tersimpan di sistem:{' '}
+                                <a
+                                  className="font-medium underline hover:text-primary transition-colors"
+                                  href={existingSubmissionFileHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  Download / Lihat File
+                                </a>
+                              </AlertDescription>
+                            </Alert>
+                          )}
 
-                            <div className="border border-border/30 rounded-2xl overflow-hidden shadow-inner">
-                              <Editor
-                                height="350px"
-                                language="python"
-                                value={sourceCode}
-                                onChange={(val) => setSourceCode(val || "")}
-                                theme="vs-dark"
-                                options={{
-                                  minimap: { enabled: false },
-                                  fontSize: 14,
-                                  lineNumbers: "on",
-                                  scrollBeyondLastLine: false,
-                                  automaticLayout: true,
-                                  padding: { top: 16, bottom: 16 },
-                                  readOnly: isDeadlinePassed,
-                                }}
-                              />
-                            </div>
-                          </>
-                        )}
-
-                        {compilerOutput && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-2"
-                          >
-                            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground ml-1">Terminal Output</Label>
-                            <div className="bg-zinc-950 text-emerald-400 p-5 rounded-2xl font-mono text-sm whitespace-pre-wrap max-h-[250px] overflow-y-auto border border-emerald-500/20 shadow-lg">
-                              {compilerOutput}
-                            </div>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    </TabsContent>
+                          <FileUploadField
+                            label="Link Tugas (Optional)"
+                            value={fileUrl}
+                            onChange={setFileUrl}
+                            accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.zip,.rar,.py,.ipynb,.txt"
+                            maxSizeMB={10}
+                            description={
+                              isDeadlinePassed
+                                ? "Deadline sudah lewat"
+                                : "Berikan link ke file (Google Drive, OneDrive, dll)"
+                            }
+                          />
+                        </div>
+                      </TabsContent>
                     )}
 
                     {asesmen.submissionComponents.includes("TEXT") && (
