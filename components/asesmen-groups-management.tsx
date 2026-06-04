@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { Loader2, Plus, Trash2, Users, UserPlus, X } from "lucide-react"
+import { PreviousGroupsSelector } from '@/components/previous-groups-selector'
 
 type Student = {
   id: string
@@ -276,6 +277,47 @@ export default function AsesmenGroupsManagement(props: { asesmenId: string; cour
           </div>
 
           <Separator />
+
+          {/* Previous groups importer - allows teacher to reuse groups from previous pengumpulan */}
+          {courseId && (
+            <div className="p-3 rounded border my-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium">Gunakan kelompok dari pengumpulan sebelumnya</div>
+                <Button size="sm" variant="outline" onClick={() => window.open(`/api/pengumpulan?proyekId=${courseId}`, '_blank')}>Buka API</Button>
+              </div>
+              <PreviousGroupsSelector courseId={courseId} students={students} onApplyGroup={async (g: any) => {
+                // Create new group then add anggota
+                try {
+                  setSaving(true)
+                  const nama = g.nama || `Kelompok Impor`
+                  const res = await fetch(`/api/asesmen/${asesmenId}/kelompok`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nama }),
+                  })
+                  const created = await res.json().catch(() => null)
+                  if (!res.ok) throw new Error(created?.error || 'Gagal membuat kelompok')
+                  const newId = created?.id || created?.kelompok?.id || created?.result?.id
+                  const memberIds: string[] = g.anggotaIds || (Array.isArray(g.anggota) ? g.anggota.map((a: any) => a.siswaId).filter(Boolean) : [])
+                  if (newId && memberIds.length > 0) {
+                    const r2 = await fetch(`/api/asesmen/${asesmenId}/kelompok/${newId}/anggota`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ anggotaIds: memberIds }),
+                    })
+                    const added = await r2.json().catch(() => null)
+                    if (!r2.ok) throw new Error(added?.error || 'Gagal menambahkan anggota ke kelompok')
+                  }
+                  await showSuccess('Berhasil', 'Kelompok berhasil diimpor')
+                  await fetchAll()
+                } catch (e: any) {
+                  showError('Error', e?.message || 'Gagal mengimpor kelompok')
+                } finally {
+                  setSaving(false)
+                }
+              }} />
+            </div>
+          )}
 
           <div className="space-y-2">
             {groups.length === 0 ? (

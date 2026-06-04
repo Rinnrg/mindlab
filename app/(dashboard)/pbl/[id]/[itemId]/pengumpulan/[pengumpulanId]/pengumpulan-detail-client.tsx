@@ -22,6 +22,7 @@ import {
   User,
   Users,
   Calendar,
+  Play,
   Code,
   MessageSquare,
   Trophy,
@@ -44,6 +45,7 @@ import { useAsyncAction } from "@/hooks/use-async-action"
 import { motion, AnimatePresence } from "framer-motion"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import dynamic from 'next/dynamic'
 
 interface PengumpulanDetailClientProps {
   courseId: string
@@ -131,6 +133,13 @@ export default function PengumpulanDetailClient({
     ? `/api/pengumpulan/${pengumpulan.id}/file`
     : null
   const fileHref = dbFileHref || pengumpulan.fileUrl
+
+  // Compiler state for teacher view (allow running code if source present)
+  const [teacherSource, setTeacherSource] = React.useState<string>(pengumpulan.sourceCode || "# Tulis kode Python di sini\nprint('Hello from teacher view')\n")
+  const [teacherOutput, setTeacherOutput] = React.useState<string>(pengumpulan.output || "")
+  const [teacherRunning, setTeacherRunning] = React.useState<boolean>(false)
+
+  const Editor = React.useMemo(() => dynamic(() => import('@monaco-editor/react'), { ssr: false }), [])
 
   const onSaveGrade = async (isValidated: boolean = false) => {
     if (!nilai) {
@@ -325,6 +334,63 @@ export default function PengumpulanDetailClient({
                           </div>
                         </div>
                       )}
+
+                      {/* Teacher-side compiler: allow running the code preview for teachers */}
+                      <div className="pt-4 border-t border-border/30">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Code className="h-4 w-4 text-primary" />
+                            <h4 className="font-semibold text-sm">Compiler (Guru)</h4>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={async () => {
+                              if (!teacherSource.trim()) return
+                              setTeacherRunning(true)
+                              setTeacherOutput("")
+                              try {
+                                const res = await fetch('/api/compiler', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ code: teacherSource }),
+                                })
+                                const data = await res.json()
+                                const output = [data.stdout, data.stderr].filter(Boolean).join('\n')
+                                setTeacherOutput(output || '(no output)')
+                              } catch (e) {
+                                setTeacherOutput('Error: Gagal menjalankan kode')
+                              } finally {
+                                setTeacherRunning(false)
+                              }
+                            }}
+                            disabled={teacherRunning}
+                            className="gap-2 h-8"
+                          >
+                            {teacherRunning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Run
+                          </Button>
+                        </div>
+
+                        <div className="mt-3 border border-border/30 rounded-2xl overflow-hidden">
+                          {/* @ts-ignore */}
+                          <Editor
+                            height="220px"
+                            language="python"
+                            value={teacherSource}
+                            onChange={(v: any) => setTeacherSource(v || '')}
+                            theme="vs-dark"
+                            options={{ minimap: { enabled: false }, fontSize: 13, automaticLayout: true, scrollBeyondLastLine: false }}
+                          />
+                        </div>
+
+                        {teacherOutput && (
+                          <div className="mt-3">
+                            <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground ml-1">Terminal Output</Label>
+                            <div className="bg-zinc-950 text-emerald-400 p-4 rounded-2xl font-mono text-sm whitespace-pre-wrap max-h-[220px] overflow-y-auto border border-emerald-500/20 shadow-lg">
+                              {teacherOutput}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="p-12 text-center">

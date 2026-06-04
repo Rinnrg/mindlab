@@ -701,6 +701,64 @@ export default function SubmitAsesmenPage({ params }: any) {
                         )}
                       </div>
                     )}
+
+                    {asesmen.submissionComponents.includes("COMPILER") && (
+                      <TabsContent value="compiler" key="compiler-tab" className="mt-0 focus-visible:outline-none">
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="space-y-4"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-sm font-semibold">Python Compiler</Label>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleRunCode}
+                                disabled={isRunning || !sourceCode.trim()}
+                                className="gap-2 h-8"
+                              >
+                                {isRunning ? (
+                                  <><Loader2 className="h-3 w-3 animate-spin" />Menjalankan...</>
+                                ) : (
+                                  <><Play className="h-3 w-3" />Run Code</>
+                                )}
+                              </Button>
+                            </div>
+
+                            <div className="border border-border/30 rounded-2xl overflow-hidden shadow-inner">
+                              <Editor
+                                height="350px"
+                                language="python"
+                                value={sourceCode}
+                                onChange={(val) => setSourceCode(val || "")}
+                                theme="vs-dark"
+                                options={{
+                                  minimap: { enabled: false },
+                                  fontSize: 14,
+                                  lineNumbers: "on",
+                                  scrollBeyondLastLine: false,
+                                  automaticLayout: true,
+                                  padding: { top: 16, bottom: 16 },
+                                  readOnly: isDeadlinePassed,
+                                }}
+                              />
+                            </div>
+
+                            {compilerOutput && (
+                              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
+                                <Label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground ml-1">Terminal Output</Label>
+                                <div className="bg-zinc-950 text-emerald-400 p-5 rounded-2xl font-mono text-sm whitespace-pre-wrap max-h-[250px] overflow-y-auto border border-emerald-500/20 shadow-lg">
+                                  {compilerOutput}
+                                </div>
+                              </motion.div>
+                            )}
+                          </div>
+                        </motion.div>
+                      </TabsContent>
+                    )}
                   </div>
 
                   <TabsList className="ios-tab-list w-full max-w-xl mx-auto mb-8 overflow-x-auto flex-nowrap">
