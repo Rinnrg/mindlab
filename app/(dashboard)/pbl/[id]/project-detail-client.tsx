@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useBreadcrumbPage } from "@/hooks/use-breadcrumb"
 import type { Course, Asesmen, Materi } from "@/lib/types"
@@ -18,7 +18,9 @@ import {
   BookOpen,
   Calendar,
   Pencil,
-  Trash2
+  Trash2,
+  Lock,
+  CheckCircle2
 } from "lucide-react"
 import Link from "next/link"
 import { AnimateIn } from "@/components/ui/animate-in"
@@ -46,6 +48,45 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
   const { execute, ActionFeedback } = useAsyncAction()
 
   const [activeSintak, setActiveSintak] = useState("1")
+
+  // ── Sintak locking (only for SISWA) ──────────────────────────────────
+  const isSiswa = user?.role === "SISWA"
+  const [unlockedSintaks, setUnlockedSintaks] = useState<string[]>(["1", "2", "3", "4", "5"])
+  const [completedSintaks, setCompletedSintaks] = useState<string[]>([])
+  const [loadingSintakStatus, setLoadingSintakStatus] = useState(false)
+
+  const fetchSintakStatus = useCallback(async () => {
+    if (!isSiswa || !user?.id) return
+    setLoadingSintakStatus(true)
+    try {
+      const res = await fetch(`/api/pbl/${course.id}/sintak-status?siswaId=${user.id}`)
+      if (res.ok) {
+        const data = await res.json()
+        setUnlockedSintaks(data.unlockedSintaks ?? ["1"])
+        setCompletedSintaks(data.completedSintaks ?? [])
+      }
+    } catch {
+      // Jika gagal, biarkan semua terbuka agar tidak memblokir siswa
+    } finally {
+      setLoadingSintakStatus(false)
+    }
+  }, [isSiswa, user?.id, course.id])
+
+  useEffect(() => {
+    fetchSintakStatus()
+  }, [fetchSintakStatus])
+
+  const isSintakLocked = (sintakId: string) =>
+    isSiswa && !loadingSintakStatus && !unlockedSintaks.includes(sintakId)
+
+  const isSintakCompleted = (sintakId: string) =>
+    completedSintaks.includes(sintakId)
+
+  const handleTabChange = (value: string) => {
+    if (isSintakLocked(value)) return
+    setActiveSintak(value)
+  }
+  // ─────────────────────────────────────────────────────────────────────
 
   const filteredMateri = useMemo(() => {
   return (course.materi || []).filter(m => (m.origin === 'PBL' || !m.origin) && (m.sintak || "1") === activeSintak)
@@ -147,18 +188,35 @@ export default function PblDetailClient({ course, assessments }: PblDetailClient
       </AnimateIn>
 
       <AnimateIn stagger={1}>
-        <Tabs value={activeSintak} onValueChange={setActiveSintak} className="space-y-6">
+        <Tabs value={activeSintak} onValueChange={handleTabChange} className="space-y-6">
           <div className="w-[calc(100%+2rem)] sm:w-full overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
             <TabsList className="ios-tab-list min-w-max">
-              {SINTAKS_PHASES.map((phase) => (
-                <TabsTrigger
-                  key={phase.id}
-                  value={phase.id}
-                  className="ios-tab-trigger"
-                >
-                  <span className="ios-tab-text">Sintak {phase.id}</span>
-                </TabsTrigger>
-              ))}
+              {SINTAKS_PHASES.map((phase) => {
+                const locked = isSintakLocked(phase.id)
+                const completed = isSintakCompleted(phase.id)
+                return (
+                  <TabsTrigger
+                    key={phase.id}
+                    value={phase.id}
+                    disabled={locked}
+                    className={
+                      locked
+                        ? "ios-tab-trigger opacity-40 cursor-not-allowed select-none"
+                        : "ios-tab-trigger"
+                    }
+                    title={locked ? `Selesaikan Sintak ${Number(phase.id) - 1} terlebih dahulu` : undefined}
+                  >
+                    <span className="ios-tab-text flex items-center gap-1.5">
+                      {locked ? (
+                        <Lock className="h-3 w-3 shrink-0" />
+                      ) : completed ? (
+                        <CheckCircle2 className="h-3 w-3 shrink-0 text-green-500" />
+                      ) : null}
+                      Sintak {phase.id}
+                    </span>
+                  </TabsTrigger>
+                )
+              })}
             </TabsList>
           </div>
 
