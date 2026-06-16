@@ -39,7 +39,6 @@ export default function DashboardPage() {
   const [courses, setCourses] = useState<any[]>([])
   const [scheduleEvents, setScheduleEvents] = useState<any[]>([])
   const [asesmenList, setAsesmenList] = useState<any[]>([])
-  const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -54,7 +53,7 @@ export default function DashboardPage() {
       setLoading(true)
       
       // Fetch semua data secara paralel dengan client-side caching (60s TTL)
-      const [statsData, coursesData, scheduleData, asesmenData, activityData] = await Promise.all([
+      const [statsData, coursesData, scheduleData, asesmenData] = await Promise.all([
         fetchJSON(`/api/stats?userId=${user.id}&role=${user.role}`, 60000),
         user.role === 'SISWA' 
           ? fetchJSON(`/api/courses?siswaId=${user.id}`, 300000)
@@ -65,7 +64,6 @@ export default function DashboardPage() {
         user.role === 'GURU'
           ? fetchJSON(`/api/asesmen?guruId=${user.id}`, 120000)
           : fetchJSON('/api/asesmen', 120000),
-        fetchJSON(`/api/activity?userId=${user.id}&role=${user.role}`, 60000),
       ])
 
       // Set semua state in one batch
@@ -73,7 +71,6 @@ export default function DashboardPage() {
       setCourses(coursesData.courses || [])
       setScheduleEvents(scheduleData.schedule || [])
       setAsesmenList(asesmenData.asesmen || [])
-      setActivities(activityData.activities || [])
 
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') return
@@ -415,28 +412,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent Activity - Full width */}
-      {(user.role === "ADMIN" || user.role === "GURU" || user.role === "SISWA") && (
-        <Card className="border-border/50 p-3 sm:p-5">
-          <h3 className="mb-3 text-sm font-semibold sm:mb-4 sm:text-base">Aktivitas Terbaru</h3>
-          <div className="grid gap-2 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-            {activities.slice(0, 4).map((activity, index) => (
-              <div key={index} className="flex items-start gap-2 rounded-lg bg-muted/30 p-2 sm:gap-3 sm:p-3">
-                <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                <div className="space-y-0.5 min-w-0">
-                  <p className="text-xs sm:text-sm">
-                    <span className="font-medium capitalize">{activity.action}</span>{" "}
-                    <span className="text-muted-foreground line-clamp-1">{activity.item}</span>
-                  </p>
-                  <p className="text-[10px] text-muted-foreground sm:text-xs">
-                    {formatTimeAgo(activity.time)}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+
     </div>
   )
 }
