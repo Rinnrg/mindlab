@@ -28,7 +28,8 @@ import {
   Trophy,
   Loader2,
   Table as TableIcon,
-  Info
+  Info,
+  AlignLeft
 } from "lucide-react"
 import { 
   Table, 
@@ -138,6 +139,8 @@ export default function PengumpulanDetailClient({
   const [teacherSource, setTeacherSource] = React.useState<string>(pengumpulan.sourceCode || "# Tulis kode Python di sini\nprint('Hello from teacher view')\n")
   const [teacherOutput, setTeacherOutput] = React.useState<string>(pengumpulan.output || "")
   const [teacherRunning, setTeacherRunning] = React.useState<boolean>(false)
+  const [teacherStdin, setTeacherStdin] = React.useState<string>("")
+  const [showTeacherStdin, setShowTeacherStdin] = React.useState<boolean>(false)
 
   const Editor = React.useMemo(() => dynamic(() => import('@monaco-editor/react'), { ssr: false }), [])
 
@@ -342,32 +345,50 @@ export default function PengumpulanDetailClient({
                             <Code className="h-4 w-4 text-primary" />
                             <h4 className="font-semibold text-sm">Compiler (Guru)</h4>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={async () => {
-                              if (!teacherSource.trim()) return
-                              setTeacherRunning(true)
-                              setTeacherOutput("")
-                              try {
-                                const res = await fetch('/api/compiler', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ code: teacherSource }),
-                                })
-                                const data = await res.json()
-                                const output = [data.stdout, data.stderr].filter(Boolean).join('\n')
-                                setTeacherOutput(output || '(no output)')
-                              } catch (e) {
-                                setTeacherOutput('Error: Gagal menjalankan kode')
-                              } finally {
-                                setTeacherRunning(false)
-                              }
-                            }}
-                            disabled={teacherRunning}
-                            className="gap-2 h-8"
-                          >
-                            {teacherRunning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Run
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setShowTeacherStdin(!showTeacherStdin)}
+                              className={`gap-1.5 h-8 text-xs ${
+                                showTeacherStdin
+                                  ? "bg-orange-500/10 text-orange-500 hover:bg-orange-500/20"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              <AlignLeft className="h-3 w-3" />
+                              stdin
+                              {teacherStdin && (
+                                <span className="h-1.5 w-1.5 rounded-full bg-orange-500" />
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                if (!teacherSource.trim()) return
+                                setTeacherRunning(true)
+                                setTeacherOutput("")
+                                try {
+                                  const res = await fetch('/api/compiler', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ code: teacherSource, stdin: teacherStdin }),
+                                  })
+                                  const data = await res.json()
+                                  const output = [data.stdout, data.stderr].filter(Boolean).join('\n')
+                                  setTeacherOutput(output || '(no output)')
+                                } catch (e) {
+                                  setTeacherOutput('Error: Gagal menjalankan kode')
+                                } finally {
+                                  setTeacherRunning(false)
+                                }
+                              }}
+                              disabled={teacherRunning}
+                              className="gap-2 h-8"
+                            >
+                              {teacherRunning ? <Loader2 className="h-3 w-3 animate-spin" /> : <Play className="h-3 w-3" />} Run
+                            </Button>
+                          </div>
                         </div>
 
                         <div className="mt-3 border border-border/30 rounded-2xl overflow-hidden">
@@ -381,6 +402,24 @@ export default function PengumpulanDetailClient({
                             options={{ minimap: { enabled: false }, fontSize: 13, automaticLayout: true, scrollBeyondLastLine: false }}
                           />
                         </div>
+
+                        {/* Stdin panel */}
+                        {showTeacherStdin && (
+                          <div className="mt-3 border border-orange-500/20 rounded-2xl overflow-hidden bg-orange-500/5">
+                            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-orange-500/10">
+                              <AlignLeft className="h-3 w-3 text-orange-500" />
+                              <span className="text-[11px] font-semibold text-orange-500 uppercase tracking-wider">Input (stdin)</span>
+                              <span className="text-[10px] text-muted-foreground ml-auto">Tulis input baris per baris</span>
+                            </div>
+                            <textarea
+                              value={teacherStdin}
+                              onChange={(e) => setTeacherStdin(e.target.value)}
+                              placeholder={`Contoh:\n150000\nya`}
+                              rows={3}
+                              className="w-full px-4 py-2 text-sm font-mono resize-y bg-transparent border-none focus:outline-none focus:ring-0 placeholder:text-muted-foreground/40 min-h-[64px] max-h-[200px]"
+                            />
+                          </div>
+                        )}
 
                         {teacherOutput && (
                           <div className="mt-3">

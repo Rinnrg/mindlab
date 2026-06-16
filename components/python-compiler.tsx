@@ -35,6 +35,7 @@ import {
   Package,
   Braces,
   SquareTerminal,
+  AlignLeft,
 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
@@ -61,6 +62,8 @@ type OutputSegment = {
 type CodeCell = {
   id: string
   code: string
+  stdin: string
+  showStdin: boolean
   output: string
   isError: boolean
   executionCount: number | null
@@ -92,6 +95,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
     {
       id: `cell-${cellIdCounter++}`,
       code: DEFAULT_PYTHON_CODE,
+      stdin: "",
+      showStdin: false,
       output: "",
       isError: false,
       executionCount: null,
@@ -112,6 +117,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
     const newCell: CodeCell = {
       id: `cell-${cellIdCounter++}`,
       code: "",
+      stdin: "",
+      showStdin: false,
       output: "",
       isError: false,
       executionCount: null,
@@ -161,6 +168,16 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
     setCells(cells.map((cell) => ({ ...cell, isFocused: cell.id === id })))
   }
 
+  // Update stdin for a cell
+  const updateCellStdin = (id: string, newStdin: string) => {
+    setCells(cells.map((cell) => (cell.id === id ? { ...cell, stdin: newStdin } : cell)))
+  }
+
+  // Toggle stdin visibility
+  const toggleCellStdin = (id: string) => {
+    setCells(cells.map((cell) => (cell.id === id ? { ...cell, showStdin: !cell.showStdin } : cell)))
+  }
+
   // Run all cells
   const runAllCells = async () => {
     for (const cell of cells) {
@@ -187,6 +204,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
           const newCells: CodeCell[] = notebook.cells.map((cell: { cell_type: string; source: string[] }) => ({
             id: `cell-${cellIdCounter++}`,
             code: Array.isArray(cell.source) ? cell.source.join("") : cell.source,
+            stdin: "",
+            showStdin: false,
             output: "",
             isError: false,
             executionCount: null,
@@ -206,6 +225,8 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
           {
             id: `cell-${cellIdCounter++}`,
             code: text,
+            stdin: "",
+            showStdin: false,
             output: "",
             isError: false,
             executionCount: null,
@@ -288,7 +309,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
   }
 
   // Execute Python code through our backend API (avoids CORS issues)
-  const runPythonCode = async (code: string, _cellId: string): Promise<string> => {
+  const runPythonCode = async (code: string, _cellId: string, stdin: string = ""): Promise<string> => {
     try {
       const response = await fetch("/api/compiler", {
         method: "POST",
@@ -297,6 +318,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
         },
         body: JSON.stringify({
           code: code,
+          stdin: stdin,
         }),
       })
 
@@ -372,7 +394,7 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
     // For other code, send it to the API as-is
 
     // Run Python code via backend API
-    const output = await runPythonCode(codeToRun, cellId)
+    const output = await runPythonCode(codeToRun, cellId, cell.stdin || "")
 
     // Determine if the output is an error based on Python traceback patterns
     const isError =
@@ -748,24 +770,50 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                     {/* Cell actions */}
                     <div className="flex items-center gap-0.5">
                       {(!cell.cellType || cell.cellType === "code") && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            runCell(cell.id)
-                          }}
-                          disabled={cell.isRunning}
-                          className={cn(
-                            "h-7 flex items-center gap-1 px-2 rounded-lg",
-                            "text-xs font-medium transition-all duration-200",
-                            "cursor-pointer active:scale-95",
-                            cell.isRunning
-                              ? "opacity-50 cursor-not-allowed"
-                              : "bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20"
-                          )}
-                        >
-                          <Play className="h-3 w-3" fill="currentColor" />
-                          <span className="inline">Jalankan</span>
-                        </button>
+                        <>
+                          {/* Toggle stdin button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleCellStdin(cell.id)
+                            }}
+                            title="Input (stdin)"
+                            className={cn(
+                              "h-7 flex items-center gap-1 px-2 rounded-lg",
+                              "text-xs font-medium transition-all duration-200",
+                              "cursor-pointer active:scale-95",
+                              cell.showStdin
+                                ? "bg-orange-500/20 text-orange-500 dark:text-orange-400"
+                                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                            )}
+                          >
+                            <AlignLeft className="h-3 w-3" />
+                            <span className="inline">stdin</span>
+                            {cell.stdin && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-orange-500 flex-shrink-0" />
+                            )}
+                          </button>
+
+                          {/* Run button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              runCell(cell.id)
+                            }}
+                            disabled={cell.isRunning}
+                            className={cn(
+                              "h-7 flex items-center gap-1 px-2 rounded-lg",
+                              "text-xs font-medium transition-all duration-200",
+                              "cursor-pointer active:scale-95",
+                              cell.isRunning
+                                ? "opacity-50 cursor-not-allowed"
+                                : "bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20"
+                            )}
+                          >
+                            <Play className="h-3 w-3" fill="currentColor" />
+                            <span className="inline">Jalankan</span>
+                          </button>
+                        </>
                       )}
 
                       <button
@@ -840,6 +888,32 @@ export default function PythonCompiler({ onBack }: PythonCompilerProps) {
                       </div>
                     )}
                   </div>
+
+                  {/* ─── Stdin Panel ─── */}
+                  {(!cell.cellType || cell.cellType === "code") && cell.showStdin && (
+                    <div className={cn(
+                      "border-t border-orange-500/20 bg-orange-500/5",
+                    )}>
+                      <div className="flex items-center gap-2 px-3 py-1.5">
+                        <AlignLeft className="h-3 w-3 text-orange-500" />
+                        <span className="text-[11px] font-semibold text-orange-500 uppercase tracking-wider">Input (stdin)</span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">Tulis input baris per baris, tekan Enter untuk baris baru</span>
+                      </div>
+                      <textarea
+                        value={cell.stdin}
+                        onChange={(e) => updateCellStdin(cell.id, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder={`Contoh:\n150000\nya`}
+                        rows={3}
+                        className={cn(
+                          "w-full px-4 py-2 text-sm font-mono resize-y",
+                          "bg-transparent border-none focus:outline-none focus:ring-0",
+                          "placeholder:text-muted-foreground/40 text-foreground",
+                          "min-h-[64px] max-h-[200px]"
+                        )}
+                      />
+                    </div>
+                  )}
 
                   {/* ─── Output Area ─── */}
                   {(cell.output || (cell.outputSegments && cell.outputSegments.length > 0)) && (

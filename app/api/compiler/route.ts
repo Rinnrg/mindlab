@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Try Godbolt (Compiler Explorer) first - most reliable free API
-    const godboltResult = await tryGodbolt(code)
+    const godboltResult = await tryGodbolt(code, stdin || "")
     if (godboltResult) {
       return NextResponse.json(godboltResult)
     }
 
     // Fallback to Wandbox API with correct compiler version
-    const wandboxResult = await tryWandbox(code)
+    const wandboxResult = await tryWandbox(code, stdin || "")
     if (wandboxResult) {
       return NextResponse.json(wandboxResult)
     }
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 }
 
 // Godbolt Compiler Explorer - Free, no API key needed, very reliable
-async function tryGodbolt(code: string): Promise<{ stdout: string; stderr: string; exitCode: number } | null> {
+async function tryGodbolt(code: string, stdin: string = ""): Promise<{ stdout: string; stderr: string; exitCode: number } | null> {
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 20000)
@@ -62,7 +62,7 @@ async function tryGodbolt(code: string): Promise<{ stdout: string; stderr: strin
         options: {
           executeParameters: {
             args: [],
-            stdin: "",
+            stdin: stdin,
           },
           compilerOptions: {
             executorRequest: true,
@@ -108,7 +108,7 @@ async function tryGodbolt(code: string): Promise<{ stdout: string; stderr: strin
 
 // Wandbox API - Free, no API key needed
 // Uses correct compiler names from https://wandbox.org/api/list.json
-async function tryWandbox(code: string): Promise<{ stdout: string; stderr: string; exitCode: number } | null> {
+async function tryWandbox(code: string, stdin: string = ""): Promise<{ stdout: string; stderr: string; exitCode: number } | null> {
   // Try multiple compiler versions in case one is temporarily broken
   const compilerVersions = ["cpython-3.12.7", "cpython-3.13.8", "cpython-3.11.10"]
 
@@ -123,6 +123,7 @@ async function tryWandbox(code: string): Promise<{ stdout: string; stderr: strin
         body: JSON.stringify({
           code: code,
           compiler: compiler,
+          stdin: stdin,
         }),
         signal: controller.signal,
       })
