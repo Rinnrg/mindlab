@@ -46,7 +46,7 @@ export default function AddUserPage() {
       const response = await fetch("/api/kelas")
       if (!response.ok) throw new Error("Gagal mengambil data kelas")
       const data = await response.json()
-      setAvailableClasses(data.classes || [])
+      setAvailableClasses((data.kelas || []).map((k: { id: string; nama: string }) => k.nama))
     } catch (error) {
       console.error("Error fetching classes:", error)
       setAvailableClasses([])
