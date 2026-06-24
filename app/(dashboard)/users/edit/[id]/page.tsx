@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, Mail, Lock, AtSign, Upload, Loader2 } from "lucide-react"
+import { User, Mail, Lock, AtSign, Upload, Loader2, GraduationCap } from "lucide-react"
 import Link from "next/link"
 import { useAdaptiveAlert } from "@/components/ui/adaptive-alert"
 import { useAsyncAction } from "@/hooks/use-async-action"
 import { AnimateIn } from "@/components/ui/animate-in"
+import { AddClassDialog } from "@/components/add-class-dialog"
 
 export default function EditUserPage() {
   const router = useRouter()
@@ -32,6 +33,38 @@ export default function EditUserPage() {
   const [kelas, setKelas] = useState("")
   const [foto, setFoto] = useState("")
   const [previewImage, setPreviewImage] = useState("")
+  const [availableClasses, setAvailableClasses] = useState<string[]>([])
+  const [loadingClasses, setLoadingClasses] = useState(false)
+
+  // Fetch kelas yang tersedia
+  const fetchAvailableClasses = async (currentKelas?: string) => {
+    setLoadingClasses(true)
+    try {
+      const response = await fetch("/api/kelas")
+      if (!response.ok) throw new Error("Gagal mengambil data kelas")
+      const data = await response.json()
+      const fetchedClasses: string[] = (data.kelas || []).map((k: { id: string; nama: string }) => k.nama)
+      // Pastikan kelas user yang sedang diedit selalu ada di list
+      if (currentKelas && !fetchedClasses.includes(currentKelas)) {
+        fetchedClasses.push(currentKelas)
+        fetchedClasses.sort()
+      }
+      setAvailableClasses(fetchedClasses)
+    } catch (error) {
+      console.error("Error fetching classes:", error)
+      setAvailableClasses([])
+    } finally {
+      setLoadingClasses(false)
+    }
+  }
+
+  const handleClassAdded = (newClass: string) => {
+    setAvailableClasses(prev => {
+      if (prev.includes(newClass)) return prev
+      return [...prev, newClass].sort()
+    })
+    setKelas(newClass)
+  }
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -54,7 +87,7 @@ export default function EditUserPage() {
         setFoto(userData.foto || "")
         setPreviewImage(userData.foto || "")
       } catch (err) {
-  showError("Terjadi kesalahan", "Gagal memuat data pengguna")
+        showError("Terjadi kesalahan", "Gagal memuat data pengguna")
         console.error('Fetch error:', err)
       } finally {
         setLoading(false)
@@ -65,6 +98,13 @@ export default function EditUserPage() {
       fetchUser()
     }
   }, [userId, showError])
+
+  // Fetch kelas saat role adalah SISWA (teruskan kelas saat ini agar selalu ada di dropdown)
+  useEffect(() => {
+    if (role === "SISWA") {
+      fetchAvailableClasses(kelas)
+    }
+  }, [role])
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -261,14 +301,45 @@ export default function EditUserPage() {
               </div>
 
               {role === "SISWA" && (
-                <div className="space-y-2">
-                  <Label htmlFor="kelas">Kelas</Label>
-                  <Input
-                    id="kelas"
-                    placeholder="Masukkan kelas (contoh: 10 IPA 1)"
-                    value={kelas}
-                    onChange={(e) => setKelas(e.target.value)}
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="kelas">Kelas</Label>
+                  </div>
+                  {loadingClasses ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading kelas...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 border rounded-md p-4 bg-muted/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Pilih Kelas</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Select value={kelas} onValueChange={setKelas}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Pilih kelas yang sudah ada" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableClasses.map((className) => (
+                              <SelectItem key={className} value={className}>
+                                <div className="flex items-center">
+                                  <GraduationCap className="h-4 w-4 mr-2" />
+                                  {className}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <AddClassDialog onClassAdded={handleClassAdded} />
+                      </div>
+                      {kelas && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Kelas terpilih: <span className="font-medium text-foreground">{kelas}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
