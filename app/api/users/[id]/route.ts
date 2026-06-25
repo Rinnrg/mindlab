@@ -57,16 +57,22 @@ export async function PUT(
     const body = await request.json()
     const { username, email, nama, password, role, kelas, foto } = body
 
+    // Ambil data user lama untuk cek apakah kelas berubah
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      select: { kelas: true, role: true },
+    })
+
     // Check if email is being changed and already exists
     if (email) {
-      const existingUser = await prisma.user.findFirst({
+      const emailConflict = await prisma.user.findFirst({
         where: {
           email,
           NOT: { id },
         },
       })
 
-      if (existingUser) {
+      if (emailConflict) {
         return NextResponse.json(
           { error: 'Email sudah digunakan' },
           { status: 400 }
@@ -97,6 +103,36 @@ export async function PUT(
       },
     })
 
+    // Auto-enroll ke course jika kelas SISWA berubah ke kelas baru
+    const newRole = role || existingUser?.role
+    const newKelas = kelas !== undefined ? kelas : existingUser?.kelas
+    const kelasChanged = kelas !== undefined && kelas !== existingUser?.kelas
+
+    if (newRole === 'SISWA' && newKelas && kelasChanged) {
+      // Cari semua course yang sudah punya siswa dari kelas yang sama
+      const enrolledCourses = await prisma.enrollment.findMany({
+        where: {
+          siswa: { kelas: newKelas },
+          siswaId: { not: id }, // exclude user ini sendiri
+        },
+        select: { courseId: true },
+        distinct: ['courseId'],
+      })
+
+      // Daftarkan user ke semua course tersebut (skip jika sudah terdaftar)
+      if (enrolledCourses.length > 0) {
+        await Promise.all(
+          enrolledCourses.map((e) =>
+            prisma.enrollment.upsert({
+              where: { courseId_siswaId: { courseId: e.courseId, siswaId: id } },
+              update: {},
+              create: { courseId: e.courseId, siswaId: id },
+            })
+          )
+        )
+      }
+    }
+
     return NextResponse.json({ user })
   } catch (error) {
     console.error('Error updating user:', error)
@@ -106,6 +142,7 @@ export async function PUT(
     )
   }
 }
+
 
 // DELETE user
 export async function DELETE(
